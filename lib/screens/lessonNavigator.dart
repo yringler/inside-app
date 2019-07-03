@@ -47,8 +47,8 @@ class LessonNavigator extends StatelessWidget {
     String json =
         await DefaultAssetBundle.of(context).loadString("assets/data.json");
 
-    Map<String, dynamic> rawJsonOut = jsonDecode(json);
-    return rawJsonOut.map((key, value) =>
+    Map<String, Map<String, dynamic>> rawJsonOut = jsonDecode(json);
+    return rawJsonOut.map<String, SiteSection>((key, value) =>
         MapEntry<String, SiteSection>(key, SiteSection.fromJson(value)));
   }
 
