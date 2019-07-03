@@ -1,7 +1,7 @@
 import 'dart:core';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'data.g.dart';
+part 'siteSection.g.dart';
 
 @JsonSerializable()
 class SiteSection {
