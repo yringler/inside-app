@@ -44,10 +44,13 @@ class LessonNavigator extends StatelessWidget {
 
   Future<Map<String, SiteSection>> _getSiteSections(
       BuildContext context) async {
-    return await DefaultAssetBundle.of(context).loadStructuredData(
-        "assets/data.json",
-        (json) => jsonDecode(json)
-            .map((key, value) => MapEntry(key, SiteSection.fromJson(value))));
+    String json =
+        await DefaultAssetBundle.of(context).loadString("assets/data.json");
+
+    var data = jsonDecode(json)
+        .map((String key, value) => MapEntry<String, SiteSection>(key, SiteSection.fromJson(value)));
+
+    return Future.value(data);
   }
 
   Widget _lessonTile(Lesson lesson, BuildContext context) {
