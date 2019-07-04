@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/screens/lessonNavigator.dart';
+import 'package:inside_chassidus/screens/insidePage.dart';
 
 void main() => runApp(MyApp());
 
@@ -12,7 +13,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LessonNavigator(),
+      home: InsidePage(body: LessonNavigator()),
     );
   }
 }

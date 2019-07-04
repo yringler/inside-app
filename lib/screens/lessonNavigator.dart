@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/siteSection.dart';
+import 'package:inside_chassidus/screens/insidePage.dart';
 
 import 'lessonWidget.dart';
 
@@ -30,23 +31,22 @@ class LessonNavigator extends StatelessWidget {
 
     bool hasLessons = currentSection?.Lessons?.isNotEmpty ?? false;
 
-    return Material(
-      child: Column(
+    return Column(
         children: [
           if (currentSection != null) _sectionHeading(currentSection),
-          ListView(
-            children: [
-              if (sections != null)
-                for (var section in sections) _sectionTile(section, context),
-              if (hasLessons) Divider(),
-              if (currentSection?.Lessons != null)
-                for (var lesson in currentSection.Lessons)
-                  _lessonTile(lesson, context)
-            ],
-            shrinkWrap: true,
+          Flexible(
+            child: ListView(
+              children: [
+                if (sections != null)
+                  for (var section in sections) _sectionTile(section, context),
+                if (hasLessons) Divider(),
+                if (currentSection?.Lessons != null)
+                  for (var lesson in currentSection.Lessons)
+                    _lessonTile(lesson, context)
+              ],
+            ),
           ),
-        ],
-      ),
+        ]
     );
   }
 
@@ -63,8 +63,12 @@ class LessonNavigator extends StatelessWidget {
   Widget _lessonTile(Lesson lesson, BuildContext context) {
     return ListTile(
       title: Text(lesson.Title),
-      onTap: () => Navigator.push(context,
-          MaterialPageRoute(builder: (context) => LessonWidget(lesson))),
+      onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => InsidePage(
+                    body: LessonWidget(lesson),
+                  ))),
     );
   }
 
@@ -89,6 +93,8 @@ class LessonNavigator extends StatelessWidget {
         onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => LessonNavigator(_sections, section.ID))),
+                builder: (context) => InsidePage(
+                      body: LessonNavigator(_sections, section.ID),
+                    ))),
       );
 }

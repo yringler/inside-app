@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/siteSection.dart';
 
@@ -10,6 +8,6 @@ class LessonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(jsonEncode(_lesson));
+    return Text(_lesson.Title);
   }
 }
