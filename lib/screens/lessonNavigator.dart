@@ -21,24 +21,32 @@ class LessonNavigator extends StatelessWidget {
 
     var currentSection = _sections[_currentSection];
 
-    if (currentSection != null) {
-      sections = currentSection.Sections?.map((id) => _sections[id]);
+    if (currentSection?.Sections != null) {
+      sections = List.from(currentSection.Sections.map((id) => _sections[id]));
     } else {
-      sections = _sections.values.where((section) => section.IsTopLevel);
+      sections =
+          List.from(_sections.values.where((section) => section.IsTopLevel));
     }
 
-    bool hasLessons = currentSection?.Lessons?.isNotEmpty;
+    bool hasLessons = currentSection?.Lessons?.isNotEmpty ?? false;
 
-    return Column(
-      children: [
-        if (currentSection != null) _sectionHeading(currentSection),
-        ListView(children: [
-          for (var section in sections) _sectionTile(section, context),
-          if (hasLessons) Divider(),
-          for (var lesson in currentSection?.Lessons)
-            _lessonTile(lesson, context)
-        ]),
-      ],
+    return Material(
+      child: Column(
+        children: [
+          if (currentSection != null) _sectionHeading(currentSection),
+          ListView(
+            children: [
+              if (sections != null)
+                for (var section in sections) _sectionTile(section, context),
+              if (hasLessons) Divider(),
+              if (currentSection?.Lessons != null)
+                for (var lesson in currentSection.Lessons)
+                  _lessonTile(lesson, context)
+            ],
+            shrinkWrap: true,
+          ),
+        ],
+      ),
     );
   }
 
@@ -47,7 +55,7 @@ class LessonNavigator extends StatelessWidget {
     String json =
         await DefaultAssetBundle.of(context).loadString("assets/data.json");
 
-    Map<String, Map<String, dynamic>> rawJsonOut = jsonDecode(json);
+    Map<String, dynamic> rawJsonOut = jsonDecode(json);
     return rawJsonOut.map<String, SiteSection>((key, value) =>
         MapEntry<String, SiteSection>(key, SiteSection.fromJson(value)));
   }
