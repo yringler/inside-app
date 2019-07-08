@@ -31,23 +31,21 @@ class LessonNavigator extends StatelessWidget {
 
     bool hasLessons = currentSection?.Lessons?.isNotEmpty ?? false;
 
-    return Column(
-        children: [
-          if (currentSection != null) _sectionHeading(currentSection),
-          Flexible(
-            child: ListView(
-              children: [
-                if (sections != null)
-                  for (var section in sections) _sectionTile(section, context),
-                if (hasLessons) Divider(),
-                if (currentSection?.Lessons != null)
-                  for (var lesson in currentSection.Lessons)
-                    _lessonTile(lesson, context)
-              ],
-            ),
-          ),
-        ]
-    );
+    return Column(children: [
+      if (currentSection != null) _sectionHeading(currentSection),
+      Flexible(
+        child: ListView(
+          children: [
+            if (sections != null)
+              for (var section in sections) _sectionTile(section, context),
+            if (hasLessons) Divider(),
+            if (currentSection?.Lessons != null)
+              for (var lesson in currentSection.Lessons)
+                _lessonTile(lesson, context)
+          ],
+        ),
+      ),
+    ]);
   }
 
   Future<Map<String, SiteSection>> _getSiteSections(
@@ -55,9 +53,11 @@ class LessonNavigator extends StatelessWidget {
     String json =
         await DefaultAssetBundle.of(context).loadString("assets/data.json");
 
-    Map<String, dynamic> rawJsonOut = jsonDecode(json);
-    return rawJsonOut.map<String, SiteSection>((key, value) =>
-        MapEntry<String, SiteSection>(key, SiteSection.fromJson(value)));
+    List<dynamic> rawJsonOut = jsonDecode(json);
+    List<SiteSection> siteSections =
+        rawJsonOut.map((data) => SiteSection.fromJson(data));
+    return Map<String, SiteSection>.fromEntries(
+        siteSections.map((section) => MapEntry(section.ID, section)));
   }
 
   Widget _lessonTile(Lesson lesson, BuildContext context) {
