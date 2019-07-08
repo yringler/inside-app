@@ -8,6 +8,11 @@ class LessonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(_lesson.Title);
+    return Column(children: [
+      Text(_lesson.Title, textScaleFactor: 1.2,),
+      if (_lesson.Audio != null)
+        for (var audio in _lesson.Audio)
+          Text("For audio, go to: " + audio)
+      ],);
   }
 }

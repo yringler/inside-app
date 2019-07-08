@@ -23,7 +23,7 @@ class LessonNavigator extends StatelessWidget {
     var currentSection = _sections[_currentSection];
 
     if (currentSection?.Sections != null) {
-      sections = List.from(currentSection.Sections.map((id) => _sections[id]));
+      sections = List.from(currentSection.Sections.map((id) => _sections[id]).where((section) => section != null));
     } else {
       sections =
           List.from(_sections.values.where((section) => section.IsTopLevel));
@@ -37,7 +37,7 @@ class LessonNavigator extends StatelessWidget {
         child: ListView(
           children: [
             if (sections != null)
-              for (var section in sections) _sectionTile(section, context),
+              for (var section in sections ) _sectionTile(section, context),
             if (hasLessons) Divider(),
             if (currentSection?.Lessons != null)
               for (var lesson in currentSection.Lessons)
