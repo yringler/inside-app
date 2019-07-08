@@ -55,7 +55,7 @@ class LessonNavigator extends StatelessWidget {
 
     List<dynamic> rawJsonOut = jsonDecode(json);
     List<SiteSection> siteSections =
-        rawJsonOut.map((data) => SiteSection.fromJson(data));
+        List.from(rawJsonOut.map((data) => SiteSection.fromJson(data)));
     return Map<String, SiteSection>.fromEntries(
         siteSections.map((section) => MapEntry(section.ID, section)));
   }
