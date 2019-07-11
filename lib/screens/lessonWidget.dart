@@ -12,7 +12,7 @@ class LessonWidget extends StatelessWidget {
       Text(_lesson.Title, textScaleFactor: 1.2,),
       if (_lesson.Audio != null)
         for (var audio in _lesson.Audio)
-          Text("For audio, go to: " + audio)
+          Text("For audio:" + audio)
       ],);
   }
 }

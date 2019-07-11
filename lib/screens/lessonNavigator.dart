@@ -23,7 +23,8 @@ class LessonNavigator extends StatelessWidget {
     var currentSection = _sections[_currentSection];
 
     if (currentSection?.Sections != null) {
-      sections = List.from(currentSection.Sections.map((id) => _sections[id]).where((section) => section != null));
+      sections = List.from(currentSection.Sections.map((id) => _sections[id])
+          .where((section) => section != null));
     } else {
       sections =
           List.from(_sections.values.where((section) => section.IsTopLevel));
@@ -37,7 +38,7 @@ class LessonNavigator extends StatelessWidget {
         child: ListView(
           children: [
             if (sections != null)
-              for (var section in sections ) _sectionTile(section, context),
+              for (var section in sections) _sectionTile(section, context),
             if (hasLessons) Divider(),
             if (currentSection?.Lessons != null)
               for (var lesson in currentSection.Lessons)
@@ -53,11 +54,9 @@ class LessonNavigator extends StatelessWidget {
     String json =
         await DefaultAssetBundle.of(context).loadString("assets/data.json");
 
-    List<dynamic> rawJsonOut = jsonDecode(json);
-    List<SiteSection> siteSections =
-        List.from(rawJsonOut.map((data) => SiteSection.fromJson(data)));
-    return Map<String, SiteSection>.fromEntries(
-        siteSections.map((section) => MapEntry(section.ID, section)));
+    Map<String, dynamic> rawJsonOut = jsonDecode(json);
+    return rawJsonOut.map<String, SiteSection>((key, value) =>
+        MapEntry<String, SiteSection>(key, SiteSection.fromJson(value)));
   }
 
   Widget _lessonTile(Lesson lesson, BuildContext context) {
