@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/screens/lessonNavigator.dart';
-import 'package:inside_chassidus/screens/insidePage.dart';
 
 void main() => runApp(MyApp());
 
@@ -9,11 +7,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Inside Chasidus',
+      title: 'Inside Chassidus',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.grey
       ),
-      home: InsidePage(body: LessonNavigator()),
+      routes: <String, WidgetBuilder> {
+        '/classes': (BuildContext context) => 
+      },
     );
   }
 }
