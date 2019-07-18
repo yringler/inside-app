@@ -9,7 +9,9 @@ class TopLessons extends StatelessWidget {
         title: _title(context),
       ),
       body: Row(
-        children: [_search(), _sections()],
+        children: [
+          _search(),
+          _sections()],
       ),
     );
   }
@@ -27,9 +29,11 @@ class TopLessons extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 4),
         child: TextField(
           decoration: InputDecoration(
-            hintText: "Search",
-            suffixIcon: Icon(Icons.search)
-            ),
+              hintText: "Search", suffixIcon: Icon(Icons.search)),
         ));
+  }
+
+  Widget _sections() {
+    return Container();
   }
 }
