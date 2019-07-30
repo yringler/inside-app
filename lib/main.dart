@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.grey
       ),
       routes: <String, WidgetBuilder> {
-        '/classes': (BuildContext context) => 
+        '/classes': (BuildContext context) => null
       },
     );
   }
