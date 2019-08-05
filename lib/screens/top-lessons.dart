@@ -8,7 +8,7 @@ class TopLessons extends StatelessWidget {
         backgroundColor: Colors.white,
         title: _title(context),
       ),
-      body: Row(
+      body: Column(
         children: [
           _search(),
           _sections()],
