@@ -17,12 +17,16 @@ abstract class InsideDataBase {
 class InsideData {
   Map<String, SiteSection> sections;
   Map<String, Lesson> lessons;
-  List<String> topLevel;
+  List<PrimaryInside> topLevel;
 
   InsideData(this.sections, this.lessons, this.topLevel);
 
-  factory InsideData.fromJson(Map<String, dynamic> json) =>
-      _$InsideDataFromJson(json);
+  factory InsideData.fromJson(Map<String, dynamic> json) {
+    var insideData = _$InsideDataFromJson(json);
+    insideData.topLevel
+        .forEach((item) => item.section = insideData.sections[item.id]);
+    return insideData;
+  }
 
   /// Returns subsections of the given section.
   Iterable<SiteSection> getSections(SiteSection section) sync* {
@@ -45,17 +49,20 @@ class InsideData {
       yield lessons[lessonId];
     }
   }
+}
 
-  /// Returns all top level sections.
-  Iterable<SiteSection> getTopLevel() sync* {
-    if (topLevel?.isEmpty ?? true) {
-      return;
-    }
+@JsonSerializable(fieldRename: FieldRename.pascal)
+class PrimaryInside {
+  final String id;
+  final String image;
 
-    for (var childId in topLevel) {
-      yield sections[childId];
-    }
-  }
+  @JsonKey(ignore: true)
+  SiteSection section;
+
+  PrimaryInside({this.id, this.image});
+
+  factory PrimaryInside.fromJson(Map<String, dynamic> json) =>
+      _$PrimaryInsideFromJson(json);
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inside_chassidus/screens/top-lessons.dart';
 
 void main() => runApp(MyApp());
 
@@ -14,6 +15,7 @@ class MyApp extends StatelessWidget {
       routes: <String, WidgetBuilder> {
         '/classes': (BuildContext context) => null
       },
+      home: TopLessons(),
     );
   }
 }

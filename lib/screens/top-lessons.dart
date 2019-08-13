@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inside_chassidus/widgets/inside-data-retriever.dart';
 
 class TopLessons extends StatelessWidget {
   @override
@@ -9,9 +10,7 @@ class TopLessons extends StatelessWidget {
         title: _title(context),
       ),
       body: Column(
-        children: [
-          _search(),
-          _sections()],
+        children: [_search(), _sections()],
       ),
     );
   }
@@ -20,7 +19,7 @@ class TopLessons extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 16),
       child: Text("Inside Chassidus",
-          style: Theme.of(context).appBarTheme.textTheme.title),
+          style: Theme.of(context).appBarTheme.textTheme?.title ),
     );
   }
 
@@ -33,7 +32,19 @@ class TopLessons extends StatelessWidget {
         ));
   }
 
-  Widget _sections() {
-    return Container();
-  }
+  Widget _sections() =>
+    InsideDataRetriever(builder: (context, data) {
+      return GridView.extent(
+        maxCrossAxisExtent: 200,
+        padding: const EdgeInsets.all(4),
+        mainAxisSpacing: 4,
+        crossAxisSpacing: 4,
+        children: List.from(data.topLevel.map((topLevel) => Image.network(
+              topLevel.image,
+              scale: 1.0,
+              repeat: ImageRepeat.noRepeat,
+              fit: BoxFit.cover,
+            ))),
+      );
+    });
 }
