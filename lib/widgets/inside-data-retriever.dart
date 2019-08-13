@@ -19,10 +19,10 @@ class InsideDataRetriever extends StatelessWidget {
     return FutureBuilder<InsideData>(
       future: _getData(context),
       builder: (context, snapShot) {
-        debugPrint("hasData: " + snapShot.hasData.toString());
-
         if (snapShot.hasData) {
           return builder(context, snapShot.data);
+        } else if (snapShot.hasError) {
+          return ErrorWidget(snapShot.error);
         } else {
           return CircularProgressIndicator();
         }
