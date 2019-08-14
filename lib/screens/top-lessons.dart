@@ -35,8 +35,7 @@ class TopLessons extends StatelessWidget {
                   mainAxisSpacing: 4,
                   crossAxisSpacing: 4,
                   children: [
-                    for (var topItem in data.topLevel)
-                      _primarySection(topItem)
+                    for (var topItem in data.topLevel) _primarySection(topItem)
                   ])));
 
   Widget _primarySection(PrimaryInside primaryInside) => Image.network(
