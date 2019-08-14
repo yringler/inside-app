@@ -19,7 +19,7 @@ class TopLessons extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 16),
       child: Text("Inside Chassidus",
-          style: Theme.of(context).appBarTheme.textTheme?.title ),
+          style: Theme.of(context).appBarTheme.textTheme?.title),
     );
   }
 
@@ -32,19 +32,19 @@ class TopLessons extends StatelessWidget {
         ));
   }
 
-  Widget _sections() =>
-    InsideDataRetriever(builder: (context, data) {
-      return GridView.extent(
-        maxCrossAxisExtent: 200,
-        padding: const EdgeInsets.all(4),
-        mainAxisSpacing: 4,
-        crossAxisSpacing: 4,
-        children: List.from(data.topLevel.map((topLevel) => Image.network(
-              topLevel.image,
-              scale: 1.0,
-              repeat: ImageRepeat.noRepeat,
-              fit: BoxFit.cover,
-            ))),
-      );
-    });
+  Widget _sections() => Expanded(
+      child: InsideDataRetriever(
+          builder: (context, data) => GridView.extent(
+              maxCrossAxisExtent: 200,
+              padding: const EdgeInsets.all(4),
+              mainAxisSpacing: 4,
+              crossAxisSpacing: 4,
+              children: List.from(data.topLevel.map((topLevel) => Image.network(
+                    topLevel.image,
+                    scale: 1.0,
+                    repeat: ImageRepeat.noRepeat,
+                    fit: BoxFit.cover,
+                    height: 50,
+                    width: 50,
+                  ))))));
 }

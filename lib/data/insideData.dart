@@ -89,7 +89,7 @@ class SiteSection extends InsideDataBase {
 @JsonSerializable(fieldRename: FieldRename.pascal)
 class Lesson extends InsideDataBase {
   final String id;
-  final List<String> audio;
+  final List<Media> audio;
 
   Lesson(
       {this.id, this.audio, String title, String description, List<String> pdf})
