@@ -30,11 +30,14 @@ class TopLessons extends StatelessWidget {
   Widget _sections() => Expanded(
       child: InsideDataRetriever(
           builder: (context, data) => GridView.extent(
-              maxCrossAxisExtent: 200,
-              padding: const EdgeInsets.all(4),
-              mainAxisSpacing: 4,
-              crossAxisSpacing: 4,
-              children: List.from(data.topLevel.map(_primarySection)))));
+                  maxCrossAxisExtent: 200,
+                  padding: const EdgeInsets.all(4),
+                  mainAxisSpacing: 4,
+                  crossAxisSpacing: 4,
+                  children: [
+                    for (var topItem in data.topLevel)
+                      _primarySection(topItem)
+                  ])));
 
   Widget _primarySection(PrimaryInside primaryInside) => Image.network(
         primaryInside.image,
