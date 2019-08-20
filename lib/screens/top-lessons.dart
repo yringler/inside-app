@@ -29,8 +29,8 @@ class TopLessons extends StatelessWidget {
 
   Widget _sections() => Expanded(
       child: InsideDataRetriever(
-          builder: (context, data) => GridView.extent(
-                  maxCrossAxisExtent: 200,
+          builder: (context, data) => GridView.count(
+                  crossAxisCount: 2,
                   padding: const EdgeInsets.all(4),
                   mainAxisSpacing: 4,
                   crossAxisSpacing: 4,
@@ -38,12 +38,34 @@ class TopLessons extends StatelessWidget {
                     for (var topItem in data.topLevel) _primarySection(topItem)
                   ])));
 
-  Widget _primarySection(PrimaryInside primaryInside) => Image.network(
-        primaryInside.image,
-        scale: 1.0,
-        repeat: ImageRepeat.noRepeat,
-        fit: BoxFit.cover,
-        height: 50,
-        width: 50,
+  Widget _primarySection(PrimaryInside primaryInside) => Stack(
+        overflow: Overflow.clip,
+        alignment: Alignment.bottomLeft,
+        children: <Widget>[
+          Image.network(
+            primaryInside.image,
+            scale: 1.0,
+            repeat: ImageRepeat.noRepeat,
+            fit: BoxFit.cover,
+            height: 500,
+            width: 500,
+            color: Colors.black54,
+            colorBlendMode: BlendMode.darken,
+          ),
+          GestureDetector(
+            child: Container(
+                padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
+                child: Text(primaryInside.section.title.toUpperCase(),
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.clip,
+                    maxLines: 1)),
+            onTap: () => _navigateToSection(primaryInside.section),
+          )
+        ],
       );
+
+  _navigateToSection(SiteSection section) {}
 }
