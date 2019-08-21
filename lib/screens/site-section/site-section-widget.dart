@@ -11,17 +11,18 @@ class SiteSectionWidget extends StatelessWidget {
   SiteSectionWidget({this.section});
 
   @override
-  Widget build(BuildContext context) => InsideDataRetriever(
-        builder: (context, data) => Scaffold(
-            appBar: AppBar(
-                title: Text(section.title,
-                    style: Theme.of(context).appBarTheme.textTheme.title)),
-            body: Row(children: [
-              for (var subSection in data.getSections(section))
-                _section(subSection),
-              for (var lesson in data.getLessons(section)) _lesson(lesson)
-            ])),
-      );
+  Widget build(BuildContext context) => Scaffold(
+      appBar: AppBar(
+          title: Text(section.title,
+              style: Theme.of(context).appBarTheme.textTheme.title)),
+      body: InsideDataRetriever(
+          builder: (context, data) => Row(
+                children: [
+                  for (var subSection in data.getSections(section))
+                    _section(subSection),
+                  for (var lesson in data.getLessons(section)) _lesson(lesson)
+                ],
+              )));
 
   Widget _section(SiteSection section) {}
 
