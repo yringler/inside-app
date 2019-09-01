@@ -58,6 +58,7 @@ class TopLessons extends StatelessWidget {
                 child: Text(primaryInside.section.title.toUpperCase(),
                     style: TextStyle(
                         color: Colors.white,
+                        backgroundColor: Colors.black26,
                         fontSize: 14,
                         fontWeight: FontWeight.w600),
                     overflow: TextOverflow.clip,
