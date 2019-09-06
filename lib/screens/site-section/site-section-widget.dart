@@ -14,7 +14,7 @@ class SiteSectionWidget extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
           title: Text(section.title,
-              style: Theme.of(context).appBarTheme.textTheme.title)),
+              style: Theme.of(context).appBarTheme.textTheme?.title)),
       body: InsideDataRetriever(
           builder: (context, data) => Row(
                 children: [
@@ -24,7 +24,7 @@ class SiteSectionWidget extends StatelessWidget {
                 ],
               )));
 
-  Widget _section(SiteSection section) {}
+  Widget _section(SiteSection section) => Container();
 
-  Widget _lesson(Lesson lesson) {}
+  Widget _lesson(Lesson lesson) => Container();
 }

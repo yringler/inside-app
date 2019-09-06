@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
+import 'package:inside_chassidus/screens/site-section/site-section-widget.dart';
 import 'package:inside_chassidus/widgets/inside-data-retriever.dart';
 
 class TopLessons extends StatelessWidget {
@@ -10,7 +11,7 @@ class TopLessons extends StatelessWidget {
           title: _title(context),
         ),
         body: Column(
-          children: [_search(), _sections()],
+          children: [_search(), _sections(context)],
         ),
       );
 
@@ -27,7 +28,7 @@ class TopLessons extends StatelessWidget {
             InputDecoration(hintText: "Search", suffixIcon: Icon(Icons.search)),
       ));
 
-  Widget _sections() => Expanded(
+  Widget _sections(BuildContext context) => Expanded(
       child: InsideDataRetriever(
           builder: (context, data) => GridView.count(
                   crossAxisCount: 2,
@@ -35,38 +36,42 @@ class TopLessons extends StatelessWidget {
                   mainAxisSpacing: 4,
                   crossAxisSpacing: 4,
                   children: [
-                    for (var topItem in data.topLevel) _primarySection(topItem)
+                    for (var topItem in data.topLevel)
+                      _primarySection(topItem, context)
                   ])));
 
-  Widget _primarySection(PrimaryInside primaryInside) => Stack(
-        overflow: Overflow.clip,
-        alignment: Alignment.bottomLeft,
-        children: <Widget>[
-          Image.network(
-            primaryInside.image,
-            scale: 1.0,
-            repeat: ImageRepeat.noRepeat,
-            fit: BoxFit.cover,
-            height: 500,
-            width: 500,
-            color: Colors.black54,
-            colorBlendMode: BlendMode.darken,
-          ),
-          GestureDetector(
-            child: Container(
+  Widget _primarySection(PrimaryInside primaryInside, BuildContext context) =>
+      GestureDetector(
+        onTap: () => _navigateToSection(primaryInside.section, context),
+        child: Stack(
+          overflow: Overflow.clip,
+          alignment: Alignment.bottomLeft,
+          children: <Widget>[
+            Image.network(
+              primaryInside.image,
+              scale: 1.0,
+              repeat: ImageRepeat.noRepeat,
+              fit: BoxFit.cover,
+              height: 500,
+              width: 500,
+              color: Colors.black54,
+              colorBlendMode: BlendMode.darken,
+            ),
+            Container(
                 padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
                 child: Text(primaryInside.section.title.toUpperCase(),
                     style: TextStyle(
                         color: Colors.white,
-                        backgroundColor: Colors.black26,
                         fontSize: 14,
                         fontWeight: FontWeight.w600),
                     overflow: TextOverflow.clip,
                     maxLines: 1)),
-            onTap: () => _navigateToSection(primaryInside.section),
-          )
-        ],
+          ],
+        ),
       );
 
-  _navigateToSection(SiteSection section) {}
+  _navigateToSection(SiteSection section, BuildContext context) {
+    Navigator.pushNamed(context, SiteSectionWidget.routeName,
+        arguments: section);
+  }
 }

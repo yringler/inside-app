@@ -11,15 +11,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Inside Chassidus',
-      theme: ThemeData(
-        primarySwatch: Colors.grey
-      ),
+      theme: ThemeData(primarySwatch: Colors.grey),
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case SiteSectionWidget.routeName:
             final SiteSection routeSection = settings.arguments;
-
-            return MaterialPageRoute(builder: (context) => SiteSectionWidget(section: routeSection));
+            return MaterialPageRoute(
+                builder: (context) => SiteSectionWidget(section: routeSection));
         }
 
         return null;
