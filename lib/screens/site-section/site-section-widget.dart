@@ -19,12 +19,9 @@ class SiteSectionWidget extends StatelessWidget {
           builder: (context, data) => Row(
                 children: [
                   for (var subSection in data.getSections(section))
-                    _section(subSection),
-                  for (var lesson in data.getLessons(section)) _lesson(lesson)
+                    _section(subSection)
                 ],
               )));
 
   Widget _section(SiteSection section) => Container();
-
-  Widget _lesson(Lesson lesson) => Container();
 }

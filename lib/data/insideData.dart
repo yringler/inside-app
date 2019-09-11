@@ -19,14 +19,14 @@ class InsideData {
   Map<String, Lesson> lessons;
   List<PrimaryInside> topLevel;
 
-  InsideData(this.sections, this.lessons, this.topLevel);
-
-  factory InsideData.fromJson(Map<String, dynamic> json) {
-    var insideData = _$InsideDataFromJson(json);
-    insideData.topLevel
-        .forEach((item) => item.section = insideData.sections[item.id]);
-    return insideData;
+  InsideData(this.sections, this.lessons, this.topLevel) {
+    for (var item in topLevel) {
+      item.section = sections[item.id];
+    }
   }
+
+  factory InsideData.fromJson(Map<String, dynamic> json) =>
+      _$InsideDataFromJson(json);
 
   /// Returns subsections of the given section.
   Iterable<SiteSection> getSections(SiteSection section) sync* {
@@ -72,11 +72,14 @@ class SiteSection extends InsideDataBase {
   final List<String> sectionIds;
   @JsonKey(name: "Lessons")
   final List<String> lessonIds;
+  /// The number of lessons in this section.
+  final int audioCount;
 
   SiteSection(
       {this.id,
       this.sectionIds,
       this.lessonIds,
+      this.audioCount,
       String title,
       String description,
       List<String> pdf})
