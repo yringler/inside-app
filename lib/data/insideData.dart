@@ -53,6 +53,7 @@ class InsideData {
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
 class PrimaryInside {
+  @JsonKey(name: "ID")
   final String id;
   final String image;
 
@@ -66,12 +67,14 @@ class PrimaryInside {
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
-class SiteSection extends InsideDataBase {
+class SiteSection extends InsideDataBase implements CountableInsideData {
+  @JsonKey(name: "ID")
   final String id;
   @JsonKey(name: "Sections")
   final List<String> sectionIds;
   @JsonKey(name: "Lessons")
   final List<String> lessonIds;
+  @override
   /// The number of lessons in this section.
   final int audioCount;
 
@@ -90,7 +93,8 @@ class SiteSection extends InsideDataBase {
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
-class Lesson extends InsideDataBase {
+class Lesson extends InsideDataBase implements CountableInsideData {
+  @JsonKey(name: "ID")
   final String id;
   final List<Media> audio;
 
@@ -99,6 +103,9 @@ class Lesson extends InsideDataBase {
       : super(title: title, description: description, pdf: pdf);
 
   factory Lesson.fromJson(Map<String, dynamic> json) => _$LessonFromJson(json);
+
+  @override
+  int get audioCount => audio.length; 
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
@@ -109,4 +116,8 @@ class Media extends InsideDataBase {
       : super(title: title, description: description, pdf: pdf);
 
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
+}
+
+abstract class CountableInsideData implements InsideDataBase {
+  int get audioCount;
 }
