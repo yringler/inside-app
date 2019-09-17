@@ -105,7 +105,7 @@ class Lesson extends InsideDataBase implements CountableInsideData {
   factory Lesson.fromJson(Map<String, dynamic> json) => _$LessonFromJson(json);
 
   @override
-  int get audioCount => audio.length; 
+  int get audioCount => audio?.length ?? 0; 
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
