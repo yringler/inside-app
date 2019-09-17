@@ -50,7 +50,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
         Text(
           "${widget.insideData.audioCount} classes",
         ),
-        Text(widget.insideData.title, style: Theme.of(context).textTheme.title)
+        Text(widget.insideData.title.trim(), style: Theme.of(context).textTheme.title)
       ]);
 
   Widget _expandableDescription(BuildContext context) {
@@ -63,7 +63,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
                 CustomPaint(
                     size: textSize,
                     painter: TextUnderflowNotifyPainter(
-                        widget.insideData.description,
+                        widget.insideData.description.trim(),
                         onTextUnderflow: () =>
                             setState(() => createExpandable = false),
                         onSize: (size) => setState(() => textSize = size),
@@ -78,7 +78,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
                 )
               ],
             ),
-            expanded: Text(widget.insideData.description)),
+            expanded: Text(widget.insideData.description.trim())),
       ),
     );
   }
