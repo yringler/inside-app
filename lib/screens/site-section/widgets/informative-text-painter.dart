@@ -6,11 +6,11 @@ class InformativeTextPainter extends CustomPainter {
   final TextPainter _painter;
 
   InformativeTextPainter(text,
-      {@required TextStyle style, @required double maxWidth})
+      {@required TextStyle style, @required double maxWidth, int maxLines})
       : _painter = TextPainter(
             text: TextSpan(text: text, style: style),
             textDirection: TextDirection.ltr,
-            maxLines: 3,
+            maxLines: maxLines,
             ellipsis: "...") {
     _painter.layout(maxWidth: maxWidth);
   }

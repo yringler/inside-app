@@ -42,6 +42,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
   Widget _description() => LayoutBuilder(builder: (context, constraints) {
         final descriptionPainter = InformativeTextPainter(
             widget.insideData.description,
+            maxLines: 3,
             maxWidth: constraints.maxWidth,
             style: Theme.of(context).textTheme.body1);
 
