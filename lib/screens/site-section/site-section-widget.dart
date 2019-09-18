@@ -16,15 +16,21 @@ class SiteSectionWidget extends StatelessWidget {
       appBar: AppBar(
           title: Text(section.title,
               style: Theme.of(context).appBarTheme.textTheme?.title)),
-      body: InsideDataRetriever(
-          builder: (context, data) => SingleChildScrollView(
-                child: Column(
-                  children: [
-                    for (var subSection in data.getSections(section))
-                      InsideDataCard(insideData: subSection),
-                    for (var lesson in data.getLessons(section))
-                      InsideDataCard(insideData: lesson)
-                  ],
-                ),
-              )));
+      body: InsideDataRetriever(builder: (context, data) {
+        final sections = List<SiteSection>.from(data.getSections(section));
+        final lessons = List<Lesson>.from(data.getLessons(section));
+
+        return ListView.builder(
+          itemCount:
+              section.sectionIds?.length ?? 0 + section.lessonIds?.length ?? 0,
+          itemBuilder: (context, i) {
+            if (i < sections.length) {
+              return InsideDataCard(insideData: sections[i]);
+            } else {
+              int adjustedIndex = i - sections.length;
+              return InsideDataCard(insideData: lessons[adjustedIndex]);
+            }
+          },
+        );
+      }));
 }
