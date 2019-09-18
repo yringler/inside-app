@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
 import 'package:inside_chassidus/screens/site-section/site-section-widget.dart';
 import 'package:inside_chassidus/widgets/inside-data-retriever.dart';
+import 'package:inside_chassidus/widgets/navigate-to-section.dart';
 
 class TopLessons extends StatelessWidget {
   @override
@@ -41,8 +42,8 @@ class TopLessons extends StatelessWidget {
                   ])));
 
   Widget _primarySection(PrimaryInside primaryInside, BuildContext context) =>
-      GestureDetector(
-        onTap: () => _navigateToSection(primaryInside.section, context),
+      NavigateToSection(
+        section: primaryInside.section,
         child: Stack(
           overflow: Overflow.clip,
           alignment: Alignment.bottomLeft,
@@ -69,9 +70,4 @@ class TopLessons extends StatelessWidget {
           ],
         ),
       );
-
-  _navigateToSection(SiteSection section, BuildContext context) {
-    Navigator.pushNamed(context, SiteSectionWidget.routeName,
-        arguments: section);
-  }
 }

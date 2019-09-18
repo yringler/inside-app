@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
 import 'package:inside_chassidus/screens/site-section/widgets/index.dart';
 import 'package:inside_chassidus/widgets/inside-data-retriever.dart';
+import 'package:inside_chassidus/widgets/navigate-to-section.dart';
 
 /// Displays contents of a site section. All subsections and lessons.
 class SiteSectionWidget extends StatelessWidget {
@@ -25,7 +26,9 @@ class SiteSectionWidget extends StatelessWidget {
               section.sectionIds?.length ?? 0 + section.lessonIds?.length ?? 0,
           itemBuilder: (context, i) {
             if (i < sections.length) {
-              return InsideDataCard(insideData: sections[i]);
+              return NavigateToSection(
+                  section: sections[i],
+                  child: InsideDataCard(insideData: sections[i]));
             } else {
               int adjustedIndex = i - sections.length;
               return InsideDataCard(insideData: lessons[adjustedIndex]);
