@@ -24,7 +24,8 @@ class _InsideDataCardData extends State<InsideDataCard> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _title(context),
-                  _description()
+                  if (widget.insideData.description?.trim()?.isNotEmpty ?? false)
+                    _description()
                 ],
               ),
             ));
@@ -34,6 +35,8 @@ class _InsideDataCardData extends State<InsideDataCard> {
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(
           "${widget.insideData.audioCount} classes",
+          style:
+              Theme.of(context).textTheme.body1.merge(TextStyle(fontSize: 12)),
         ),
         Text(widget.insideData.title.trim(),
             style: Theme.of(context).textTheme.title)
@@ -41,7 +44,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
 
   Widget _description() => LayoutBuilder(builder: (context, constraints) {
         final descriptionPainter = InformativeTextPainter(
-            widget.insideData.description,
+            widget.insideData.description.trim(),
             maxLines: 3,
             maxWidth: constraints.maxWidth,
             style: Theme.of(context).textTheme.body1);
@@ -49,7 +52,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
         if (descriptionPainter.willOverflow())
           return _expandableDescription(context, descriptionPainter);
         else
-          return Text(widget.insideData.description);
+          return descriptionPainter.getPaint();
       });
 
   Widget _expandableDescription(
@@ -60,9 +63,11 @@ class _InsideDataCardData extends State<InsideDataCard> {
             collapsed: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                descriptionPainter.getPaint(),
+                Container(
+                    margin: EdgeInsets.symmetric(vertical: 7),
+                    child: descriptionPainter.getPaint()),
                 ExpandableButton(
-                    child: Text("See more",
+                    child: Text("See more".toUpperCase(),
                         style: Theme.of(context).textTheme.button))
               ],
             ),
