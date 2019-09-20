@@ -22,8 +22,7 @@ class SiteSectionWidget extends StatelessWidget {
         final lessons = List<Lesson>.from(data.getLessons(section));
 
         return ListView.builder(
-          itemCount:
-              section.sectionIds?.length ?? 0 + section.lessonIds?.length ?? 0,
+          itemCount: sections.length + lessons.length,
           itemBuilder: (context, i) {
             if (i < sections.length) {
               return NavigateToSection(
