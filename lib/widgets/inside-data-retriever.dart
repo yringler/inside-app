@@ -24,7 +24,7 @@ class InsideDataRetriever extends StatelessWidget {
         } else if (snapShot.hasError) {
           return ErrorWidget(snapShot.error);
         } else {
-          return CircularProgressIndicator();
+          return Center(child: CircularProgressIndicator());
         }
       },
     );
