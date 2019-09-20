@@ -62,20 +62,24 @@ class _InsideDataCardData extends State<InsideDataCard> {
       BuildContext context, InformativeTextPainter descriptionPainter) {
     return ExpandableNotifier(
       child: ScrollOnExpand(
-        child: Expandable(
-            collapsed: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                    margin: EdgeInsets.symmetric(vertical: 7),
-                    child: descriptionPainter.getPaint()),
-                ExpandableButton(
-                    child: Text("See more".toUpperCase(),
-                        style: Theme.of(context).textTheme.button))
-              ],
-            ),
-            expanded: Text(widget.insideData.description.trim())),
-      ),
+          child: Expandable(
+              collapsed: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                      margin: EdgeInsets.symmetric(vertical: 7),
+                      child: descriptionPainter.getPaint()),
+                  ExpandableButton(
+                      child: Text("See more".toUpperCase(),
+                          style: Theme.of(context).textTheme.button))
+                ],
+              ),
+              expanded: Container(
+                margin: EdgeInsets.only(top: 7),
+                child: Text(
+                  widget.insideData.description.trim(),
+                ),
+              ))),
     );
   }
 }
