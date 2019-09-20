@@ -24,7 +24,8 @@ class _InsideDataCardData extends State<InsideDataCard> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _title(context),
-                  if (widget.insideData.description?.trim()?.isNotEmpty ?? false)
+                  if (widget.insideData.description?.trim()?.isNotEmpty ??
+                      false)
                     _description()
                 ],
               ),
@@ -52,7 +53,9 @@ class _InsideDataCardData extends State<InsideDataCard> {
         if (descriptionPainter.willOverflow())
           return _expandableDescription(context, descriptionPainter);
         else
-          return descriptionPainter.getPaint();
+          return Container(
+              margin: EdgeInsets.only(top: 7),
+              child: descriptionPainter.getPaint());
       });
 
   Widget _expandableDescription(
