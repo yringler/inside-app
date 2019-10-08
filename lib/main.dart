@@ -1,10 +1,10 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
-import 'package:inside_chassidus/screens/lesson-screen/index.dart';
-import 'package:inside_chassidus/screens/top-lessons.dart';
+import 'package:inside_chassidus/routes/lesson-route/index.dart';
+import 'package:inside_chassidus/routes/top-lessons.dart';
 import 'package:provider/provider.dart';
-import 'screens/site-section/index.dart';
+import 'routes/section-route/index.dart';
 
 void main() => runApp(Provider<AudioPlayer>.value(
       value: AudioPlayer(),
@@ -22,13 +22,13 @@ class MyApp extends StatelessWidget {
         WidgetBuilder builder;
 
         switch (settings.name) {
-          case SiteSectionScreen.routeName:
+          case SectionRoute.routeName:
             final SiteSection routeSection = settings.arguments;
-            builder = (context) => SiteSectionScreen(section: routeSection);
+            builder = (context) => SectionRoute(section: routeSection);
             break;
-          case LessonScreen.routeName:
+          case LessonRoute.routeName:
             final Lesson lesson = settings.arguments;
-            builder = (context) => LessonScreen(lesson: lesson);
+            builder = (context) => LessonRoute(lesson: lesson);
             break;
           default:
             throw ArgumentError("Unknown route: ${settings.name}");
