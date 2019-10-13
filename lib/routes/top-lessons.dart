@@ -12,7 +12,7 @@ class TopLessons extends StatelessWidget {
           title: _title(context),
         ),
         body: Column(
-          children: [_search(), _sections(context)],
+          children: [_sections(context)],
         ),
       );
 

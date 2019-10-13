@@ -1,4 +1,4 @@
-package com.example.inside_chassidus;
+package org.insidechassidus.inside_chassidus;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
