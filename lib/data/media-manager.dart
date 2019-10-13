@@ -1,25 +1,26 @@
-import 'dart:async';
-
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart' show required;
 import 'package:inside_chassidus/data/insideData.dart';
+import 'package:rxdart/rxdart.dart';
 
 class MediaManager {
   final AudioPlayer audioPlayer = AudioPlayer();
-  Stream<MediaState> get mediaState => _mediaState.stream;
+  Observable<MediaState> get mediaState => _mediaState.stream;
 
   bool _hasListeners;
-  MediaState _currentMediaState;
+  MediaState get _currentMediaState {
+    return _mediaState.values.length > 0 ? _mediaState.values.first : null;
+  }
 
-  StreamController<MediaState> _mediaState;
+  ReplaySubject<MediaState> _mediaState;
 
   MediaManager() {
-    _mediaState = StreamController.broadcast(
+    _mediaState = ReplaySubject(
+        maxSize: 1,
         onListen: () => _hasListeners = true,
         onCancel: () => _hasListeners = false);
 
     audioPlayer.onPlayerStateChanged.listen(_onPlayerStateChanged);
-    mediaState.listen((state) => _currentMediaState = state);
   }
 
   play(Media media) {
@@ -35,9 +36,10 @@ class MediaManager {
 
   _onPlayerStateChanged(AudioPlayerState state) {
     if (state == AudioPlayerState.PLAYING) {
-        _safeAdd(MediaState(state: FileState.playing, media: _currentMediaState.media));
+      _safeAdd(MediaState(
+          state: FileState.playing, media: _currentMediaState.media));
     } else {
-        _safeAdd(null);
+      _safeAdd(null);
     }
   }
 
