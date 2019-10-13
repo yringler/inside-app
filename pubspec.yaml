@@ -27,6 +27,7 @@ dependencies:
   expandable: ^3.0.0
   provider: ^3.1.0
   audioplayers: ^0.13.2
+  cached_network_image: ^1.1.1
 
 dev_dependencies:
   flutter_test:

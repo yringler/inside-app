@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
 import 'package:inside_chassidus/widgets/inside-data-retriever.dart';
@@ -47,16 +48,14 @@ class TopLessons extends StatelessWidget {
           overflow: Overflow.clip,
           alignment: Alignment.bottomLeft,
           children: <Widget>[
-            Image.network(
-              primaryInside.image,
-              scale: 1.0,
-              repeat: ImageRepeat.noRepeat,
-              fit: BoxFit.cover,
-              height: 500,
-              width: 500,
-              color: Colors.black54,
-              colorBlendMode: BlendMode.darken,
-            ),
+            CachedNetworkImage(
+                imageUrl: primaryInside.image,
+                repeat: ImageRepeat.noRepeat,
+                fit: BoxFit.cover,
+                height: 500,
+                width: 500,
+                color: Colors.black54,
+                colorBlendMode: BlendMode.darken),
             Container(
                 padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
                 child: Text(primaryInside.section.title.toUpperCase(),
