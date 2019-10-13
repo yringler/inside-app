@@ -31,8 +31,7 @@ class MediaList extends StatelessWidget {
                 title: Text(title),
                 subtitle: subtitle,
                 trailing: PlayButton(
-                  media: media,
-                  audioPlayer: Provider.of<AudioPlayer>(context),
+                  media: media
                 ),
               );
             }),

@@ -1,13 +1,13 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
+import 'package:inside_chassidus/data/media-manager.dart';
 import 'package:inside_chassidus/routes/lesson-route/index.dart';
 import 'package:inside_chassidus/routes/top-lessons.dart';
 import 'package:provider/provider.dart';
 import 'routes/section-route/index.dart';
 
-void main() => runApp(Provider<AudioPlayer>.value(
-      value: AudioPlayer(),
+void main() => runApp(Provider<MediaManager>.value(
+      value: MediaManager(),
       child: MyApp(),
     ));
 

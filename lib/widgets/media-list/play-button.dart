@@ -3,58 +3,35 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
+import 'package:inside_chassidus/data/media-manager.dart';
 import 'package:provider/provider.dart';
 
-class PlayButton extends StatefulWidget {
+class PlayButton extends StatelessWidget {
   final Media media;
-  final AudioPlayer audioPlayer;
 
-  PlayButton({@required this.media, @required this.audioPlayer});
-
-  @override
-  State<StatefulWidget> createState() => _PlayButtonState();
-}
-
-class _PlayButtonState extends State<PlayButton> {
-  bool isPlaying;
-  StreamSubscription<AudioPlayerState> subscription;
-
-  @override void initState() {
-    super.initState();
-
-   subscription = widget.audioPlayer.onPlayerStateChanged.listen(_listenToStateChange);
-  }
-
-  @override void dispose() {
-    subscription?.cancel();
-
-    super.dispose();
-  }
+  PlayButton({this.media});
 
   @override
   Widget build(BuildContext context) {
-    isPlaying = widget.audioPlayer.state == AudioPlayerState.PLAYING;
+    final mediaManger = Provider.of<MediaManager>(context);
 
-    return GestureDetector(
-        onTap: () {
-          this.setState(() => this.isPlaying = !this.isPlaying);
-
-          var player = Provider.of<AudioPlayer>(context);
-
-          if (this.isPlaying) {
-            player.play(this.widget.media.source);
-          } else {
-            player.pause();
+    return StreamBuilder<MediaState>(
+      stream: mediaManger.mediaState,
+      builder: (context, snapshot) {
+        if (snapshot.hasData && media == snapshot.data.media) {
+          VoidCallback onPressed;
+          if (snapshot.data.state == FileState.playing) {
+            onPressed = () => mediaManger.audioPlayer.pause();
           }
-        },
-        child: Icon(this.isPlaying ? Icons.pause : Icons.play_arrow));
-  }
 
-  _listenToStateChange(AudioPlayerState state) {
-    bool isPlaying = state == AudioPlayerState.PLAYING;
-    
-    if (isPlaying != this.isPlaying) {
-      this.setState(() => this.isPlaying = isPlaying);
-    }
+          return IconButton(
+              onPressed: onPressed, icon: Icon(Icons.pause_circle_filled));
+        }
+
+        return IconButton(
+            onPressed: () => mediaManger.play(media),
+            icon: Icon(Icons.play_circle_filled));
+      },
+    );
   }
 }
