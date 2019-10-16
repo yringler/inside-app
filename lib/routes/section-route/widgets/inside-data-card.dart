@@ -39,13 +39,13 @@ class _InsideDataCardData extends State<InsideDataCard> {
           style:
               Theme.of(context).textTheme.body1.merge(TextStyle(fontSize: 12)),
         ),
-        Text(widget.insideData.title.trim(),
+        Text(widget.insideData.title?.trim(),
             style: Theme.of(context).textTheme.title)
       ]);
 
   Widget _description() => LayoutBuilder(builder: (context, constraints) {
         final descriptionPainter = InformativeTextPainter(
-            widget.insideData.description.trim(),
+            widget.insideData.description?.trim(),
             maxLines: 3,
             maxWidth: constraints.maxWidth,
             style: Theme.of(context).textTheme.body1);
@@ -77,7 +77,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
               expanded: Container(
                 margin: EdgeInsets.only(top: 7),
                 child: Text(
-                  widget.insideData.description.trim(),
+                  widget.insideData.description?.trim(),
                 ),
               ))),
     );
