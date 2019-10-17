@@ -1,4 +1,4 @@
 # inside-app
-App to make it easier to learn with Inside Chassidus
+App to make it easier to learn with Rabbi Paltiel's (Inside Chassidus).
 
-Code organized as per https://hackernoon.com/scalable-app-structure-in-flutter-dad61a4bc389
+Testing assisted by [BrowserStack](https://www.browserstack.com/) ![BrowserStack Logo](https://raw.githubusercontent.com/yringler/inside-app/master/Browserstack-logo%402x.png)
