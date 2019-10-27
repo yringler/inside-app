@@ -18,19 +18,19 @@ class PlayButton extends StatelessWidget {
     return StreamBuilder<MediaState>(
       stream: mediaManger.mediaState,
       builder: (context, snapshot) {
-        if (snapshot.hasData && media == snapshot.data.media) {
-          VoidCallback onPressed;
-          if (snapshot.data.state == FileState.playing) {
-            onPressed = () => mediaManger.audioPlayer.pause();
-          }
+        VoidCallback onPressed;
+        var icon = Icons.play_circle_filled;
 
-          return IconButton(
-              onPressed: onPressed, icon: Icon(Icons.pause_circle_filled));
+        if (snapshot.hasData) {
+          if (snapshot.data.state == AudioPlayerState.PLAYING) {
+            icon = Icons.pause_circle_filled;
+            onPressed = () => mediaManger.audioPlayer.pause();
+          } else {
+            onPressed = () => mediaManger.play(media);
+          }
         }
 
-        return IconButton(
-            onPressed: () => mediaManger.play(media),
-            icon: Icon(Icons.play_circle_filled));
+        return IconButton(onPressed: onPressed, icon: Icon(icon));
       },
     );
   }
