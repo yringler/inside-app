@@ -19,7 +19,9 @@ class PlayButton extends StatelessWidget {
         VoidCallback onPressed = () => mediaManger.play(media);
         var icon = Icons.play_circle_filled;
 
-        if (snapshot.hasData && snapshot.data.state == AudioPlayerState.PLAYING) {
+        if (snapshot.hasData &&
+            snapshot.data.media == media &&
+            snapshot.data.state == AudioPlayerState.PLAYING) {
           icon = Icons.pause_circle_filled;
           onPressed = () => mediaManger.audioPlayer.pause();
         }
