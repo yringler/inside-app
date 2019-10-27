@@ -16,8 +16,8 @@ class MediaManager {
   }
 
   play(Media media) async {
-    // Don't bother with this media if it's already being taken care of.
     if (media == _mediaState.value?.media) {
+      audioPlayer.resume();
       return;
     }
 

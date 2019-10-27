@@ -16,16 +16,12 @@ class PlayButton extends StatelessWidget {
     return StreamBuilder<MediaState>(
       stream: mediaManger.mediaState,
       builder: (context, snapshot) {
-        VoidCallback onPressed;
+        VoidCallback onPressed = () => mediaManger.play(media);
         var icon = Icons.play_circle_filled;
 
-        if (snapshot.hasData) {
-          if (snapshot.data.state == AudioPlayerState.PLAYING) {
-            icon = Icons.pause_circle_filled;
-            onPressed = () => mediaManger.audioPlayer.pause();
-          } else {
-            onPressed = () => mediaManger.play(media);
-          }
+        if (snapshot.hasData && snapshot.data.state == AudioPlayerState.PLAYING) {
+          icon = Icons.pause_circle_filled;
+          onPressed = () => mediaManger.audioPlayer.pause();
         }
 
         return IconButton(onPressed: onPressed, icon: Icon(icon));
