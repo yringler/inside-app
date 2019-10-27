@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:inside_chassidus/data/insideData.dart';
-import 'package:provider/provider.dart';
 import './play-button.dart';
 
 class MediaList extends StatelessWidget {
