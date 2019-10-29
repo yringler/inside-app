@@ -15,18 +15,30 @@ class SectionContentList extends StatelessWidget {
   final InsideDataBuilder<SiteSection> sectionBuilder;
   final InsideDataBuilder<Lesson> lessonBuiler;
 
+  /// A widget to go before other items in the list.
+  final Widget leadingWidget;
+
   SectionContentList(
       {@required this.section,
       @required this.sectionBuilder,
       @required this.lessonBuiler,
-      this.isSeperated = false});
+      this.isSeperated = false,
+      this.leadingWidget});
 
   @override
   Widget build(BuildContext context) =>
       InsideDataRetriever(builder: (context, data) {
         final sections = List<SiteSection>.from(data.getSections(section));
         final lessons = List<Lesson>.from(data.getLessons(section));
+        // If there is a leading widget, index is 1 too many.
+        final indexOffset = leadingWidget == null ? 0 : -1;
         final itemBuilder = (BuildContext context, int i) {
+          if (i == 0 && leadingWidget != null) {
+            return leadingWidget;
+          }
+
+          i += indexOffset;
+
           if (i < sections.length) {
             return sectionBuilder(context, sections[i]);
           } else {

@@ -18,19 +18,34 @@ class TernarySectionRoute extends StatelessWidget {
       body: SectionContentList(
           isSeperated: true,
           section: section,
+          leadingWidget: _text(section.description),
           sectionBuilder: (context, section) => InsideNavigator(
                 data: section,
-                child: ListTile(title: Text(section.title), contentPadding: _listTilePadding()),
+                child: _tile(section),
                 routeName: TernarySectionRoute.routeName,
               ),
-          lessonBuiler: (context, lesson) => InsideNavigator(
-                data: lesson,
-                routeName: LessonRoute.routeName,
-                child: ListTile(
-                  title: Text(lesson.title),
-                  contentPadding: _listTilePadding()
-                ),
-              )));
+          lessonBuiler: (context, lesson) => _tile(lesson)));
 
-    EdgeInsets _listTilePadding() => EdgeInsets.symmetric(horizontal: 8, vertical: 0);
+  Widget _tile(CountableInsideData data) {
+    var itemWord = data.audioCount > 1 ? 'classes' : 'class';
+
+    return ListTile(
+      title: _text(data.title),
+      subtitle: _text('${data.audioCount} $itemWord'),
+      contentPadding: _listTilePadding(),
+      trailing: Icon(Icons.arrow_forward),
+      dense: true,
+    );
+  }
+
+  Widget _text(String text) {
+    if (text?.isNotEmpty ?? false) {
+      return Text(text, maxLines: 1, overflow: TextOverflow.ellipsis);
+    }
+
+    return null;
+  }
+
+  EdgeInsets _listTilePadding() =>
+      EdgeInsets.symmetric(horizontal: 8, vertical: 0);
 }
