@@ -26,7 +26,7 @@ class TernarySectionRoute extends StatelessWidget {
               ),
           lessonBuiler: (context, lesson) => _tile(lesson)));
 
-  Widget _tile(CountableInsideData data) {
+  static Widget _tile(CountableInsideData data) {
     var itemWord = data.audioCount > 1 ? 'classes' : 'class';
 
     return ListTile(
@@ -38,6 +38,6 @@ class TernarySectionRoute extends StatelessWidget {
     );
   }
 
-  EdgeInsets _listTilePadding() =>
+  static EdgeInsets _listTilePadding() =>
       EdgeInsets.symmetric(horizontal: 8, vertical: 0);
 }
