@@ -17,7 +17,7 @@ class MediaList extends StatelessWidget {
     // If there is a leading widget, index is 1 too many.
     final indexOffset = leadingWidget == null ? 0 : 1;
 
-    return ListView.builder(
+    return ListView.separated(
         itemCount: this.media.length + indexOffset,
         itemBuilder: (context, i) {
           if (i == 0 && leadingWidget != null) {
@@ -44,6 +44,7 @@ class MediaList extends StatelessWidget {
             subtitle: subtitle,
             trailing: PlayButton(media: media),
           );
-        });
+        },
+        separatorBuilder: (context, i) => Divider());
   }
 }
