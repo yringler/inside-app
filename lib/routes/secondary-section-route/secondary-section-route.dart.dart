@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
-import 'package:inside_chassidus/routes/lesson-route/index.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/widgets/index.dart';
-import 'package:inside_chassidus/widgets/inside-data-retriever.dart';
+import 'package:inside_chassidus/routes/ternary-section-route.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
 import 'package:inside_chassidus/widgets/inside-scaffold.dart';
-import 'package:inside_chassidus/widgets/navigate-to-section.dart';
+import 'package:inside_chassidus/widgets/section-content-list.dart';
 
 /// Displays contents of a site section. All subsections and lessons.
 class SecondarySectionRoute extends StatelessWidget {
@@ -18,28 +17,12 @@ class SecondarySectionRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) => InsideScaffold(
       insideData: section,
-      body: InsideDataRetriever(builder: (context, data) {
-        final sections = List<SiteSection>.from(data.getSections(section));
-        final lessons = List<Lesson>.from(data.getLessons(section));
-
-        return ListView.builder(
-          itemCount: sections.length + lessons.length,
-          itemBuilder: (context, i) {
-            if (i < sections.length) {
-              return NavigateToSection(
-                  section: sections[i],
-                  child: InsideDataCard(insideData: sections[i]));
-            } else {
-              int adjustedIndex = i - sections.length;
-              final lesson = lessons[adjustedIndex];
-
-              return InsideNavigator(
-                child: InsideDataCard(insideData: lesson),
-                routeName: LessonRoute.routeName, 
-                data: lesson,
-              );
-            }
-          },
-        );
-      }));
+      body: SectionContentList(
+          section: section,
+          sectionBuilder: (context, section) => InsideNavigator(
+              routeName: TernarySectionRoute.routeName,
+              data: section,
+              child: InsideDataCard(insideData: section)),
+          lessonBuiler: (context, lesson) =>
+              InsideDataCard(insideData: lesson)));
 }

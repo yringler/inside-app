@@ -8,7 +8,12 @@ class MediaList extends StatelessWidget {
   MediaList({this.media});
 
   @override
-  Widget build(BuildContext context) => Expanded(
+  Widget build(BuildContext context) {
+    if (media?.isEmpty ?? true) {
+      return Center(child: Text('No lessons found'));
+    }
+
+   return Expanded(
         child: ListView.builder(
             itemCount: this.media.length,
             itemBuilder: (context, i) {
@@ -34,4 +39,5 @@ class MediaList extends StatelessWidget {
               );
             }),
       );
+  }
 }
