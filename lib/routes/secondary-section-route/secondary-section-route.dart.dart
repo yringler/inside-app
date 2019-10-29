@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
 import 'package:inside_chassidus/routes/lesson-route/index.dart';
-import 'package:inside_chassidus/routes/section-route/widgets/index.dart';
+import 'package:inside_chassidus/routes/secondary-section-route/widgets/index.dart';
 import 'package:inside_chassidus/widgets/inside-data-retriever.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
 import 'package:inside_chassidus/widgets/inside-scaffold.dart';
 import 'package:inside_chassidus/widgets/navigate-to-section.dart';
 
 /// Displays contents of a site section. All subsections and lessons.
-class SectionRoute extends StatelessWidget {
+class SecondarySectionRoute extends StatelessWidget {
   static const String routeName = "/sections";
 
   final SiteSection section;
 
-  SectionRoute({this.section});
+  SecondarySectionRoute({this.section});
 
   @override
   Widget build(BuildContext context) => InsideScaffold(

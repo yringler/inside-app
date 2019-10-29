@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
 import 'package:inside_chassidus/data/media-manager.dart';
 import 'package:inside_chassidus/routes/lesson-route/index.dart';
-import 'package:inside_chassidus/routes/top-lessons.dart';
+import 'package:inside_chassidus/routes/primary-section-route.dart';
+import 'package:inside_chassidus/routes/secondary-section-route/index.dart';
 import 'package:provider/provider.dart';
-import 'routes/section-route/index.dart';
 
 void main() => runApp(Provider<MediaManager>.value(
       value: MediaManager(),
@@ -22,9 +22,9 @@ class MyApp extends StatelessWidget {
         WidgetBuilder builder;
 
         switch (settings.name) {
-          case SectionRoute.routeName:
+          case SecondarySectionRoute.routeName:
             final SiteSection routeSection = settings.arguments;
-            builder = (context) => SectionRoute(section: routeSection);
+            builder = (context) => SecondarySectionRoute(section: routeSection);
             break;
           case LessonRoute.routeName:
             final Lesson lesson = settings.arguments;
@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
 
         return MaterialPageRoute(builder: builder);
       },
-      home: TopLessons(),
+      home: PrimarySectionsRoute(),
     );
   }
 }

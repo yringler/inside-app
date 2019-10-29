@@ -4,7 +4,7 @@ import 'package:inside_chassidus/data/insideData.dart';
 import 'package:inside_chassidus/widgets/inside-data-retriever.dart';
 import 'package:inside_chassidus/widgets/navigate-to-section.dart';
 
-class TopLessons extends StatelessWidget {
+class PrimarySectionsRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
