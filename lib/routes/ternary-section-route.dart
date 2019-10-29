@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
-import 'package:inside_chassidus/routes/lesson-route/lesson-route.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
 import 'package:inside_chassidus/widgets/inside-scaffold.dart';
 import 'package:inside_chassidus/widgets/section-content-list.dart';
