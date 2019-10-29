@@ -31,13 +31,13 @@ class SectionContentList extends StatelessWidget {
         final sections = List<SiteSection>.from(data.getSections(section));
         final lessons = List<Lesson>.from(data.getLessons(section));
         // If there is a leading widget, index is 1 too many.
-        final indexOffset = leadingWidget == null ? 0 : -1;
+        final indexOffset = leadingWidget == null ? 0 : 1;
         final itemBuilder = (BuildContext context, int i) {
           if (i == 0 && leadingWidget != null) {
             return leadingWidget;
           }
 
-          i += indexOffset;
+          i -= indexOffset;
 
           if (i < sections.length) {
             return sectionBuilder(context, sections[i]);
@@ -53,16 +53,18 @@ class SectionContentList extends StatelessWidget {
           }
         };
 
+        final itemCount =  sections.length + lessons.length + indexOffset;
+
         if (isSeperated) {
           return ListView.separated(
             padding: EdgeInsets.symmetric(horizontal: 8),
-            itemCount: sections.length + lessons.length,
+            itemCount: itemCount,
             itemBuilder: itemBuilder,
             separatorBuilder: (context, i) => Divider(),
           );
         } else {
           return ListView.builder(
-            itemCount: sections.length + lessons.length,
+            itemCount: itemCount,
             itemBuilder: itemBuilder,
           );
         }
