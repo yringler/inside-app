@@ -30,14 +30,8 @@ class TernarySectionRoute extends StatelessWidget {
     var itemWord = data.audioCount > 1 ? 'classes' : 'class';
 
     return ListTile(
-      title: textIfNotEmpty(data.title, maxLines: 1),
-      subtitle: textIfNotEmpty('${data.audioCount} $itemWord'),
-      contentPadding: _listTilePadding(),
-      trailing: Icon(Icons.arrow_forward_ios),
-      dense: true,
-    );
+        title: textIfNotEmpty(data.title, maxLines: 1),
+        subtitle: textIfNotEmpty('${data.audioCount} $itemWord'),
+        trailing: Icon(Icons.arrow_forward_ios));
   }
-
-  static EdgeInsets _listTilePadding() =>
-      EdgeInsets.symmetric(horizontal: 8, vertical: 0);
 }
