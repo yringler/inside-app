@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
+import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import 'package:inside_chassidus/widgets/inside-scaffold.dart';
 import 'package:inside_chassidus/widgets/media-list/index.dart';
 
@@ -16,9 +17,6 @@ class LessonRoute extends StatelessWidget {
       insideData: lesson,
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 8).copyWith(top: 8),
-        child: Column(children: <Widget>[
-          if (lesson.description?.isNotEmpty) Text(lesson.description),
-          MediaList(media: lesson.audio)
-        ]),
+        child: MediaList(media: lesson.audio, leadingWidget: textIfNotEmpty(lesson.description),),
       ));
 }

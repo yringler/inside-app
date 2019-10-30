@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
 import 'package:inside_chassidus/data/media-manager.dart';
 import 'package:inside_chassidus/routes/lesson-route/index.dart';
-import 'package:inside_chassidus/routes/top-lessons.dart';
+import 'package:inside_chassidus/routes/primary-section-route.dart';
+import 'package:inside_chassidus/routes/secondary-section-route/index.dart';
+import 'package:inside_chassidus/routes/ternary-section-route.dart';
 import 'package:provider/provider.dart';
-import 'routes/section-route/index.dart';
 
 void main() => runApp(Provider<MediaManager>.value(
       value: MediaManager(),
@@ -12,7 +13,7 @@ void main() => runApp(Provider<MediaManager>.value(
     ));
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application. 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -22,13 +23,17 @@ class MyApp extends StatelessWidget {
         WidgetBuilder builder;
 
         switch (settings.name) {
-          case SectionRoute.routeName:
+          case SecondarySectionRoute.routeName:
             final SiteSection routeSection = settings.arguments;
-            builder = (context) => SectionRoute(section: routeSection);
+            builder = (context) => SecondarySectionRoute(section: routeSection);
             break;
           case LessonRoute.routeName:
             final Lesson lesson = settings.arguments;
             builder = (context) => LessonRoute(lesson: lesson);
+            break;
+          case TernarySectionRoute.routeName:
+            final SiteSection routeSection = settings.arguments;
+            builder = (context) => TernarySectionRoute(section: routeSection);
             break;
           default:
             throw ArgumentError("Unknown route: ${settings.name}");
@@ -36,7 +41,7 @@ class MyApp extends StatelessWidget {
 
         return MaterialPageRoute(builder: builder);
       },
-      home: TopLessons(),
+      home: PrimarySectionsRoute(),
     );
   }
 }

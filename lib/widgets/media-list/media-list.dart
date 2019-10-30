@@ -1,37 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
+import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import './play-button.dart';
 
 class MediaList extends StatelessWidget {
+  final Widget leadingWidget;
   final List<Media> media;
 
-  MediaList({this.media});
+  MediaList({this.media, this.leadingWidget});
 
   @override
-  Widget build(BuildContext context) => Expanded(
-        child: ListView.builder(
-            itemCount: this.media.length,
-            itemBuilder: (context, i) {
-              var media = this.media[i];
-              String title = media.title;
-              Text subtitle;
+  Widget build(BuildContext context) {
+    if (media?.isEmpty ?? true) {
+      return Center(child: Text('No lessons found'));
+    }
 
-              if (media.description?.isNotEmpty ?? false) {
-                subtitle = Text(media.description, maxLines: 1);
-              }
+    // If there is a leading widget, index is 1 too many.
+    final indexOffset = leadingWidget == null ? 0 : 1;
 
-              if (title?.isEmpty ?? true) {
-                title = "Lesson ${i + 1}";
-              }
+    return ListView.separated(
+        itemCount: this.media.length + indexOffset,
+        itemBuilder: (context, i) {
+          if (i == 0 && leadingWidget != null) {
+            return leadingWidget;
+          }
 
-              return ListTile(
-                contentPadding: EdgeInsets.all(4),
-                title: Text(title),
-                subtitle: subtitle,
-                trailing: PlayButton(
-                  media: media
-                ),
-              );
-            }),
-      );
+          i -= indexOffset;
+
+          var media = this.media[i];
+          String title = media.title;
+          Text subtitle;
+
+          subtitle = textIfNotEmpty(media.description, maxLines: 1);
+
+          if (title?.isEmpty ?? true) {
+            title = "Lesson ${i + 1}";
+          }
+
+          return ListTile(
+            contentPadding: EdgeInsets.all(4),
+            title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
+            subtitle: subtitle,
+            trailing: PlayButton(media: media),
+          );
+        },
+        separatorBuilder: (context, i) => Divider());
+  }
 }
