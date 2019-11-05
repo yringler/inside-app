@@ -63,8 +63,8 @@ class PrimarySectionsRoute extends StatelessWidget {
                         color: Colors.white,
                         fontSize: 14,
                         fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.clip,
-                    maxLines: 1)),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 3)),
           ],
         ),
       );
