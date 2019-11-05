@@ -1,10 +1,11 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:inside_chassidus/data/insideData.dart';
 import 'package:rxdart/rxdart.dart';
 
-class MediaManager {
+class MediaManager extends BlocBase {
   final AudioPlayer audioPlayer = AudioPlayer();
   Observable<MediaState> get mediaState => _mediaState.stream;
   StreamSubscription<AudioPlayerState> _audioPlayerStateSubscription;
@@ -29,7 +30,11 @@ class MediaManager {
     await audioPlayer.play(media.source);
     var duration = await audioPlayer.onDurationChanged.first;
 
-    _mediaState.value = MediaState(media: media, isLoaded: true, state: audioPlayer.state, duration: duration);
+    _mediaState.value = MediaState(
+        media: media,
+        isLoaded: true,
+        state: audioPlayer.state,
+        duration: duration);
 
     _audioPlayerStateSubscription.resume();
   }
@@ -38,7 +43,16 @@ class MediaManager {
     final current = _mediaState.value;
 
     _mediaState.value = MediaState(
-        media: current.media, isLoaded: current.isLoaded, state: state, duration: current.duration);
+        media: current.media,
+        isLoaded: current.isLoaded,
+        state: state,
+        duration: current.duration);
+  }
+
+  @override
+  void dispose() {
+    _mediaState.close();
+    super.dispose();
   }
 }
 

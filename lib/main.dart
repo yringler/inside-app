@@ -1,3 +1,4 @@
+import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/insideData.dart';
 import 'package:inside_chassidus/data/media-manager.dart';
@@ -5,10 +6,9 @@ import 'package:inside_chassidus/routes/lesson-route/index.dart';
 import 'package:inside_chassidus/routes/primary-section-route.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/index.dart';
 import 'package:inside_chassidus/routes/ternary-section-route.dart';
-import 'package:provider/provider.dart';
 
-void main() => runApp(Provider<MediaManager>.value(
-      value: MediaManager(),
+void main() => runApp(BlocProvider(
+      blocs: [Bloc((i) => MediaManager())],
       child: MyApp(),
     ));
 
