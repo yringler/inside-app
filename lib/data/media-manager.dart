@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
-import 'package:inside_chassidus/data/insideData.dart';
+import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MediaManager extends BlocBase {

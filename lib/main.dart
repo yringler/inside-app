@@ -1,6 +1,8 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/insideData.dart';
+import 'package:hive/hive.dart';
+import 'package:inside_chassidus/data/models/app-data.dart';
+import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/data/media-manager.dart';
 import 'package:inside_chassidus/routes/lesson-route/index.dart';
 import 'package:inside_chassidus/routes/primary-section-route.dart';
@@ -9,6 +11,7 @@ import 'package:inside_chassidus/routes/ternary-section-route.dart';
 
 void main() => runApp(BlocProvider(
       blocs: [Bloc((i) => MediaManager())],
+      dependencies: [Dependency((i) => AppData() )],
       child: MyApp(),
     ));
 
@@ -41,7 +44,34 @@ class MyApp extends StatelessWidget {
 
         return MaterialPageRoute(builder: builder);
       },
-      home: PrimarySectionsRoute(),
+      home: FutureBuilder(
+        future: _openBoxes(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.error != null) {
+              print(snapshot.error);
+              return Scaffold(
+                body: Center(
+                  child: Text('Something went wrong.'),
+                ),
+              );
+            } else {
+              return PrimarySectionsRoute();
+            }
+          } else {
+            return Scaffold(
+              body: Center(
+                child: Text('Loading...'),
+              ),
+            );
+          }
+        },
+      ),
     );
+  }
+
+  Future _openBoxes() async {
+    await Hive.openBox('sections', lazy: true);
+    await Hive.openBox('lessons', lazy: true);
   }
 }
