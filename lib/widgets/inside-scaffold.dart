@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/insideData.dart';
+import 'package:inside_chassidus/data/models/inside-data/index.dart';
 
 class InsideScaffold extends StatelessWidget {
   final InsideDataBase insideData;

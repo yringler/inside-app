@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/insideData.dart';
+import 'package:inside_chassidus/data/models/inside-data/index.dart';
 
 /// Simplify navigation to a route which depends on inside chassidus data.
 class InsideNavigator extends StatelessWidget {

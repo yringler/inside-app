@@ -1,8 +1,8 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/insideData.dart';
+import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/data/media-manager.dart';
-import 'package:provider/provider.dart';
 
 class PlayButton extends StatelessWidget {
   final Media media;
@@ -11,7 +11,7 @@ class PlayButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mediaManger = Provider.of<MediaManager>(context);
+    final mediaManger = BlocProvider.getBloc<MediaManager>();
 
     return StreamBuilder<MediaState>(
       stream: mediaManger.mediaState,

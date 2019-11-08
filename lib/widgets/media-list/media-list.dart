@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/insideData.dart';
+import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import './play-button.dart';
 

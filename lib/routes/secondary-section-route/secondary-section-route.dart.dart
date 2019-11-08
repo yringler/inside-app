@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/insideData.dart';
+import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/widgets/index.dart';
 import 'package:inside_chassidus/routes/ternary-section-route.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
