@@ -7,7 +7,7 @@ part 'site-section.g.dart';
 
 @HiveType()
 @JsonSerializable(fieldRename: FieldRename.pascal)
-class SiteSection extends InsideDataBase implements CountableInsideData {
+class SiteSection implements CountableInsideData {
   final LazyBox _sectionsBox = Hive.box("sections");
   final LazyBox _lessonBox = Hive.box("lessons");
 
@@ -28,6 +28,18 @@ class SiteSection extends InsideDataBase implements CountableInsideData {
   @override
   final int audioCount;
 
+  @HiveField(0)
+  @override
+  String description;
+
+  @HiveField(1)
+  @override
+  List<String> pdf;
+
+  @HiveField(2)
+  @override
+  String title;
+
   Future<List<SiteSection>> getSections() async =>
       _getItems(sectionIds, _sectionsBox);
 
@@ -43,13 +55,16 @@ class SiteSection extends InsideDataBase implements CountableInsideData {
       this.sectionIds,
       this.lessonIds,
       this.audioCount,
-      String title,
-      String description,
-      List<String> pdf})
-      : super(title: title, description: description, pdf: pdf);
+      this.title,
+      this.description,
+      List<String> pdf});
 
   static Future<List<T>> _getItems<T>(List<String> ids, LazyBox box) async {
     final items = List<T>();
+
+    if (ids?.isEmpty ?? true) {
+      return items;
+    }
 
     for (var id in ids) {
       items.add(await box.get(id));

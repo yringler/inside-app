@@ -1,9 +1,6 @@
 import 'package:hive/hive.dart';
 
-part 'inside-data-base.g.dart';
-
 // Some basic information which many inside data objects have.
-@HiveType()
 class InsideDataBase {
   @HiveField(0)
   final String title;

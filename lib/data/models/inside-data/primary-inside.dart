@@ -8,10 +8,9 @@ part 'primary-inside.g.dart';
 @HiveType()
 @JsonSerializable(fieldRename: FieldRename.pascal)
 class PrimaryInside {
+  /// ID of the section.
   @HiveField(3)
   @JsonKey(name: "ID")
-
-  /// ID of the section.
   final String id;
 
   @HiveField(4)

@@ -7,7 +7,7 @@ part 'lesson.g.dart';
 
 @HiveType()
 @JsonSerializable(fieldRename: FieldRename.pascal)
-class Lesson extends InsideDataBase implements CountableInsideData {
+class Lesson implements CountableInsideData {
   @HiveField(3)
   @JsonKey(name: "ID")
   final String id;
@@ -16,11 +16,22 @@ class Lesson extends InsideDataBase implements CountableInsideData {
   final List<Media> audio;
 
   Lesson(
-      {this.id, this.audio, String title, String description, List<String> pdf})
-      : super(title: title, description: description, pdf: pdf);
+      {this.id, this.audio, this.title, this.description, List<String> pdf});
 
   factory Lesson.fromJson(Map<String, dynamic> json) => _$LessonFromJson(json);
 
   @override
   int get audioCount => audio?.length ?? 0;
+
+  @HiveField(0)
+  @override
+  String description;
+
+  @HiveField(1)
+  @override
+  List<String> pdf;
+
+  @HiveField(2)
+  @override
+  String title;
 }
