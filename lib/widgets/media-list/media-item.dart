@@ -21,7 +21,7 @@ class MediaItem extends StatelessWidget {
     }
 
     return ListTile(
-      contentPadding: EdgeInsets.all(4),
+      contentPadding: EdgeInsets.symmetric(horizontal: 4),
       title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
       subtitle: subtitle,
       trailing: PlayButton(media: media),

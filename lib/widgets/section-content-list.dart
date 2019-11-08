@@ -114,9 +114,15 @@ class SectionContentList extends StatelessWidget {
         }
       };
 
-  _lessonNavigator(BuildContext context, Lesson lesson) => InsideNavigator(
-        child: lessonBuiler(context, lesson),
-        routeName: LessonRoute.routeName,
-        data: lesson,
-      );
+  _lessonNavigator(BuildContext context, Lesson lesson) {
+    if (lesson.audioCount == 1 && mediaBuilder != null) {
+      return mediaBuilder(context, Media(title: lesson.title, source: lesson.audio[0].source));
+    }
+
+    return InsideNavigator(
+      child: lessonBuiler(context, lesson),
+      routeName: LessonRoute.routeName,
+      data: lesson,
+    );
+  }
 }
