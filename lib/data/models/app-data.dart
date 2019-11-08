@@ -25,6 +25,10 @@ class AppData {
   /// Access data store, download data if needed. This method should only be called once per
   /// app run.
   static Future init(BuildContext context) async {
+    if (Hive.isBoxOpen('primary')) {
+      return;
+    }
+
     final folder = await getApplicationSupportDirectory();
     final hiveFolder = new Directory('${folder.path}/hive');
 

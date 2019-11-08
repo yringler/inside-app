@@ -4,6 +4,7 @@ import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
 import 'package:inside_chassidus/widgets/inside-scaffold.dart';
+import 'package:inside_chassidus/widgets/media-list/media-item.dart';
 import 'package:inside_chassidus/widgets/section-content-list.dart';
 
 class TernarySectionRoute extends StatelessWidget {
@@ -24,7 +25,8 @@ class TernarySectionRoute extends StatelessWidget {
                 child: _tile(section),
                 routeName: TernarySectionRoute.routeName,
               ),
-          lessonBuiler: (context, lesson) => _tile(lesson)));
+          lessonBuiler: (context, lesson) => _tile(lesson),
+          mediaBuilder: (context, media) => MediaItem(media: media)));
 
   static Widget _tile(CountableInsideData data) {
     var itemWord = data.audioCount > 1 ? 'classes' : 'class';

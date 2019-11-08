@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
-import 'package:inside_chassidus/util/text-null-if-empty.dart';
-import './play-button.dart';
+import 'package:inside_chassidus/widgets/media-list/media-item.dart';
 
 class MediaList extends StatelessWidget {
   final Widget leadingWidget;
@@ -27,21 +26,9 @@ class MediaList extends StatelessWidget {
 
           i -= indexOffset;
 
-          var media = this.media[i];
-          String title = media.title;
-          Text subtitle;
-
-          subtitle = textIfNotEmpty(media.description, maxLines: 1);
-
-          if (title?.isEmpty ?? true) {
-            title = "Lesson ${i + 1}";
-          }
-
-          return ListTile(
-            contentPadding: EdgeInsets.all(4),
-            title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
-            subtitle: subtitle,
-            trailing: PlayButton(media: media),
+          return MediaItem(
+            media: this.media[i],
+            fallbackTitle: "Lesson ${i + 1}",
           );
         },
         separatorBuilder: (context, i) => Divider());

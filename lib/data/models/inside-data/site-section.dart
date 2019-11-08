@@ -1,6 +1,8 @@
 import 'dart:core';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:rxdart/rxdart.dart';
 import 'index.dart';
 
 part 'site-section.g.dart';
@@ -41,9 +43,10 @@ class SiteSection implements CountableInsideData {
   String title;
 
   Future<List<SiteSection>> getSections() async =>
-      _getItems(sectionIds, _sectionsBox);
+      _getItems<SiteSection>(sectionIds, _sectionsBox);
 
-  Future<List<Lesson>> getLessons() async => _getItems(lessonIds, _lessonBox);
+  Future<List<Lesson>> getLessons() async =>
+      _getItems<Lesson>(lessonIds, _lessonBox);
 
   Future<NestedContent> getContent() async {
     return NestedContent(
@@ -59,7 +62,8 @@ class SiteSection implements CountableInsideData {
       this.description,
       List<String> pdf});
 
-  static Future<List<T>> _getItems<T>(List<String> ids, LazyBox box) async {
+  static Future<List<T>> _getItems<T extends CountableInsideData>(
+      List<String> ids, LazyBox box) async {
     final items = List<T>();
 
     if (ids?.isEmpty ?? true) {
@@ -67,10 +71,53 @@ class SiteSection implements CountableInsideData {
     }
 
     for (var id in ids) {
-      items.add(await box.get(id));
+      CountableInsideData item = await box.get(id);
+      if (item.audioCount > 0) {
+        items.add(item);
+      }
     }
 
     return items;
+  }
+
+  /// Return what this section really is.
+  /// If it contains only a single section, recursively evalute until resolved.
+  /// If it contains only a single lesson, return it.
+  Future<InsideDataBase> resolve() async {
+    if (audioCount == 1) {
+      if (lessonIds.isNotEmpty) {
+        print("Resolved to audio");
+        return (await getLessons())[0].audio[0];
+      }
+
+      return (await getSections())[0].resolve();
+    }
+
+    if (sectionIds?.length == 1) {
+      return (await getSections())[0].resolve();
+    }
+
+    if (sectionIds?.isNotEmpty ?? false) {
+      var sections = await getSections();
+      if (sections.every((section) => section.audioCount == 1)) {
+        final audio = List<Media>();
+
+        for (var section in sections) {
+          final media = await section.resolve() as Media;
+          audio.add(media);
+        }
+
+        return Lesson(audio: audio, description: description, title: title);
+      }
+    } else {
+      var lessons = await getLessons();
+      if (lessons.every((lesson) => lesson.audioCount == 1)) {
+        final audio =  List<Media>.from(lessons.map((lesson) => lesson.audio[0]));
+        return Lesson(audio: audio, description: description, title: title);
+      }
+    }
+
+    return this;
   }
 
   factory SiteSection.fromJson(Map<String, dynamic> json) =>
