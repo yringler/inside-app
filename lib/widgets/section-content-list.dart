@@ -30,19 +30,17 @@ class SectionContentList extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _sectionsFuture(context);
 
-  Widget _sectionsFuture(BuildContext context) => Expanded(
-        child: FutureBuilder<NestedContent>(
-          future: section.getContent(),
-          builder: (context, snapShot) {
-            if (snapShot.hasData) {
-              return _sections(context, snapShot.data);
-            } else if (snapShot.hasError) {
-              return ErrorWidget(snapShot.error);
-            } else {
-              return Center(child: CircularProgressIndicator());
-            }
-          },
-        ),
+  Widget _sectionsFuture(BuildContext context) => FutureBuilder<NestedContent>(
+        future: section.getContent(),
+        builder: (context, snapShot) {
+          if (snapShot.hasData) {
+            return _sections(context, snapShot.data);
+          } else if (snapShot.hasError) {
+            return ErrorWidget(snapShot.error);
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
+        },
       );
 
   Widget _sections(BuildContext context, NestedContent content) {
@@ -65,24 +63,24 @@ class SectionContentList extends StatelessWidget {
   }
 
   IndexedWidgetBuilder _builder(NestedContent content, int indexOffset) =>
-   (BuildContext context, int i) {
-      if (i == 0 && leadingWidget != null) {
-        return leadingWidget;
-      }
+      (BuildContext context, int i) {
+        if (i == 0 && leadingWidget != null) {
+          return leadingWidget;
+        }
 
-      i -= indexOffset;
+        i -= indexOffset;
 
-      if (i < content.sections.length) {
-        return sectionBuilder(context, content.sections[i]);
-      } else {
-        final adjustedIndex = i - content.sections.length;
-        final lesson = content.lessons[adjustedIndex];
+        if (i < content.sections.length) {
+          return sectionBuilder(context, content.sections[i]);
+        } else {
+          final adjustedIndex = i - content.sections.length;
+          final lesson = content.lessons[adjustedIndex];
 
-        return InsideNavigator(
-          child: lessonBuiler(context, lesson),
-          routeName: LessonRoute.routeName,
-          data: lesson,
-        );
-      }
-    }; 
+          return InsideNavigator(
+            child: lessonBuiler(context, lesson),
+            routeName: LessonRoute.routeName,
+            data: lesson,
+          );
+        }
+      };
 }

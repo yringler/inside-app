@@ -39,7 +39,7 @@ class PrimarySectionsRoute extends StatelessWidget {
             } else if (snapShot.hasError) {
               return ErrorWidget(snapShot.error);
             } else {
-              return Center(child: CircularProgressIndicator());
+              return Container();
             }
           },
         ),

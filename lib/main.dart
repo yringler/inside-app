@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
         return MaterialPageRoute(builder: builder);
       },
       home: FutureBuilder(
-        future: _openBoxes(),
+        future: AppData.init(context),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.error != null) {
@@ -61,17 +61,12 @@ class MyApp extends StatelessWidget {
           } else {
             return Scaffold(
               body: Center(
-                child: Text('Loading...'),
+                child: CircularProgressIndicator(),
               ),
             );
           }
         },
       ),
     );
-  }
-
-  Future _openBoxes() async {
-    await Hive.openBox('sections', lazy: true);
-    await Hive.openBox('lessons', lazy: true);
   }
 }
