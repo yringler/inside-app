@@ -64,22 +64,44 @@ class SectionContentList extends StatelessWidget {
     final itemCount =
         content.sections.length + content.lessons.length + indexOffset;
 
-    if (isSeperated) {
-      return ListView.separated(
-        padding: EdgeInsets.symmetric(horizontal: 8),
-        itemCount: itemCount,
-        itemBuilder: _builder(content, indexOffset),
-        separatorBuilder: (context, i) => Divider(),
-      );
-    } else {
-      return ListView.builder(
-        itemCount: itemCount,
-        itemBuilder: _builder(content, indexOffset),
-      );
-    }
+    return FutureBuilder<List<InsideDataBase>>(
+      future: _getResolvedData(content),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          if (isSeperated) {
+            return ListView.separated(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              itemCount: itemCount,
+              itemBuilder: _builder(content, snapshot.data, indexOffset),
+              separatorBuilder: (context, i) => Divider(),
+            );
+          } else {
+            return ListView.builder(
+              itemCount: itemCount,
+              itemBuilder: _builder(content, snapshot.data, indexOffset),
+            );
+          }
+        } else {
+          return Center(child: CircularProgressIndicator());
+        }
+      },
+    );
   }
 
-  IndexedWidgetBuilder _builder(NestedContent content, int indexOffset) =>
+  Future<List<InsideDataBase>> _getResolvedData(NestedContent content) async {
+    var data = List<InsideDataBase>();
+
+    for (var section in content.sections) {
+      data.add(await section.resolve());
+    }
+
+    data.addAll(content.lessons);
+
+    return data;
+  }
+
+  IndexedWidgetBuilder _builder(NestedContent content,
+          List<InsideDataBase> dataList, int indexOffset) =>
       (BuildContext context, int i) {
         if (i == 0 && leadingWidget != null) {
           return leadingWidget;
@@ -88,24 +110,17 @@ class SectionContentList extends StatelessWidget {
         i -= indexOffset;
 
         if (i < content.sections.length) {
-          return FutureBuilder<InsideDataBase>(
-              future: content.sections[i].resolve(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  if (snapshot.data is SiteSection) {
-                    return sectionBuilder(
-                        context, snapshot.data as SiteSection);
-                  } else if (snapshot.data is Lesson) {
-                    return _lessonNavigator(context, snapshot.data as Lesson);
-                  } else if (snapshot.data is Media) {
-                    if (mediaBuilder != null) {
-                      return mediaBuilder(context, snapshot.data as Media);
-                    }
-                    return sectionBuilder(context, content.sections[i]);
-                  }
-                }
-                return Container();
-              });
+          final dataItem = dataList[i];
+          if (dataItem is SiteSection) {
+            return sectionBuilder(context, dataItem);
+          } else if (dataItem is Lesson) {
+            return _lessonNavigator(context, dataItem);
+          } else if (dataItem is Media) {
+            if (mediaBuilder != null) {
+              return mediaBuilder(context, dataItem);
+            }
+          }
+          return sectionBuilder(context, content.sections[i]);
         } else {
           final adjustedIndex = i - content.sections.length;
           final lesson = content.lessons[adjustedIndex];
@@ -116,7 +131,8 @@ class SectionContentList extends StatelessWidget {
 
   _lessonNavigator(BuildContext context, Lesson lesson) {
     if (lesson.audioCount == 1 && mediaBuilder != null) {
-      return mediaBuilder(context, Media(title: lesson.title, source: lesson.audio[0].source));
+      return mediaBuilder(
+          context, Media(title: lesson.title, source: lesson.audio[0].source));
     }
 
     return InsideNavigator(
