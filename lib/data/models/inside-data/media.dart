@@ -25,5 +25,14 @@ class Media implements InsideDataBase {
   @override
   String title;
 
+  /// Returns a media item which is self standing; if it doesn't have its own title, use title of the lesson.
+  Media resolve(Lesson lesson) {
+    final title = (this.title?.isEmpty ?? true) ? lesson.title : this.title;
+    final description = (this.description?.isEmpty ?? true)
+        ? lesson.description
+        : this.description;
+    return Media(title: title, description: description, source: source);
+  }
+
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
 }

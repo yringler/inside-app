@@ -62,32 +62,14 @@ class SiteSection implements CountableInsideData {
       this.description,
       List<String> pdf});
 
-  static Future<List<T>> _getItems<T extends CountableInsideData>(
-      List<String> ids, LazyBox box) async {
-    final items = List<T>();
-
-    if (ids?.isEmpty ?? true) {
-      return items;
-    }
-
-    for (var id in ids) {
-      CountableInsideData item = await box.get(id);
-      if (item.audioCount > 0) {
-        items.add(item);
-      }
-    }
-
-    return items;
-  }
-
   /// Return what this section really is.
   /// If it contains only a single section, recursively evalute until resolved.
   /// If it contains only a single lesson, return it.
   Future<InsideDataBase> resolve() async {
     if (audioCount == 1) {
       if (lessonIds.isNotEmpty) {
-        print("Resolved to audio");
-        return (await getLessons())[0].audio[0];
+        final lesson = (await getLessons())[0];
+        return lesson.audio[0].resolve(lesson);
       }
 
       return (await getSections())[0].resolve();
@@ -112,7 +94,8 @@ class SiteSection implements CountableInsideData {
     } else {
       var lessons = await getLessons();
       if (lessons.every((lesson) => lesson.audioCount == 1)) {
-        final audio =  List<Media>.from(lessons.map((lesson) => lesson.audio[0]));
+        final audio =
+            List<Media>.from(lessons.map((lesson) => lesson.audio[0].resolve(lesson)));
         return Lesson(audio: audio, description: description, title: title);
       }
     }
@@ -122,6 +105,24 @@ class SiteSection implements CountableInsideData {
 
   factory SiteSection.fromJson(Map<String, dynamic> json) =>
       _$SiteSectionFromJson(json);
+
+  static Future<List<T>> _getItems<T extends CountableInsideData>(
+      List<String> ids, LazyBox box) async {
+    final items = List<T>();
+
+    if (ids?.isEmpty ?? true) {
+      return items;
+    }
+
+    for (var id in ids) {
+      CountableInsideData item = await box.get(id);
+      if (item.audioCount > 0) {
+        items.add(item);
+      }
+    }
+
+    return items;
+  }
 }
 
 /// The lessons and sections that a section contains.
