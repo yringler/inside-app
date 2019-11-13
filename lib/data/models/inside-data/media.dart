@@ -25,6 +25,15 @@ class Media implements InsideDataBase {
   @override
   String title;
 
+  Duration get duration {
+    _milliseconds != null ? Duration(milliseconds: _milliseconds) : null;
+  }
+
+  set duration(Duration d) => _milliseconds = d?.inMilliseconds;
+
+  @HiveField(4)
+  int _milliseconds;
+
   /// Returns a media item which is self standing; if it doesn't have its own title, use title of the lesson.
   Media resolve(Lesson lesson) {
     final title = (this.title?.isEmpty ?? true) ? lesson.title : this.title;

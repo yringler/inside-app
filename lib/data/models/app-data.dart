@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
+import 'package:inside_chassidus/data/models/audio-length.dart';
 import 'package:inside_chassidus/data/models/inside-data-json-root.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:path_provider/path_provider.dart';
@@ -63,14 +64,31 @@ class AppData {
   }
 
   static Future saveDataToHive(BuildContext context) async {
-    final json =
+    final mainJson =
         await DefaultAssetBundle.of(context).loadString("assets/data.json");
+    final durationJson =
+        await DefaultAssetBundle.of(context).loadString("assets/duration.json");
 
     final primaryBox = await Hive.openBox<PrimaryInside>('primary');
     final sectionBox = await Hive.openBox('sections', lazy: true) as LazyBox;
     final lessonBox = await Hive.openBox('lessons', lazy: true) as LazyBox;
 
-    final insideData = InsideDataJsonRoot.fromJson(jsonDecode(json));
+    final insideData = InsideDataJsonRoot.fromJson(jsonDecode(mainJson));
+    final rawDurations = jsonDecode(durationJson) as List;
+    final durations = rawDurations
+        .map((d) => AudioLength.fromJson(d as Map<String, dynamic>));
+    final durationMap = Map<String, Duration>.fromIterable(durations,
+        key: (d) => d.source,
+        value: (d) => d.milliseconds > 1000 ? Duration(milliseconds: d.milliseconds) : null);
+
+    for (var lesson in insideData.lessons.values) {
+      if (lesson.audio?.isNotEmpty ?? false) {
+        for (var media in lesson.audio) {
+          media.duration = durationMap[media.source];
+        }
+      }
+    }
+
     final primaryMap = Map<String, PrimaryInside>.fromIterable(
         insideData.topLevel,
         key: (inside) => inside.id);
