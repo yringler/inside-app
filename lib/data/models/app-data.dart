@@ -63,6 +63,7 @@ class AppData {
     }
   }
 
+  // Loads lessons, sections, and durations, and saves to hive.
   static Future saveDataToHive(BuildContext context) async {
     final mainJson =
         await DefaultAssetBundle.of(context).loadString("assets/data.json");
