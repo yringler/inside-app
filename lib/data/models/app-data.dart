@@ -86,6 +86,7 @@ class AppData {
       if (lesson.audio?.isNotEmpty ?? false) {
         for (var media in lesson.audio) {
           media.duration = durationMap[media.source];
+          media.lessonId = lesson.id;
         }
       }
     }

@@ -11,6 +11,13 @@ class Media implements InsideDataBase {
   @HiveField(3)
   final String source;
 
+  @HiveField(4)
+  String lessonId;
+
+  Lesson get lesson => _lesson ?? (_lesson = Hive.box("lessons").get(lessonId));
+
+  Lesson _lesson;
+
   Media({this.source, this.title, this.description, List<String> pdf});
 
   @HiveField(0)

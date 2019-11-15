@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_chassidus/routes/player-route/index.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import 'package:inside_chassidus/widgets/media-list/play-button.dart';
 
@@ -20,11 +21,13 @@ class MediaItem extends StatelessWidget {
       title = fallbackTitle;
     }
 
-    return ListTile(
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pushNamed(PlayerRoute.routeName, arguments: media),
+        child: ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 4),
       title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
       subtitle: subtitle,
       trailing: PlayButton(media: media),
-    );
+    ));
   }
 }
