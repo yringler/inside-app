@@ -75,6 +75,10 @@ class SiteSection implements CountableInsideData {
       return (await getSections())[0].resolve();
     }
 
+    if ((sectionIds?.isNotEmpty ?? false) && (lessonIds?.isNotEmpty ?? false)) {
+      return this;
+    }
+
     if (sectionIds?.length == 1) {
       return (await getSections())[0].resolve();
     }
