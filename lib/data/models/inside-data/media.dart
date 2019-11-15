@@ -15,11 +15,11 @@ class Media implements InsideDataBase {
   String lessonId;
 
   Future<Lesson> getLesson() async {
-    final lesson = await ((Hive.box("lessons") as LazyBox).get(lessonId)) as Lesson;
+    final Lesson lesson = await (Hive.box("lessons") as LazyBox).get(lessonId);
     return lesson;
   }
 
-  Media({this.source, this.title, this.description, List<String> pdf});
+  Media({this.source, this.title, this.description, this.lessonId, this.pdf});
 
   @HiveField(0)
   @override
@@ -48,7 +48,7 @@ class Media implements InsideDataBase {
     final description = (this.description?.isEmpty ?? true)
         ? lesson.description
         : this.description;
-    return Media(title: title, description: description, source: source);
+    return Media(title: title, description: description, source: source, lessonId: lessonId);
   }
 
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
