@@ -16,7 +16,7 @@ class PlayerRoute extends StatelessWidget {
       body: FutureBuilder<Lesson>(
         future: media.getLesson(),
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.done) {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -44,7 +44,7 @@ class PlayerRoute extends StatelessWidget {
     if (media.title?.isNotEmpty ?? false) {
       return [
         Text(
-          lesson.title,
+          lesson?.title ?? "No title",
           style: Theme.of(context).textTheme.subtitle,
         ),
         Text(
@@ -56,7 +56,7 @@ class PlayerRoute extends StatelessWidget {
 
     return [
       Text(
-        lesson.title,
+        lesson?.title ?? "No title",
         style: Theme.of(context).textTheme.title,
       )
     ];

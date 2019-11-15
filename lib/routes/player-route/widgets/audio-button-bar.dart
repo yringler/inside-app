@@ -41,6 +41,10 @@ class AudioButtonBar extends StatelessWidget {
   }
 
   _playNext(BuildContext context) {
+    if (lesson?.audio?.isEmpty ?? true) {
+      return;
+    }
+
     final currentIndex = lesson.audio.indexOf(media);
     final nextIndex =
         currentIndex < lesson.audio.length - 1 ? currentIndex + 1 : 0;
