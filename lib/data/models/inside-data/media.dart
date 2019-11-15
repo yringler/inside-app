@@ -14,7 +14,10 @@ class Media implements InsideDataBase {
   @HiveField(5)
   String lessonId;
 
-  Future<Lesson> get lesson => (Hive.box("lessons") as LazyBox).get(lessonId);
+  Future<Lesson> getLesson() async {
+    final lesson = await ((Hive.box("lessons") as LazyBox).get(lessonId)) as Lesson;
+    return lesson;
+  }
 
   Media({this.source, this.title, this.description, List<String> pdf});
 

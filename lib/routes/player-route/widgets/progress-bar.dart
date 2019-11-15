@@ -16,7 +16,7 @@ class ProgressBar extends StatelessWidget {
     final stream = mediaManager.mediaState.zipWith(
         mediaManager.audioPlayer.onAudioPositionChanged,
         (mediaState, duration) =>
-            WithMediaState<Duration>(state: mediaState, data: duration));
+            WithMediaState<Duration>(state: mediaState, data: duration)).asBroadcastStream();
 
     return Column(
       mainAxisSize: MainAxisSize.min,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/routes/player-route/widgets/index.dart';
+import 'package:inside_chassidus/widgets/inside-scaffold.dart';
 
 class PlayerRoute extends StatelessWidget {
   static const String routeName = 'playerroute';
@@ -10,8 +11,10 @@ class PlayerRoute extends StatelessWidget {
   PlayerRoute({this.media});
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<Lesson>(
-        future: media.lesson,
+  Widget build(BuildContext context) => InsideScaffold(
+      insideData: media,
+      body: FutureBuilder<Lesson>(
+        future: media.getLesson(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return Column(
@@ -33,7 +36,7 @@ class PlayerRoute extends StatelessWidget {
 
           return Container();
         },
-      );
+      ));
 
   /// Returns lesson title and media title.
   /// If the media doesn't have a title, just returns lesson title as title.
