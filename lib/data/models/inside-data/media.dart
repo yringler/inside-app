@@ -11,12 +11,10 @@ class Media implements InsideDataBase {
   @HiveField(3)
   final String source;
 
-  @HiveField(4)
+  @HiveField(5)
   String lessonId;
 
-  Lesson get lesson => _lesson ?? (_lesson = Hive.box("lessons").get(lessonId));
-
-  Lesson _lesson;
+  Future<Lesson> get lesson => (Hive.box("lessons") as LazyBox).get(lessonId);
 
   Media({this.source, this.title, this.description, List<String> pdf});
 

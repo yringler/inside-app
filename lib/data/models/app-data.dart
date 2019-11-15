@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
+import 'package:inside_chassidus/data/models/app-setings.dart';
 import 'package:inside_chassidus/data/models/audio-length.dart';
 import 'package:inside_chassidus/data/models/inside-data-json-root.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
@@ -39,6 +40,7 @@ class AppData {
     try {
       Hive.init(hiveFolder.path);
 
+      Hive.registerAdapter(AppSettingsAdapter(), 0);
       Hive.registerAdapter(PrimaryInsideAdapter(), 1);
       Hive.registerAdapter(SiteSectionAdapter(), 2);
       Hive.registerAdapter(LessonAdapter(), 3);
@@ -51,16 +53,25 @@ class AppData {
       final primaryBox = await Hive.openBox<PrimaryInside>('primary');
       final sectionBox = await Hive.openBox('sections', lazy: true) as LazyBox;
       final lessonBox = await Hive.openBox('lessons', lazy: true) as LazyBox;
+      final appsettingsBox = await Hive.openBox<AppSettings>('settings');
 
-      if (primaryBox.keys.isEmpty || sectionBox.isEmpty || lessonBox.isEmpty) {
+      if (primaryBox.keys.isEmpty || sectionBox.isEmpty || lessonBox.isEmpty || appsettingsBox.isEmpty) {
         await saveDataToHive(context);
+      }
+
+      if (appsettingsBox.values.first.dataVersion < 1) {
+        await refreshData(hiveFolder, context);
       }
     } catch (error) {
       print(error);
-      await hiveFolder.delete();
-      await hiveFolder.create();
-      await saveDataToHive(context);
+      await refreshData(hiveFolder, context);
     }
+  }
+
+  static Future refreshData(Directory hiveFolder, BuildContext context) async {
+    await hiveFolder.delete();
+    await hiveFolder.create();
+    await saveDataToHive(context);
   }
 
   // Loads lessons, sections, and durations, and saves to hive.
@@ -73,6 +84,7 @@ class AppData {
     final primaryBox = await Hive.openBox<PrimaryInside>('primary');
     final sectionBox = await Hive.openBox('sections', lazy: true) as LazyBox;
     final lessonBox = await Hive.openBox('lessons', lazy: true) as LazyBox;
+    final appsettingsBox = await Hive.openBox<AppSettings>('settings');
 
     final insideData = InsideDataJsonRoot.fromJson(jsonDecode(mainJson));
     final rawDurations = jsonDecode(durationJson) as List;
@@ -98,5 +110,7 @@ class AppData {
     await primaryBox.putAll(primaryMap);
     await sectionBox.putAll(insideData.sections);
     await lessonBox.putAll(insideData.lessons);
+
+    await appsettingsBox.add(AppSettings(dataVersion: 1));
   }
 }

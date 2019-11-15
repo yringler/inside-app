@@ -8,8 +8,9 @@ import 'package:inside_chassidus/widgets/media-list/play-button.dart';
 
 class AudioButtonBar extends StatelessWidget {
   final Media media;
+  final Lesson lesson;
 
-  AudioButtonBar({this.media});
+  AudioButtonBar({this.media, this.lesson});
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +41,10 @@ class AudioButtonBar extends StatelessWidget {
   }
 
   _playNext(BuildContext context) {
-    final currentIndex = media.lesson.audio.indexOf(media);
+    final currentIndex = lesson.audio.indexOf(media);
     final nextIndex =
-        currentIndex < media.lesson.audio.length - 1 ? currentIndex + 1 : 0;
+        currentIndex < lesson.audio.length - 1 ? currentIndex + 1 : 0;
     Navigator.of(context)
-        .pushNamed(PlayerRoute.routeName, arguments: media.lesson.audio[nextIndex]);
+        .pushNamed(PlayerRoute.routeName, arguments: lesson.audio[nextIndex]);
   }
 }

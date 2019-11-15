@@ -10,29 +10,38 @@ class PlayerRoute extends StatelessWidget {
   PlayerRoute({this.media});
 
   @override
-  Widget build(BuildContext context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          ..._title(context),
-          if (media.description?.isNotEmpty ?? false)
-            Text(
-              media.description,
-              style: Theme.of(context).textTheme.body2,
-            ),
-          ProgressBar(
-            media: media,
-          ),
-          AudioButtonBar(media: media)
-        ],
+  Widget build(BuildContext context) => FutureBuilder<Lesson>(
+        future: media.lesson,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ..._title(context, snapshot.data),
+                if (media.description?.isNotEmpty ?? false)
+                  Text(
+                    media.description,
+                    style: Theme.of(context).textTheme.body2,
+                  ),
+                ProgressBar(
+                  media: media,
+                ),
+                AudioButtonBar(media: media, lesson: snapshot.data)
+              ],
+            );
+          }
+
+          return Container();
+        },
       );
 
   /// Returns lesson title and media title.
   /// If the media doesn't have a title, just returns lesson title as title.
-  List<Widget> _title(BuildContext context) {
+  List<Widget> _title(BuildContext context, Lesson lesson) {
     if (media.title?.isNotEmpty ?? false) {
       return [
         Text(
-          media.lesson.title,
+          lesson.title,
           style: Theme.of(context).textTheme.subtitle,
         ),
         Text(
@@ -44,7 +53,7 @@ class PlayerRoute extends StatelessWidget {
 
     return [
       Text(
-        media.lesson.title,
+        lesson.title,
         style: Theme.of(context).textTheme.title,
       )
     ];
