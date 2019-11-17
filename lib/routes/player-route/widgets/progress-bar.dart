@@ -15,36 +15,29 @@ class ProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mediaManager = BlocProvider.getBloc<MediaManager>();
-    final progressStream =
-        Observable(mediaManager.audioPlayer.onAudioPositionChanged)
-            .shareValueSeeded(Duration.zero);
-
-    final stream = CombineLatestStream([
-      mediaManager.mediaState as Stream<dynamic>,
-      progressStream as Stream<dynamic>
-    ], (data) => WithMediaState<Duration>(state: data[0], data: data[1]))
-        .asBroadcastStream();
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        _stateDurationStreamBuilder(stream,
-            inactiveBuilder: (data) => Slider(onChanged: null, value: 0),
-            builder: (data) => Slider(
-                  value: data.data.inMilliseconds.toDouble(),
-                  max: data.state.duration?.inMilliseconds?.toDouble(),
-                  onChanged: (newProgress) => mediaManager.seek(
-                      media, Duration(milliseconds: newProgress.round())),
-                )),
+        Container(
+          child: _stateDurationStreamBuilder(mediaManager.mediaPosition,
+              inactiveBuilder: (data) => Slider(onChanged: null, value: 0),
+              builder: (data) => Slider(
+                    value: data.data.inMilliseconds.toDouble(),
+                    max: data.state.duration?.inMilliseconds?.toDouble(),
+                    onChanged: (newProgress) => mediaManager.seek(
+                        media, Duration(milliseconds: newProgress.round())),
+                  )),
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             // Show current time in class.
-            _stateDurationStreamBuilder(stream,
+            _stateDurationStreamBuilder(mediaManager.mediaPosition,
                 inactiveBuilder: (data) => _time(null),
                 builder: (data) => _time(data.data)),
             // Show time remaining in class.
-            _stateDurationStreamBuilder(stream,
+            _stateDurationStreamBuilder(mediaManager.mediaPosition,
                 inactiveBuilder: (data) => _time(media.duration),
                 builder: (data) => _time(data.state.duration - data.data))
           ],

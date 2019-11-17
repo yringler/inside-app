@@ -34,7 +34,7 @@ class AudioButtonBar extends StatelessWidget {
             onPressed: () => mediaManager.skip(media, Duration(seconds: 15))),
         IconButton(
           icon: Icon(FontAwesomeIcons.stepForward),
-          onPressed: () => _playNext(context),
+          onPressed: null,
         )
       ],
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -42,7 +42,7 @@ class AudioButtonBar extends StatelessWidget {
   }
 
   _playNext(BuildContext context) {
-    if (lesson?.audio?.isEmpty ?? true) {
+    if ((lesson?.audio?.isEmpty ?? true) || lesson.audio.length == 1) {
       return;
     }
 

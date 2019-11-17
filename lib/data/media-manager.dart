@@ -7,57 +7,58 @@ import 'package:rxdart/rxdart.dart';
 
 class MediaManager extends BlocBase {
   final AudioPlayer audioPlayer = AudioPlayer();
-  Observable<MediaState> get mediaState => _mediaState;
+  Observable<MediaState> get mediaState => _mediaSubject;
+  Observable<WithMediaState<Duration>> get mediaPosition => _positionSubject;
 
   StreamSubscription<AudioPlayerState> _audioPlayerStateSubscription;
   StreamSubscription<Duration> _positionSubscription;
 
-  BehaviorSubject<MediaState> _mediaState = BehaviorSubject();
-  BehaviorSubject<WithMediaState<Duration>> _mediaDurationSubject;
+  BehaviorSubject<MediaState> _mediaSubject = BehaviorSubject();
+  BehaviorSubject<WithMediaState<Duration>> _positionSubject;
 
   MediaManager() {
-    _mediaDurationSubject = BehaviorSubject(
-        onListen: () => _positionSubscription.pause(),
-        onCancel: () => _positionSubscription.resume());
+    _positionSubject = BehaviorSubject(
+        onListen: () => _positionSubscription.resume(),
+        onCancel: () => _positionSubscription.pause());
 
     _audioPlayerStateSubscription =
         audioPlayer.onPlayerStateChanged.listen(_onPlayerStateChanged);
     _positionSubscription =
         audioPlayer.onAudioPositionChanged.listen(_onPositionChanged);
 
+    // We don't need to keep track of position if no one is listening.
     _positionSubscription.pause();
   }
 
   /// The media which is currently playing.
-  MediaState get current => _mediaState.value;
+  MediaState get current => _mediaSubject.value;
 
   play(Media media) async {
-    if (media == _mediaState.value?.media) {
+    if (media == _mediaSubject.value?.media) {
       audioPlayer.resume();
       return;
     }
 
-    // While getting a file to play, we want to manually handle the state stream.
+    // While getting a file to play, we want to manually handle the state streams.
     _audioPlayerStateSubscription.pause();
+    _positionSubscription.pause();
 
-    _mediaState.value =
+    _mediaSubject.value =
         MediaState(media: media, isLoaded: false, duration: media.duration);
 
     await audioPlayer.play(media.source);
     var duration = await audioPlayer.onDurationChanged.first;
 
-    _mediaState.value = MediaState(
-        media: media,
-        isLoaded: true,
-        state: audioPlayer.state,
-        duration: duration);
+    _mediaSubject.value = current.copyWith(
+        isLoaded: true, state: audioPlayer.state, duration: duration);
 
     _audioPlayerStateSubscription.resume();
+    _positionSubscription.resume();
   }
 
   /// Updates the current location in given media.
   seek(Media media, Duration location) {
-    if (media.source != _mediaState.value?.media?.source) {
+    if (media.source != _mediaSubject.value?.media?.source) {
       return;
     }
 
@@ -69,24 +70,20 @@ class MediaManager extends BlocBase {
     seek(media, Duration(milliseconds: currentLocation) + duration);
   }
 
-  void _onPlayerStateChanged(AudioPlayerState state) {
-    final current = _mediaState.value;
-
-    _mediaState.value = MediaState(
-        media: current.media,
-        isLoaded: current.isLoaded,
-        state: state,
-        duration: current.duration);
-  }
+  void _onPlayerStateChanged(AudioPlayerState state) =>
+      _mediaSubject.value = current.copyWith(state: state);
 
   @override
   void dispose() {
-    _mediaState.close();
+    _mediaSubject.close();
+    _positionSubject.close();
     super.dispose();
   }
 
-  void _onPositionChanged(Duration event) {
-    
+  void _onPositionChanged(Duration position) {
+    this
+        ._positionSubject
+        .add(WithMediaState<Duration>(state: current, data: position));
   }
 }
 
@@ -97,6 +94,17 @@ class MediaState {
   final Duration duration;
 
   MediaState({this.media, this.isLoaded, this.state, this.duration});
+
+  MediaState copyWith(
+          {Media media,
+          bool isLoaded,
+          AudioPlayerState state,
+          Duration duration}) =>
+      MediaState(
+          media: media ?? this.media,
+          isLoaded: isLoaded ?? this.isLoaded,
+          state: state ?? this.state,
+          duration: duration ?? this.duration);
 }
 
 /// Allows strongly typed binding of media state with any other value.

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/routes/player-route/widgets/index.dart';
-import 'package:inside_chassidus/widgets/inside-scaffold.dart';
 
 class PlayerRoute extends StatelessWidget {
   static const String routeName = 'playerroute';
@@ -17,20 +16,26 @@ class PlayerRoute extends StatelessWidget {
         future: media.getLesson(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                ..._title(context, snapshot.data),
-                if (media.description?.isNotEmpty ?? false)
-                  Text(
-                    media.description,
-                    style: Theme.of(context).textTheme.body2,
+            return Container(
+              padding: EdgeInsets.all(8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  ..._title(context, snapshot.data),
+                  if (media.description?.isNotEmpty ?? false)
+                    Container(
+                      margin: EdgeInsets.only(top: 8),
+                      child: Text(
+                        media.description,
+                        style: Theme.of(context).textTheme.body1,
+                      ),
+                    ),
+                  ProgressBar(
+                    media: media,
                   ),
-                ProgressBar(
-                  media: media,
-                ),
-                AudioButtonBar(media: media, lesson: snapshot.data)
-              ],
+                  AudioButtonBar(media: media, lesson: snapshot.data)
+                ],
+              ),
             );
           }
 
@@ -45,9 +50,12 @@ class PlayerRoute extends StatelessWidget {
         (lesson?.title?.isNotEmpty ?? false) &&
         media.title != lesson.title) {
       return [
-        Text(
-          lesson.title,
-          style: Theme.of(context).textTheme.subtitle,
+        Container(
+          margin: EdgeInsets.only(bottom: 8),
+          child: Text(
+            lesson.title,
+            style: Theme.of(context).textTheme.subtitle,
+          ),
         ),
         Text(
           media.title,
