@@ -51,5 +51,9 @@ class Media implements InsideDataBase {
     return Media(title: title, description: description, source: source, lessonId: lessonId);
   }
 
+  bool operator==(dynamic other) => other is Media && other.source == source;
+
+  int get hashCode => source.hashCode;
+
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
 }

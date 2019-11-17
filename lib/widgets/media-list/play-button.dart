@@ -6,8 +6,10 @@ import 'package:inside_chassidus/data/media-manager.dart';
 
 class PlayButton extends StatelessWidget {
   final Media media;
+  final double iconSize;
+  final VoidCallback onPressed;
 
-  PlayButton({this.media});
+  PlayButton({this.media, this.onPressed, this.iconSize = 24});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,16 @@ class PlayButton extends StatelessWidget {
           }
         }
 
-        return IconButton(onPressed: onPressed, icon: Icon(icon));
+        return IconButton(
+          onPressed: () {
+            onPressed();
+            if (this.onPressed != null) {
+              this.onPressed();
+            }
+          },
+          icon: Icon(icon),
+          iconSize: this.iconSize,
+        );
       },
     );
   }

@@ -11,8 +11,8 @@ class PlayerRoute extends StatelessWidget {
   PlayerRoute({this.media});
 
   @override
-  Widget build(BuildContext context) => InsideScaffold(
-      insideData: media,
+  Widget build(BuildContext context) => Scaffold(
+      appBar: AppBar(),
       body: FutureBuilder<Lesson>(
         future: media.getLesson(),
         builder: (context, snapshot) {
@@ -41,10 +41,12 @@ class PlayerRoute extends StatelessWidget {
   /// Returns lesson title and media title.
   /// If the media doesn't have a title, just returns lesson title as title.
   List<Widget> _title(BuildContext context, Lesson lesson) {
-    if (media.title?.isNotEmpty ?? false) {
+    if ((media.title?.isNotEmpty ?? false) &&
+        (lesson?.title?.isNotEmpty ?? false) &&
+        media.title != lesson.title) {
       return [
         Text(
-          lesson?.title ?? "No title",
+          lesson.title,
           style: Theme.of(context).textTheme.subtitle,
         ),
         Text(
@@ -56,7 +58,7 @@ class PlayerRoute extends StatelessWidget {
 
     return [
       Text(
-        lesson?.title ?? "No title",
+        media.title?.isNotEmpty ?? false ? media.title : lesson.title,
         style: Theme.of(context).textTheme.title,
       )
     ];

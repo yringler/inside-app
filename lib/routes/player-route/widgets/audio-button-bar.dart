@@ -27,6 +27,7 @@ class AudioButtonBar extends StatelessWidget {
             onPressed: () => mediaManager.skip(media, Duration(seconds: -15))),
         PlayButton(
           media: media,
+          iconSize: 48,
         ),
         IconButton(
             icon: Icon(FontAwesomeIcons.redo),
@@ -45,9 +46,9 @@ class AudioButtonBar extends StatelessWidget {
       return;
     }
 
-    final currentIndex = lesson.audio.indexOf(media);
-    final nextIndex =
-        currentIndex < lesson.audio.length - 1 ? currentIndex + 1 : 0;
+    // The next class is first lesson or next lesson.
+    final nextIndex = 
+        lesson.audio.last == media ? 0 : lesson.audio.indexOf(media) + 1;
     Navigator.of(context)
         .pushNamed(PlayerRoute.routeName, arguments: lesson.audio[nextIndex]);
   }

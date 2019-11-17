@@ -7,13 +7,25 @@ import 'package:rxdart/rxdart.dart';
 
 class MediaManager extends BlocBase {
   final AudioPlayer audioPlayer = AudioPlayer();
-  Observable<MediaState> get mediaState => _mediaState.stream;
+  Observable<MediaState> get mediaState => _mediaState;
+
   StreamSubscription<AudioPlayerState> _audioPlayerStateSubscription;
+  StreamSubscription<Duration> _positionSubscription;
+
   BehaviorSubject<MediaState> _mediaState = BehaviorSubject();
+  BehaviorSubject<WithMediaState<Duration>> _mediaDurationSubject;
 
   MediaManager() {
+    _mediaDurationSubject = BehaviorSubject(
+        onListen: () => _positionSubscription.pause(),
+        onCancel: () => _positionSubscription.resume());
+
     _audioPlayerStateSubscription =
         audioPlayer.onPlayerStateChanged.listen(_onPlayerStateChanged);
+    _positionSubscription =
+        audioPlayer.onAudioPositionChanged.listen(_onPositionChanged);
+
+    _positionSubscription.pause();
   }
 
   /// The media which is currently playing.
@@ -28,7 +40,8 @@ class MediaManager extends BlocBase {
     // While getting a file to play, we want to manually handle the state stream.
     _audioPlayerStateSubscription.pause();
 
-    _mediaState.value = MediaState(media: media, isLoaded: false, duration: media.duration);
+    _mediaState.value =
+        MediaState(media: media, isLoaded: false, duration: media.duration);
 
     await audioPlayer.play(media.source);
     var duration = await audioPlayer.onDurationChanged.first;
@@ -70,6 +83,10 @@ class MediaManager extends BlocBase {
   void dispose() {
     _mediaState.close();
     super.dispose();
+  }
+
+  void _onPositionChanged(Duration event) {
+    
   }
 }
 

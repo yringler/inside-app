@@ -2,6 +2,8 @@ import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/media.dart';
 import 'package:inside_chassidus/data/media-manager.dart';
+import 'package:inside_chassidus/util/duration-helpers.dart';
+import 'package:rxdart/rxdart.dart';
 
 typedef Widget ProgressStreamBuilder(WithMediaState<Duration> state);
 
@@ -13,10 +15,15 @@ class ProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mediaManager = BlocProvider.getBloc<MediaManager>();
-    final stream = mediaManager.mediaState.zipWith(
-        mediaManager.audioPlayer.onAudioPositionChanged,
-        (mediaState, duration) =>
-            WithMediaState<Duration>(state: mediaState, data: duration)).asBroadcastStream();
+    final progressStream =
+        Observable(mediaManager.audioPlayer.onAudioPositionChanged)
+            .shareValueSeeded(Duration.zero);
+
+    final stream = CombineLatestStream([
+      mediaManager.mediaState as Stream<dynamic>,
+      progressStream as Stream<dynamic>
+    ], (data) => WithMediaState<Duration>(state: data[0], data: data[1]))
+        .asBroadcastStream();
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -25,25 +32,21 @@ class ProgressBar extends StatelessWidget {
             inactiveBuilder: (data) => Slider(onChanged: null, value: 0),
             builder: (data) => Slider(
                   value: data.data.inMilliseconds.toDouble(),
-                  max: data.state.duration.inMilliseconds.toDouble(),
+                  max: data.state.duration?.inMilliseconds?.toDouble(),
                   onChanged: (newProgress) => mediaManager.seek(
                       media, Duration(milliseconds: newProgress.round())),
                 )),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
+            // Show current time in class.
             _stateDurationStreamBuilder(stream,
                 inactiveBuilder: (data) => _time(null),
                 builder: (data) => _time(data.data)),
-            StreamBuilder<MediaState>(
-              stream: mediaManager.mediaState,
-              builder: (context, snapshot) {
-                return !snapshot.hasData ||
-                        snapshot.data.media.source != media.source
-                    ? _time(null)
-                    : _time(snapshot.data.duration);
-              },
-            )
+            // Show time remaining in class.
+            _stateDurationStreamBuilder(stream,
+                inactiveBuilder: (data) => _time(media.duration),
+                builder: (data) => _time(data.state.duration - data.data))
           ],
         )
       ],
@@ -58,7 +61,8 @@ class ProgressBar extends StatelessWidget {
         stream: stream,
         builder: (context, snapshot) {
           if (!snapshot.hasData ||
-              snapshot.data.state.media.source != media.source) {
+              snapshot.data.state.media.source != media.source ||
+              !snapshot.data.state.isLoaded) {
             return inactiveBuilder(
                 WithMediaState<Duration>(data: Duration.zero, state: null));
           }
@@ -68,9 +72,5 @@ class ProgressBar extends StatelessWidget {
       );
 
   /// Text representation of the given [Duration].
-  Widget _time(Duration duration) {
-    return duration == null
-        ? Text("--:--")
-        : Text("${duration.inMinutes}:${duration.inSeconds}");
-  }
+  Widget _time(Duration duration) => Text(toDurationString(duration));
 }
