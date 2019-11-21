@@ -59,7 +59,7 @@ class AppData {
         await saveDataToHive(context);
       }
 
-      if (appsettingsBox.values.first.dataVersion < 1) {
+      if (appsettingsBox.values.first.dataVersion < 2) {
         await refreshData(hiveFolder, context);
       }
     } catch (error) {
@@ -111,6 +111,6 @@ class AppData {
     await sectionBox.putAll(insideData.sections);
     await lessonBox.putAll(insideData.lessons);
 
-    await appsettingsBox.add(AppSettings(dataVersion: 1));
+    await appsettingsBox.add(AppSettings(dataVersion: 2));
   }
 }
