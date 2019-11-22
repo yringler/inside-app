@@ -1,8 +1,6 @@
 import 'dart:core';
-import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:rxdart/rxdart.dart';
 import 'index.dart';
 
 part 'site-section.g.dart';
@@ -10,8 +8,8 @@ part 'site-section.g.dart';
 @HiveType()
 @JsonSerializable(fieldRename: FieldRename.pascal)
 class SiteSection implements CountableInsideData {
-  final LazyBox _sectionsBox = Hive.box("sections");
-  final LazyBox _lessonBox = Hive.box("lessons");
+  LazyBox get _sectionsBox => Hive.box("sections");
+  LazyBox get _lessonBox => Hive.box("lessons");
 
   @HiveField(3)
   @JsonKey(name: "ID")
