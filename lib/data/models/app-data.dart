@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
-import 'package:inside_chassidus/data/models/app-setings.dart';
 import 'package:inside_chassidus/data/models/audio-length.dart';
 import 'package:inside_chassidus/data/models/inside-data-json-root.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
@@ -43,7 +42,6 @@ class AppData {
     try {
       Hive.init(hiveFolder.path);
 
-      Hive.registerAdapter(AppSettingsAdapter(), 0);
       Hive.registerAdapter(PrimaryInsideAdapter(), 1);
       Hive.registerAdapter(SiteSectionAdapter(), 2);
       Hive.registerAdapter(LessonAdapter(), 3);
@@ -66,11 +64,18 @@ class AppData {
         await _initSettings();
       }
 
-      if (appsettingsBox.values.first.dataVersion < dataTypeVersion) {
+      if (appsettingsBox.get("dataversion", defaultValue: 0) <
+          dataTypeVersion) {
         await _refreshData(hiveFolder, context);
       }
     } catch (error) {
       print(error);
+      // If there's an error, bail out - clear all data.
+      // This will cause loss of settings etc, but hopefully
+      // makes it less likely for the app to end up in a non-openable state.
+      await Hive.close();
+      await hiveFolder.delete(recursive: true);
+      await hiveFolder.create();
       await _refreshData(hiveFolder, context);
     }
   }
@@ -86,7 +91,7 @@ class AppData {
 
   static Future _initSettings() async {
     final appsettingsBox = await Hive.openBox('settings');
-    await appsettingsBox.add(AppSettings(dataVersion: dataTypeVersion));
+    await appsettingsBox.put('dataversion', dataTypeVersion);
   }
 
   // Loads lessons, sections, and durations, and saves to hive.
