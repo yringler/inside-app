@@ -33,6 +33,7 @@ dependencies:
   hive: ^1.1.1
   hive_flutter: ^0.2.1
   font_awesome_flutter: ^8.5.0
+  audio_service: ^0.5.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
