@@ -73,10 +73,22 @@ class AudioTask extends BackgroundAudioTask {
   }
 
   @override
-  void onPlay() => _audioPlayer.play();
+  void onPlay() {
+    final state = _audioPlayer.playerState.state;
+    if (state == AudioPlaybackState.paused ||
+        state == AudioPlaybackState.stopped) {
+        _audioPlayer.play();
+        }
+  }
 
   @override
-  void onPause() => _audioPlayer.pause();
+  void onPause() {
+        final state = _audioPlayer.playerState.state;
+
+       if (state == AudioPlaybackState.buffering ||
+        state == AudioPlaybackState.playing)
+    _audioPlayer.pause();
+  }
 
   @override
   void onSeekTo(int position) =>
@@ -85,12 +97,11 @@ class AudioTask extends BackgroundAudioTask {
   @override
   void onClick(MediaButton button) {
     // TODO: it would be great if general click on notification would open the app...
-    final state = _audioPlayer.playerState.state;
-    if (state == AudioPlaybackState.buffering ||
-        state == AudioPlaybackState.playing)
+    if (canPlay()) {
+      onPlay();
+    } else {
       onPause();
-    else if (state == AudioPlaybackState.paused ||
-        state == AudioPlaybackState.stopped) onPlay();
+    }
   }
 
   @override
@@ -151,6 +162,12 @@ class AudioTask extends BackgroundAudioTask {
         title: "Class",
         album: "Inside Chassidus",
         duration: length.inMilliseconds));
+  }
+
+  bool canPlay() {
+    final state = _audioPlayer.playerState.state;
+    return state == AudioPlaybackState.paused ||
+        state == AudioPlaybackState.stopped;
   }
 
   static final Map<AudioPlaybackState, BasicPlaybackState> stateToStateMap =

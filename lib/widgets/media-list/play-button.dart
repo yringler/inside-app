@@ -1,4 +1,4 @@
-import 'package:audioplayers/audioplayers.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
@@ -26,9 +26,9 @@ class PlayButton extends StatelessWidget {
             return CircularProgressIndicator();
           }
 
-          if (snapshot.data.state == AudioPlayerState.PLAYING) {
+          if (snapshot.data.state == BasicPlaybackState.playing || snapshot.data.state == BasicPlaybackState.buffering) {
             icon = Icons.pause_circle_filled;
-            onPressed = () => mediaManger.audioPlayer.pause();
+            onPressed = () => mediaManger.pause();
           }
         }
 

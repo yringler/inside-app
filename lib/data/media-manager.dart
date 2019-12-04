@@ -1,59 +1,60 @@
 import 'dart:async';
-
-import 'package:audioplayers/audioplayers.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MediaManager extends BlocBase {
-  final AudioPlayer audioPlayer = AudioPlayer();
   Observable<MediaState> get mediaState => _mediaSubject;
   Observable<WithMediaState<Duration>> get mediaPosition => _positionSubject;
 
-  StreamSubscription<AudioPlayerState> _audioPlayerStateSubscription;
-  StreamSubscription<Duration> _positionSubscription;
+  StreamSubscription<PlaybackState> _audioPlayerStateSubscription;
 
   BehaviorSubject<MediaState> _mediaSubject = BehaviorSubject();
   BehaviorSubject<WithMediaState<Duration>> _positionSubject;
 
   MediaManager() {
-    _positionSubject = BehaviorSubject(
-        onListen: () => _positionSubscription.resume(),
-        onCancel: () => _positionSubscription.pause());
-
     _audioPlayerStateSubscription =
-        audioPlayer.onPlayerStateChanged.listen(_onPlayerStateChanged);
-    _positionSubscription =
-        audioPlayer.onAudioPositionChanged.listen(_onPositionChanged);
+        AudioService.playbackStateStream.listen(_onPlayerStateChanged);
 
-    // We don't need to keep track of position if no one is listening.
-    _positionSubscription.pause();
+    Observable.combineLatest2<PlaybackState, int, WithMediaState<Duration>>(
+        AudioService.playbackStateStream,
+        Observable.periodic(Duration(milliseconds: 20), (x) => x), (state, _) {
+      final position = state.updateTime + state.position;
+      return WithMediaState(
+          state: current, data: Duration(milliseconds: position));
+    }).listen((state) => _positionSubject.value = state);
   }
 
   /// The media which is currently playing.
   MediaState get current => _mediaSubject.value;
 
+  pause() => AudioService.pause();
+
   play(Media media) async {
     if (media == _mediaSubject.value?.media) {
-      audioPlayer.resume();
+      AudioService.play();
       return;
     }
 
     // While getting a file to play, we want to manually handle the state streams.
     _audioPlayerStateSubscription.pause();
-    _positionSubscription.pause();
 
-    _mediaSubject.value =
-        MediaState(media: media, isLoaded: false, duration: media.duration);
+    _mediaSubject.value = MediaState(
+        media: media,
+        duration: media.duration,
+        state: BasicPlaybackState.connecting);
 
-    await audioPlayer.play(media.source);
-    var duration = await audioPlayer.onDurationChanged.first;
+    AudioService.play();
+    var durationState = await AudioService.currentMediaItemStream
+        .where((item) => item.id == media.source && item.duration > 0)
+        .first;
 
     _mediaSubject.value = current.copyWith(
-        isLoaded: true, state: audioPlayer.state, duration: duration);
+        state: AudioService.playbackState.basicState,
+        duration: Duration(milliseconds: durationState.duration));
 
     _audioPlayerStateSubscription.resume();
-    _positionSubscription.resume();
   }
 
   /// Updates the current location in given media.
@@ -62,22 +63,16 @@ class MediaManager extends BlocBase {
       return;
     }
 
-    audioPlayer.seek(location);
+    AudioService.seekTo(location.inMilliseconds);
   }
 
   skip(Media media, Duration duration) async {
-    final currentLocation = await audioPlayer.getCurrentPosition();
+    final currentLocation = _positionSubject.value.data.inMilliseconds;
     seek(media, Duration(milliseconds: currentLocation) + duration);
   }
 
-  void _onPlayerStateChanged(AudioPlayerState state) =>
-      _mediaSubject.value = current.copyWith(state: state);
-
-  @override
-  void dispose() {
-    _mediaSubject.close();
-    _positionSubject.close();
-    super.dispose();
+  void _onPlayerStateChanged(PlaybackState state) {
+    _mediaSubject.value = current.copyWith(state: state.basicState);
   }
 
   void _onPositionChanged(Duration position) {
@@ -85,24 +80,30 @@ class MediaManager extends BlocBase {
         ._positionSubject
         .add(WithMediaState<Duration>(state: current, data: position));
   }
+
+  @override
+  void dispose() {
+    _mediaSubject.close();
+    _positionSubject.close();
+    super.dispose();
+  }
 }
 
 class MediaState {
   final Media media;
+  final BasicPlaybackState state;
   final bool isLoaded;
-  final AudioPlayerState state;
   final Duration duration;
 
-  MediaState({this.media, this.isLoaded, this.state, this.duration});
+  MediaState({this.media, this.state, this.duration})
+      : isLoaded = state != BasicPlaybackState.connecting &&
+            state != BasicPlaybackState.error &&
+            state != BasicPlaybackState.none;
 
   MediaState copyWith(
-          {Media media,
-          bool isLoaded,
-          AudioPlayerState state,
-          Duration duration}) =>
+          {Media media, BasicPlaybackState state, Duration duration}) =>
       MediaState(
           media: media ?? this.media,
-          isLoaded: isLoaded ?? this.isLoaded,
           state: state ?? this.state,
           duration: duration ?? this.duration);
 }
