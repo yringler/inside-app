@@ -1,20 +1,22 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 
-final playControl = MediaControl(
+const playControl = MediaControl(
   androidIcon: 'drawable/ic_action_play_arrow',
   label: 'Play',
   action: MediaAction.play,
 );
-final pauseControl = MediaControl(
+
+const pauseControl = MediaControl(
   androidIcon: 'drawable/ic_action_pause',
   label: 'Pause',
   action: MediaAction.pause,
 );
-final stopControl = MediaControl(
+
+const stopControl = MediaControl(
   androidIcon: 'drawable/ic_action_stop',
   label: 'Stop',
   action: MediaAction.stop,
@@ -23,123 +25,98 @@ final stopControl = MediaControl(
 class AudioTask extends BackgroundAudioTask {
   final _audioPlayer = AudioPlayer();
 
-  /// Position in milliseconds.
-  int _position;
-
   final Completer _completer = Completer();
 
-  StreamSubscription playerCompletedSubscription;
+  /// Closes the background service as soon as there's a stop.
+  /// This behaviour is paused when one lesson is played in middle of another.
+  StreamSubscription _playerCompletedSubscription;
 
   /// The source for the current audio file.
   String mediaSource;
 
+  /// This is only briefly set before setting the file path. It is set
+  /// to null as soon as it becomes active, namely after [AudioPlaybackState.stopped]
+  /// untill [AudioPlaybackState.connecting].
+  String nextMediaSource;
+
   @override
-  void onPlayFromMediaId(String mediaId) {
-    if (mediaSource != null) {
-      // Don't close the service during switch.
-      playerCompletedSubscription.pause();
+  void onPlayFromMediaId(String mediaId) => _playFromMediaId(mediaId);
 
-      if (mediaSource != mediaId) {
-        _position = null;
-      }
+  Future<void> _playFromMediaId(String mediaId) async {
+    mediaSource = mediaId;
+    // Make sure the service doesn't end just because we're playing something else.
+    _playerCompletedSubscription.pause();
 
-      // Set class property.
-      mediaSource = mediaId;
-      // Now, onPlay will play new audio.
-      onPlay();
-    } else {
-      mediaSource = mediaId;
-    }
+    final length = await _audioPlayer.setFilePath(mediaId);
+    _setMediaItem(length: length);
+
+    _playerCompletedSubscription.resume();
+    
+    onPlay();
   }
 
   @override
   Future<void> onStart() async {
-    if (mediaSource?.isEmpty ?? true) {
-      return;
-    }
+    assert(mediaSource?.isNotEmpty ?? false);
 
-    playerCompletedSubscription = _audioPlayer.onPlayerStateChanged
-        .where((state) => state == AudioPlayerState.COMPLETED)
-        .listen((state) {
-      _handlePlaybackCompleted();
-    });
-
-    var audioPositionSubscription =
-        _audioPlayer.onAudioPositionChanged.listen(_onPositionChanged);
+    _playerCompletedSubscription = _audioPlayer.playbackStateStream
+        .where((state) => state == AudioPlaybackState.stopped)
+        .listen((state) => onStop());
+    final playbackStateSubscription =
+        _audioPlayer.playerStateStream.listen(_onPlaybackEvent);
 
     await _completer.future;
-    audioPositionSubscription.cancel();
-    playerCompletedSubscription.cancel();
+
+    _playerCompletedSubscription.cancel();
+    playbackStateSubscription.cancel();
+    await _audioPlayer.dispose();
   }
 
   @override
-  void onPlay() {
-    _audioPlayer.play(mediaSource);
-
-    // If the audio was already loaded, and we're just resuming.
-    if (_position != null) {
-      _setPlayState();
-    }
-  }
+  void onPlay() => _audioPlayer.play();
 
   @override
-  void onPause() {
-    _audioPlayer.pause();
-    _setState(state: BasicPlaybackState.paused, position: _position);
-  }
+  void onPause() => _audioPlayer.pause();
 
   @override
-  void onSeekTo(int position) {
-    _audioPlayer.seek(Duration(milliseconds: position));
-    final state = AudioServiceBackground.state.basicState;
-    _setState(state: state, position: position);
-  }
+  void onSeekTo(int position) =>
+      _audioPlayer.seek(Duration(milliseconds: position));
 
   @override
   void onClick(MediaButton button) {
-    _playPause();
+    // TODO: it would be great if general click on notification would open the app...
+    final state = _audioPlayer.playerState.state;
+    if (state == AudioPlaybackState.buffering ||
+        state == AudioPlaybackState.playing)
+      onPause();
+    else if (state == AudioPlaybackState.paused ||
+        state == AudioPlaybackState.stopped) onPlay();
   }
 
   @override
   void onStop() {
     _audioPlayer.stop();
-    _setState(state: BasicPlaybackState.stopped);
     _completer.complete();
   }
 
-  void _playPause() {
-    if (AudioServiceBackground.state.basicState == BasicPlaybackState.playing)
-      onPause();
-    else
-      onPlay();
-  }
+  void _setState({@required BasicPlaybackState state}) {
+    // TODO: Confirm that connecting state (which is after stopped state) has
+    // null position and updateTime.
 
-  void _setState({@required BasicPlaybackState state, int position = 0}) {
     AudioServiceBackground.setState(
-      controls: _getControls(state),
-      basicState: state,
-      position: position,
-    );
+        controls: _getControls(state),
+        basicState: state,
+        position: _audioPlayer.playerState.updatePosition.inMilliseconds,
+        updateTime: _audioPlayer.playerState.updateTime.inMilliseconds);
   }
-
-  void _onPositionChanged(Duration position) {
-    final wasConnecting = _position == null;
-    _position = position.inMilliseconds;
-    if (wasConnecting) {
-      // After a delay, we finally start receiving audio positions from the
-      // AudioPlayer plugin, so we can broadcast the playing state.
-      _setPlayState();
-    }
-  }
-
-  void _handlePlaybackCompleted() => onStop();
 
   void _setPlayState() {
-    _setState(state: BasicPlaybackState.playing, position: _position);
+    _setState(state: BasicPlaybackState.playing);
   }
 
   List<MediaControl> _getControls(BasicPlaybackState state) {
     switch (state) {
+      case BasicPlaybackState.connecting:
       case BasicPlaybackState.playing:
         return [pauseControl, stopControl];
       case BasicPlaybackState.paused:
@@ -148,4 +125,41 @@ class AudioTask extends BackgroundAudioTask {
         return [stopControl];
     }
   }
+
+  void _onPlaybackEvent(AudioPlayerState event) {
+    switch (event.state) {
+      case AudioPlaybackState.connecting:
+        // Tell background service of the new media.
+
+        assert(nextMediaSource?.isNotEmpty ?? false,
+            "Connecting must be with next");
+
+        mediaSource = nextMediaSource;
+        nextMediaSource = null;
+
+        _setState(state: BasicPlaybackState.connecting);
+        _setMediaItem();
+        break;
+      default:
+        _setState(state: stateToStateMap[event.state]);
+    }
+  }
+
+  _setMediaItem({Duration length}) {
+    AudioServiceBackground.setMediaItem(MediaItem(
+        id: mediaSource,
+        title: "Class",
+        album: "Inside Chassidus",
+        duration: length.inMilliseconds));
+  }
+
+  static final Map<AudioPlaybackState, BasicPlaybackState> stateToStateMap =
+      Map.fromEntries([
+    MapEntry(AudioPlaybackState.buffering, BasicPlaybackState.buffering),
+    MapEntry(AudioPlaybackState.connecting, BasicPlaybackState.connecting),
+    MapEntry(AudioPlaybackState.none, BasicPlaybackState.none),
+    MapEntry(AudioPlaybackState.paused, BasicPlaybackState.paused),
+    MapEntry(AudioPlaybackState.playing, BasicPlaybackState.playing),
+    MapEntry(AudioPlaybackState.stopped, BasicPlaybackState.stopped)
+  ]);
 }
