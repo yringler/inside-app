@@ -14,16 +14,15 @@ class MediaManager extends BlocBase {
   BehaviorSubject<WithMediaState<Duration>> _positionSubject;
 
   MediaManager() {
-    _audioPlayerStateSubscription =
-        AudioService.playbackStateStream.listen(_onPlayerStateChanged);
+    _audioPlayerStateSubscription = AudioService.playbackStateStream.listen(
+        (state) =>
+            _mediaSubject.value = current.copyWith(state: state.basicState));
 
     Observable.combineLatest2<PlaybackState, int, WithMediaState<Duration>>(
-        AudioService.playbackStateStream,
-        Observable.periodic(Duration(milliseconds: 20), (x) => x), (state, _) {
-      final position = state.updateTime + state.position;
-      return WithMediaState(
-          state: current, data: Duration(milliseconds: position));
-    }).listen((state) => _positionSubject.value = state);
+            AudioService.playbackStateStream,
+            Observable.periodic(Duration(milliseconds: 20)),
+            (state, _) => _onPositionUpdate(state))
+        .listen((state) => _positionSubject.value = state);
   }
 
   /// The media which is currently playing.
@@ -71,14 +70,18 @@ class MediaManager extends BlocBase {
     seek(media, Duration(milliseconds: currentLocation) + duration);
   }
 
-  void _onPlayerStateChanged(PlaybackState state) {
-    _mediaSubject.value = current.copyWith(state: state.basicState);
-  }
+  WithMediaState<Duration> _onPositionUpdate(PlaybackState state) {
+    final timeSinceUpdate = DateTime.now()
+        .difference(DateTime.fromMillisecondsSinceEpoch(state.updateTime));
+    int position = state.position + timeSinceUpdate.inMilliseconds;
 
-  void _onPositionChanged(Duration position) {
-    this
-        ._positionSubject
-        .add(WithMediaState<Duration>(state: current, data: position));
+    // If playback is paused, then we're in the same place as last update.
+    if (state.basicState != BasicPlaybackState.playing) {
+      position = state.position;
+    }
+
+    return WithMediaState(
+        state: current, data: Duration(milliseconds: position));
   }
 
   @override

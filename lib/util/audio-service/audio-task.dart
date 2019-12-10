@@ -51,7 +51,7 @@ class AudioTask extends BackgroundAudioTask {
     _setMediaItem(length: length);
 
     _playerCompletedSubscription.resume();
-    
+
     onPlay();
   }
 
@@ -77,17 +77,16 @@ class AudioTask extends BackgroundAudioTask {
     final state = _audioPlayer.playerState.state;
     if (state == AudioPlaybackState.paused ||
         state == AudioPlaybackState.stopped) {
-        _audioPlayer.play();
-        }
+      _audioPlayer.play();
+    }
   }
 
   @override
   void onPause() {
-        final state = _audioPlayer.playerState.state;
+    final state = _audioPlayer.playerState.state;
 
-       if (state == AudioPlaybackState.buffering ||
-        state == AudioPlaybackState.playing)
-    _audioPlayer.pause();
+    if (state == AudioPlaybackState.buffering ||
+        state == AudioPlaybackState.playing) _audioPlayer.pause();
   }
 
   @override
@@ -121,10 +120,6 @@ class AudioTask extends BackgroundAudioTask {
         updateTime: _audioPlayer.playerState.updateTime.inMilliseconds);
   }
 
-  void _setPlayState() {
-    _setState(state: BasicPlaybackState.playing);
-  }
-
   List<MediaControl> _getControls(BasicPlaybackState state) {
     switch (state) {
       case BasicPlaybackState.connecting:
@@ -156,7 +151,7 @@ class AudioTask extends BackgroundAudioTask {
     }
   }
 
-  _setMediaItem({Duration length}) {
+  void _setMediaItem({Duration length}) {
     AudioServiceBackground.setMediaItem(MediaItem(
         id: mediaSource,
         title: "Class",
