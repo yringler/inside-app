@@ -57,8 +57,6 @@ class AudioTask extends BackgroundAudioTask {
 
   @override
   Future<void> onStart() async {
-    assert(mediaSource?.isNotEmpty ?? false);
-
     _playerCompletedSubscription = _audioPlayer.playbackStateStream
         .where((state) => state == AudioPlaybackState.stopped)
         .listen((state) => onStop());

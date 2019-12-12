@@ -44,7 +44,7 @@ class MediaManager extends BlocBase {
 
     if (!await AudioService.running) {
       await AudioService.start(
-        backgroundTaskEntrypoint: _backgroundTaskEntrypoint,
+        backgroundTaskEntrypoint: backgroundTaskEntrypoint,
         androidNotificationChannelName: "Inside Chassidus Class",
         androidNotificationIcon: "mimap/ic_launcher"
       );
@@ -58,7 +58,7 @@ class MediaManager extends BlocBase {
         duration: media.duration,
         state: BasicPlaybackState.connecting);
 
-    AudioService.play();
+    AudioService.playFromMediaId(media.source);
     var durationState = await AudioService.currentMediaItemStream
         .where((item) => item.id == media.source && item.duration > 0)
         .first;
@@ -98,8 +98,6 @@ class MediaManager extends BlocBase {
         state: current, data: Duration(milliseconds: position));
   }
 
-  _backgroundTaskEntrypoint() => AudioServiceBackground.run(() => AudioTask());
-
   @override
   void dispose() {
     _mediaSubject.close();
@@ -107,6 +105,8 @@ class MediaManager extends BlocBase {
     super.dispose();
   }
 }
+
+backgroundTaskEntrypoint() async => AudioServiceBackground.run(() => AudioTask());
 
 class MediaState {
   final Media media;
