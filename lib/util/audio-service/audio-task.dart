@@ -146,6 +146,8 @@ class AudioTask extends BackgroundAudioTask {
         _setState(state: BasicPlaybackState.connecting);
         _setMediaItem();
         break;
+      case AudioPlaybackState.none:
+        break;
       default:
         _setState(state: stateToStateMap[event.state]);
     }

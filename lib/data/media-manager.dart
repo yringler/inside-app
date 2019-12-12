@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_chassidus/util/audio-service/audio-task.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MediaManager extends BlocBase {
@@ -11,15 +12,20 @@ class MediaManager extends BlocBase {
   StreamSubscription<PlaybackState> _audioPlayerStateSubscription;
 
   BehaviorSubject<MediaState> _mediaSubject = BehaviorSubject();
-  BehaviorSubject<WithMediaState<Duration>> _positionSubject;
+  BehaviorSubject<WithMediaState<Duration>> _positionSubject =
+      BehaviorSubject();
 
   MediaManager() {
-    _audioPlayerStateSubscription = AudioService.playbackStateStream.listen(
-        (state) =>
-            _mediaSubject.value = current.copyWith(state: state.basicState));
+    _audioPlayerStateSubscription =
+        AudioService.playbackStateStream.listen((state) {
+      if (state.basicState != BasicPlaybackState.none) {
+        _mediaSubject.value = current.copyWith(state: state.basicState);
+      }
+    });
 
     Observable.combineLatest2<PlaybackState, int, WithMediaState<Duration>>(
-            AudioService.playbackStateStream,
+            AudioService.playbackStateStream
+                .where((state) => state.basicState != BasicPlaybackState.none),
             Observable.periodic(Duration(milliseconds: 20)),
             (state, _) => _onPositionUpdate(state))
         .listen((state) => _positionSubject.value = state);
@@ -34,6 +40,14 @@ class MediaManager extends BlocBase {
     if (media == _mediaSubject.value?.media) {
       AudioService.play();
       return;
+    }
+
+    if (!await AudioService.running) {
+      await AudioService.start(
+        backgroundTaskEntrypoint: _backgroundTaskEntrypoint,
+        androidNotificationChannelName: "Inside Chassidus Class",
+        androidNotificationIcon: "mimap/ic_launcher"
+      );
     }
 
     // While getting a file to play, we want to manually handle the state streams.
@@ -83,6 +97,8 @@ class MediaManager extends BlocBase {
     return WithMediaState(
         state: current, data: Duration(milliseconds: position));
   }
+
+  _backgroundTaskEntrypoint() => AudioServiceBackground.run(() => AudioTask());
 
   @override
   void dispose() {
