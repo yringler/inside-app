@@ -106,7 +106,7 @@ class MediaManager extends BlocBase {
   }
 }
 
-backgroundTaskEntrypoint() async => AudioServiceBackground.run(() => AudioTask());
+backgroundTaskEntrypoint() async => await AudioServiceBackground.run(() => AudioTask());
 
 class MediaState {
   final Media media;
