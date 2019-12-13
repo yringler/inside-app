@@ -47,7 +47,8 @@ class AudioTask extends BackgroundAudioTask {
     // Make sure the service doesn't end just because we're playing something else.
     _playerCompletedSubscription.pause();
 
-    final length = await _audioPlayer.setFilePath(mediaId);
+    nextMediaSource = mediaId;
+    final length = await _audioPlayer.setUrl(mediaId);
     _setMediaItem(length: length);
 
     _playerCompletedSubscription.resume();
@@ -156,7 +157,7 @@ class AudioTask extends BackgroundAudioTask {
         id: mediaSource,
         title: "Class",
         album: "Inside Chassidus",
-        duration: length.inMilliseconds));
+        duration: length?.inMilliseconds));
   }
 
   bool canPlay() {

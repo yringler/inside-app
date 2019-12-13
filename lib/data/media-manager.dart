@@ -25,7 +25,7 @@ class MediaManager extends BlocBase {
 
     Observable.combineLatest2<PlaybackState, int, WithMediaState<Duration>>(
             AudioService.playbackStateStream
-                .where((state) => state.basicState != BasicPlaybackState.none),
+                .where((state) => state?.basicState != BasicPlaybackState.none),
             Observable.periodic(Duration(milliseconds: 20)),
             (state, _) => _onPositionUpdate(state))
         .listen((state) => _positionSubject.value = state);
@@ -44,10 +44,8 @@ class MediaManager extends BlocBase {
 
     if (!await AudioService.running) {
       await AudioService.start(
-        backgroundTaskEntrypoint: backgroundTaskEntrypoint,
-        androidNotificationChannelName: "Inside Chassidus Class",
-        androidNotificationIcon: "mimap/ic_launcher"
-      );
+          backgroundTaskEntrypoint: backgroundTaskEntrypoint,
+          androidNotificationChannelName: "Inside Chassidus Class");
     }
 
     // While getting a file to play, we want to manually handle the state streams.
@@ -60,7 +58,11 @@ class MediaManager extends BlocBase {
 
     AudioService.playFromMediaId(media.source);
     var durationState = await AudioService.currentMediaItemStream
-        .where((item) => item.id == media.source && item.duration > 0)
+        .where((item) =>
+            item != null &&
+            item.duration != null &&
+            item.id == media?.source &&
+            item.duration > 0)
         .first;
 
     _mediaSubject.value = current.copyWith(
@@ -106,7 +108,8 @@ class MediaManager extends BlocBase {
   }
 }
 
-backgroundTaskEntrypoint() async => await AudioServiceBackground.run(() => AudioTask());
+backgroundTaskEntrypoint() async =>
+    await AudioServiceBackground.run(() => AudioTask());
 
 class MediaState {
   final Media media;
