@@ -27,6 +27,10 @@ class AudioTask extends BackgroundAudioTask {
 
   final Completer _completer = Completer();
 
+  /// just_audio triggers a stop event when source is set. Don't end service
+  /// because of it.
+  bool isStoppingToLoadNext = false;
+
   /// Closes the background service as soon as there's a stop.
   /// This behaviour is paused when one lesson is played in middle of another.
   StreamSubscription _playerCompletedSubscription;
@@ -44,22 +48,25 @@ class AudioTask extends BackgroundAudioTask {
 
   Future<void> _playFromMediaId(String mediaId) async {
     mediaSource = mediaId;
-    // Make sure the service doesn't end just because we're playing something else.
-    _playerCompletedSubscription.pause();
+    Duration length;
 
     nextMediaSource = mediaId;
-    final length = await _audioPlayer.setUrl(mediaId);
+    isStoppingToLoadNext = true;
+
+    try {
+      length = await _audioPlayer.setUrl(mediaId);
+    } finally {
+      isStoppingToLoadNext = false;
+    }
+
     _setMediaItem(length: length);
-
-    _playerCompletedSubscription.resume();
-
     onPlay();
   }
 
   @override
   Future<void> onStart() async {
     _playerCompletedSubscription = _audioPlayer.playbackStateStream
-        .where((state) => state == AudioPlaybackState.stopped)
+        .where((state) => !isStoppingToLoadNext && state == AudioPlaybackState.stopped)
         .listen((state) => onStop());
     final playbackStateSubscription =
         _audioPlayer.playerStateStream.listen(_onPlaybackEvent);
@@ -73,9 +80,7 @@ class AudioTask extends BackgroundAudioTask {
 
   @override
   void onPlay() {
-    final state = _audioPlayer.playerState.state;
-    if (state == AudioPlaybackState.paused ||
-        state == AudioPlaybackState.stopped) {
+    if (canPlay()) {
       _audioPlayer.play();
     }
   }
@@ -115,20 +120,19 @@ class AudioTask extends BackgroundAudioTask {
     AudioServiceBackground.setState(
         controls: _getControls(state),
         basicState: state,
-        position: _audioPlayer.playerState.updatePosition.inMilliseconds,
-        updateTime: _audioPlayer.playerState.updateTime.inMilliseconds);
+        position: _audioPlayer.playerState?.updatePosition?.inMilliseconds ??
+            Duration.zero,
+        updateTime: _audioPlayer.playerState?.updateTime?.inMilliseconds ??
+            DateTime.now().millisecondsSinceEpoch);
   }
 
   List<MediaControl> _getControls(BasicPlaybackState state) {
     switch (state) {
-      case BasicPlaybackState.connecting:
-      case BasicPlaybackState.playing:
-        return [pauseControl, stopControl];
       case BasicPlaybackState.paused:
         return [playControl, stopControl];
       default:
-        return [stopControl];
-    }
+        return [pauseControl, stopControl];
+      }
   }
 
   void _onPlaybackEvent(AudioPlayerState event) {

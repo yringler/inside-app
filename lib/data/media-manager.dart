@@ -18,7 +18,7 @@ class MediaManager extends BlocBase {
   MediaManager() {
     _audioPlayerStateSubscription =
         AudioService.playbackStateStream.listen((state) {
-      if (state.basicState != BasicPlaybackState.none) {
+      if (state != null && state.basicState != BasicPlaybackState.none) {
         _mediaSubject.value = current.copyWith(state: state.basicState);
       }
     });
