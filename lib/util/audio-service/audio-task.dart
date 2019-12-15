@@ -55,6 +55,8 @@ class AudioTask extends BackgroundAudioTask {
 
     try {
       length = await _audioPlayer.setUrl(mediaId);
+      nextMediaSource = null;
+      mediaSource = mediaId;
     } finally {
       isStoppingToLoadNext = false;
     }
@@ -65,11 +67,12 @@ class AudioTask extends BackgroundAudioTask {
 
   @override
   Future<void> onStart() async {
-    _playerCompletedSubscription = _audioPlayer.playbackStateStream
-        .where((state) => !isStoppingToLoadNext && state == AudioPlaybackState.stopped)
-        .listen((state) => onStop());
     final playbackStateSubscription =
         _audioPlayer.playerStateStream.listen(_onPlaybackEvent);
+    _playerCompletedSubscription = _audioPlayer.playbackStateStream
+        .where((state) =>
+            !isStoppingToLoadNext && state == AudioPlaybackState.stopped)
+        .listen((state) => onStop());
 
     await _completer.future;
 
@@ -108,9 +111,13 @@ class AudioTask extends BackgroundAudioTask {
   }
 
   @override
-  void onStop() {
-    _audioPlayer.stop();
-    _completer.complete();
+  void onStop() => _stop();
+
+  void _stop() async {
+    await _audioPlayer.stop();
+    if (!_completer.isCompleted) {
+      _completer.complete();
+    }
   }
 
   void _setState({@required BasicPlaybackState state}) {
@@ -132,7 +139,7 @@ class AudioTask extends BackgroundAudioTask {
         return [playControl, stopControl];
       default:
         return [pauseControl, stopControl];
-      }
+    }
   }
 
   void _onPlaybackEvent(AudioPlayerState event) {
@@ -150,6 +157,7 @@ class AudioTask extends BackgroundAudioTask {
         _setMediaItem();
         break;
       case AudioPlaybackState.none:
+      case AudioPlaybackState.buffering:
         break;
       default:
         _setState(state: stateToStateMap[event.state]);

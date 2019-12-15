@@ -15,11 +15,18 @@ class MediaManager extends BlocBase {
   BehaviorSubject<WithMediaState<Duration>> _positionSubject =
       BehaviorSubject();
 
+  // Ensure that seeks don't happen to frequently.
+  final PublishSubject<Duration> _seekingValues = PublishSubject();
+
   MediaManager() {
     _audioPlayerStateSubscription =
         AudioService.playbackStateStream.listen((state) {
       if (state != null && state.basicState != BasicPlaybackState.none) {
         _mediaSubject.value = current.copyWith(state: state.basicState);
+      }
+
+      if (state.basicState == BasicPlaybackState.stopped) {
+        _mediaSubject.value = MediaState(duration: null, media: null, state: BasicPlaybackState.none);
       }
     });
 
@@ -29,6 +36,10 @@ class MediaManager extends BlocBase {
             Observable.periodic(Duration(milliseconds: 20)),
             (state, _) => _onPositionUpdate(state))
         .listen((state) => _positionSubject.value = state);
+
+    _seekingValues
+        .debounceTime(Duration(milliseconds: 50))
+        .listen((position) => AudioService.seekTo(position.inMilliseconds));
   }
 
   /// The media which is currently playing.
@@ -78,7 +89,7 @@ class MediaManager extends BlocBase {
       return;
     }
 
-    AudioService.seekTo(location.inMilliseconds);
+    _seekingValues.add(location);
   }
 
   skip(Media media, Duration duration) async {
@@ -87,6 +98,11 @@ class MediaManager extends BlocBase {
   }
 
   WithMediaState<Duration> _onPositionUpdate(PlaybackState state) {
+    if (state == null) {
+      print("Warning: state is null");
+      return null;
+    }
+
     final timeSinceUpdate = DateTime.now()
         .difference(DateTime.fromMillisecondsSinceEpoch(state.updateTime));
     int position = state.position + timeSinceUpdate.inMilliseconds;
@@ -104,6 +120,7 @@ class MediaManager extends BlocBase {
   void dispose() {
     _mediaSubject.close();
     _positionSubject.close();
+    _seekingValues.close();
     super.dispose();
   }
 }
@@ -137,4 +154,6 @@ class WithMediaState<T> {
   final T data;
 
   WithMediaState({this.state, this.data});
+
+  WithMediaState<T> copyWith({MediaState state, T data}) => WithMediaState(state: state ?? this.state, data: data ?? this.data);
 }
