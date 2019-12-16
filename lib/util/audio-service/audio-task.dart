@@ -108,8 +108,9 @@ class AudioTask extends BackgroundAudioTask {
     _setState(state: interimState);
     await _audioPlayer.seek(Duration(milliseconds: position));
 
-    if (AudioServiceBackground.state.basicState != stateToStateMap[_audioPlayer.playerState.state]) {
-          _setState(state: stateToStateMap[_audioPlayer.playerState.state]);
+    if (AudioServiceBackground.state.basicState !=
+        stateToStateMap[_audioPlayer.playerState.state]) {
+      _setState(state: stateToStateMap[_audioPlayer.playerState.state]);
     }
   }
 
