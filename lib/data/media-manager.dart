@@ -15,8 +15,11 @@ class MediaManager extends BlocBase {
   BehaviorSubject<WithMediaState<Duration>> _positionSubject =
       BehaviorSubject();
 
+  /// TODO: Comment.
+  bool isSeeking = false;
+
   // Ensure that seeks don't happen to frequently.
-  final PublishSubject<Duration> _seekingValues = PublishSubject();
+  final BehaviorSubject<Duration> _seekingValues = BehaviorSubject.seeded(null);
 
   MediaManager() {
     _audioPlayerStateSubscription =
@@ -24,17 +27,18 @@ class MediaManager extends BlocBase {
       if (state != null && state.basicState != BasicPlaybackState.none) {
         _mediaSubject.value = current.copyWith(state: state.basicState);
       }
-
-      if (state.basicState == BasicPlaybackState.stopped) {
-        _mediaSubject.value = MediaState(duration: null, media: null, state: BasicPlaybackState.none);
-      }
     });
 
-    Observable.combineLatest2<PlaybackState, int, WithMediaState<Duration>>(
+    Observable.combineLatest4<PlaybackState, dynamic, Duration, MediaState,
+                WithMediaState<Duration>>(
             AudioService.playbackStateStream
-                .where((state) => state?.basicState != BasicPlaybackState.none),
-            Observable.periodic(Duration(milliseconds: 20)),
-            (state, _) => _onPositionUpdate(state))
+                .where((state) => state?.basicState != BasicPlaybackState.none)
+                .where((state) => !isSeeking),
+            Observable.periodic(Duration(milliseconds: 20))
+                .where((_) => !isSeeking),
+            _seekingValues,
+            _mediaSubject,
+            (state, _, displaySeek, mediaState) => _onPositionUpdate(state, displaySeek, mediaState))
         .listen((state) => _positionSubject.value = state);
 
     _seekingValues
@@ -45,15 +49,21 @@ class MediaManager extends BlocBase {
   /// The media which is currently playing.
   MediaState get current => _mediaSubject.value;
 
+  /// TODO: Comment.
+  void setFinishedSeeking() {
+    isSeeking = false;
+  }
+
   pause() => AudioService.pause();
 
   play(Media media) async {
-    if (media == _mediaSubject.value?.media) {
+    final serviceIsRunning = await AudioService.running;
+    if (serviceIsRunning && media == _mediaSubject.value?.media) {
       AudioService.play();
       return;
     }
 
-    if (!await AudioService.running) {
+    if (!serviceIsRunning) {
       await AudioService.start(
           backgroundTaskEntrypoint: backgroundTaskEntrypoint,
           androidNotificationChannelName: "Inside Chassidus Class");
@@ -67,7 +77,7 @@ class MediaManager extends BlocBase {
         duration: media.duration,
         state: BasicPlaybackState.connecting);
 
-    AudioService.playFromMediaId(media.source);
+    await AudioService.playFromMediaId(media.source);
     var durationState = await AudioService.currentMediaItemStream
         .where((item) =>
             item != null &&
@@ -85,6 +95,8 @@ class MediaManager extends BlocBase {
 
   /// Updates the current location in given media.
   seek(Media media, Duration location) {
+    isSeeking = true;
+
     if (media.source != _mediaSubject.value?.media?.source) {
       return;
     }
@@ -97,23 +109,32 @@ class MediaManager extends BlocBase {
     seek(media, Duration(milliseconds: currentLocation) + duration);
   }
 
-  WithMediaState<Duration> _onPositionUpdate(PlaybackState state) {
+  WithMediaState<Duration> _onPositionUpdate(
+      PlaybackState state, Duration displaySeek, MediaState mediaState) {
     if (state == null) {
-      print("Warning: state is null");
-      return null;
+      return WithMediaState(
+        state: mediaState, data: Duration(milliseconds: AudioService.playbackState.position));
     }
 
-    final timeSinceUpdate = DateTime.now()
-        .difference(DateTime.fromMillisecondsSinceEpoch(state.updateTime));
-    int position = state.position + timeSinceUpdate.inMilliseconds;
+    int position;
 
-    // If playback is paused, then we're in the same place as last update.
+    if (displaySeek != null) {
+      position = displaySeek.inMilliseconds;
+    } else if (state.basicState != BasicPlaybackState.playing) {
+      // If playback is paused, then we're in the same place as last update.
+      position = state.position;
+    } else {
+      final timeSinceUpdate = DateTime.now()
+          .difference(DateTime.fromMillisecondsSinceEpoch(state.updateTime));
+      position = state.position + timeSinceUpdate.inMilliseconds;
+    }
+
     if (state.basicState != BasicPlaybackState.playing) {
       position = state.position;
     }
 
     return WithMediaState(
-        state: current, data: Duration(milliseconds: position));
+        state: mediaState, data: Duration(milliseconds: position));
   }
 
   @override
@@ -155,5 +176,6 @@ class WithMediaState<T> {
 
   WithMediaState({this.state, this.data});
 
-  WithMediaState<T> copyWith({MediaState state, T data}) => WithMediaState(state: state ?? this.state, data: data ?? this.data);
+  WithMediaState<T> copyWith({MediaState state, T data}) =>
+      WithMediaState(state: state ?? this.state, data: data ?? this.data);
 }

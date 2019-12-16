@@ -147,14 +147,18 @@ class AudioTask extends BackgroundAudioTask {
       case AudioPlaybackState.connecting:
         // Tell background service of the new media.
 
-        assert(nextMediaSource?.isNotEmpty ?? false,
-            "Connecting must be with next");
+        if (nextMediaSource?.isEmpty ?? true) {
+          break;
+        }
 
         mediaSource = nextMediaSource;
         nextMediaSource = null;
 
+        if (AudioService.currentMediaItem?.id != mediaSource) {
+          _setMediaItem();
+        }
+
         _setState(state: BasicPlaybackState.connecting);
-        _setMediaItem();
         break;
       case AudioPlaybackState.none:
       case AudioPlaybackState.buffering:

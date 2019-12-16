@@ -26,6 +26,7 @@ class ProgressBar extends StatelessWidget {
                     max: data.state.duration?.inMilliseconds?.toDouble(),
                     onChanged: (newProgress) => mediaManager.seek(
                         media, Duration(milliseconds: newProgress.round())),
+                        onChangeEnd: (_) => mediaManager.setFinishedSeeking(),
                   )),
         ),
         Row(
