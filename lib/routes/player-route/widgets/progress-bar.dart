@@ -26,7 +26,6 @@ class ProgressBar extends StatelessWidget {
                     max: data.state.duration?.inMilliseconds?.toDouble(),
                     onChanged: (newProgress) => mediaManager.seek(
                         media, Duration(milliseconds: newProgress.round())),
-                        onChangeEnd: (_) => mediaManager.setFinishedSeeking(),
                   )),
         ),
         Row(
@@ -55,6 +54,7 @@ class ProgressBar extends StatelessWidget {
         builder: (context, snapshot) {
           if (!snapshot.hasData ||
               snapshot.data.state.media.source != media.source ||
+              //(snapshot.data.state.duration == null && snapshot.data.data == null) 
               !snapshot.data.state.isLoaded) {
             return inactiveBuilder(
                 WithMediaState<Duration>(data: Duration.zero, state: null));

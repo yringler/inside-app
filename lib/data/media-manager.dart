@@ -15,9 +15,6 @@ class MediaManager extends BlocBase {
   BehaviorSubject<WithMediaState<Duration>> _positionSubject =
       BehaviorSubject();
 
-  /// TODO: Comment.
-  bool isSeeking = false;
-
   // Ensure that seeks don't happen to frequently.
   final BehaviorSubject<Duration> _seekingValues = BehaviorSubject.seeded(null);
 
@@ -32,27 +29,22 @@ class MediaManager extends BlocBase {
     Observable.combineLatest4<PlaybackState, dynamic, Duration, MediaState,
                 WithMediaState<Duration>>(
             AudioService.playbackStateStream
-                .where((state) => state?.basicState != BasicPlaybackState.none)
-                .where((state) => !isSeeking),
-            Observable.periodic(Duration(milliseconds: 20))
-                .where((_) => !isSeeking),
+                .where((state) => state?.basicState != BasicPlaybackState.none),
+            Observable.periodic(Duration(milliseconds: 20)),
             _seekingValues,
             _mediaSubject,
-            (state, _, displaySeek, mediaState) => _onPositionUpdate(state, displaySeek, mediaState))
+            (state, _, displaySeek, mediaState) =>
+                _onPositionUpdate(state, displaySeek, mediaState))
         .listen((state) => _positionSubject.value = state);
 
     _seekingValues
         .debounceTime(Duration(milliseconds: 50))
+        .where((position) => position != null)
         .listen((position) => AudioService.seekTo(position.inMilliseconds));
   }
 
   /// The media which is currently playing.
   MediaState get current => _mediaSubject.value;
-
-  /// TODO: Comment.
-  void setFinishedSeeking() {
-    isSeeking = false;
-  }
 
   pause() => AudioService.pause();
 
@@ -94,10 +86,10 @@ class MediaManager extends BlocBase {
   }
 
   /// Updates the current location in given media.
+  /// Set [isSkipping] to true if this seek is the computed equivilent of a seek.
   seek(Media media, Duration location) {
-    isSeeking = true;
-
     if (media.source != _mediaSubject.value?.media?.source) {
+      print('hmmm');
       return;
     }
 
@@ -113,12 +105,16 @@ class MediaManager extends BlocBase {
       PlaybackState state, Duration displaySeek, MediaState mediaState) {
     if (state == null) {
       return WithMediaState(
-        state: mediaState, data: Duration(milliseconds: AudioService.playbackState.position));
+          state: mediaState,
+          data: Duration(
+              milliseconds: AudioService.playbackState?.position ?? 0));
     }
 
     int position;
 
-    if (displaySeek != null) {
+    if ((state.basicState == BasicPlaybackState.fastForwarding ||
+            state.basicState == BasicPlaybackState.rewinding) &&
+        displaySeek != null) {
       position = displaySeek.inMilliseconds;
     } else if (state.basicState != BasicPlaybackState.playing) {
       // If playback is paused, then we're in the same place as last update.
@@ -127,10 +123,6 @@ class MediaManager extends BlocBase {
       final timeSinceUpdate = DateTime.now()
           .difference(DateTime.fromMillisecondsSinceEpoch(state.updateTime));
       position = state.position + timeSinceUpdate.inMilliseconds;
-    }
-
-    if (state.basicState != BasicPlaybackState.playing) {
-      position = state.position;
     }
 
     return WithMediaState(
@@ -159,6 +151,9 @@ class MediaState {
       : isLoaded = state != BasicPlaybackState.connecting &&
             state != BasicPlaybackState.error &&
             state != BasicPlaybackState.none;
+            // state != BasicPlaybackState.buffering &&
+            // state != BasicPlaybackState.fastForwarding &&
+            // state != BasicPlaybackState.rewinding;
 
   MediaState copyWith(
           {Media media, BasicPlaybackState state, Duration duration}) =>

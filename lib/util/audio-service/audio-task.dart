@@ -97,8 +97,21 @@ class AudioTask extends BackgroundAudioTask {
   }
 
   @override
-  void onSeekTo(int position) =>
-      _audioPlayer.seek(Duration(milliseconds: position));
+  void onSeekTo(int position) => _seekTo(position);
+
+  void _seekTo(int position) async {
+    final interimState =
+        position < _audioPlayer.playerState.position.inMilliseconds
+            ? BasicPlaybackState.rewinding
+            : BasicPlaybackState.fastForwarding;
+
+    _setState(state: interimState);
+    await _audioPlayer.seek(Duration(milliseconds: position));
+
+    if (AudioServiceBackground.state.basicState != stateToStateMap[_audioPlayer.playerState.state]) {
+          _setState(state: stateToStateMap[_audioPlayer.playerState.state]);
+    }
+  }
 
   @override
   void onClick(MediaButton button) {
@@ -161,7 +174,6 @@ class AudioTask extends BackgroundAudioTask {
         _setState(state: BasicPlaybackState.connecting);
         break;
       case AudioPlaybackState.none:
-      case AudioPlaybackState.buffering:
         break;
       default:
         _setState(state: stateToStateMap[event.state]);
