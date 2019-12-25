@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/app-data.dart';
@@ -15,7 +16,12 @@ void main() => runApp(BlocProvider(
       child: MyApp(),
     ));
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => new _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -72,5 +78,41 @@ class MyApp extends StatelessWidget {
         },
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    connect();
+  }
+
+  @override
+  void dispose() {
+    disconnect();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        connect();
+        break;
+      case AppLifecycleState.paused:
+        disconnect();
+        break;
+      default:
+        break;
+    }
+  }
+
+  void connect() async {
+    await AudioService.connect();
+  }
+
+  void disconnect() {
+    AudioService.disconnect();
   }
 }

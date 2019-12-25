@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/media.dart';
 import 'package:inside_chassidus/data/media-manager.dart';
 import 'package:inside_chassidus/util/duration-helpers.dart';
-import 'package:rxdart/rxdart.dart';
 
 typedef Widget ProgressStreamBuilder(WithMediaState<Duration> state);
 
@@ -55,6 +54,7 @@ class ProgressBar extends StatelessWidget {
         builder: (context, snapshot) {
           if (!snapshot.hasData ||
               snapshot.data.state.media.source != media.source ||
+              //(snapshot.data.state.duration == null && snapshot.data.data == null) 
               !snapshot.data.state.isLoaded) {
             return inactiveBuilder(
                 WithMediaState<Duration>(data: Duration.zero, state: null));
