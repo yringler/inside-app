@@ -5,7 +5,7 @@ import 'index.dart';
 
 part 'primary-inside.g.dart';
 
-@HiveType()
+@HiveType(typeId: 1)
 @JsonSerializable(fieldRename: FieldRename.pascal)
 class PrimaryInside {
   /// ID of the section.

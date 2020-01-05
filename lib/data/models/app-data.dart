@@ -11,7 +11,7 @@ import 'package:path_provider/path_provider.dart';
 
 /// An entry point into all saved state in the app.
 class AppData {
-  static const dataTypeVersion = 5;
+  static const dataTypeVersion = 6;
 
   /// Get a list of all primary sections.
   Future<List<PrimaryInside>> getPrimaryInside() async {
@@ -53,7 +53,7 @@ class AppData {
     try {
       final primaryBox = await Hive.openBox<PrimaryInside>('primary');
       final sectionBox = await Hive.openLazyBox<SiteSection>('sections');
-      final lessonBox = await Hive.openLazyBox('lessons');
+      final lessonBox = await Hive.openLazyBox<Lesson>('lessons');
       final appsettingsBox = await Hive.openBox('settings');
 
       if (primaryBox.keys.isEmpty ||
@@ -105,7 +105,7 @@ class AppData {
     // Open the boxes.
     final primaryBox = await Hive.openBox<PrimaryInside>('primary');
     final sectionBox = await Hive.openLazyBox<SiteSection>('sections');
-    final lessonBox = await Hive.openLazyBox('lessons');
+    final lessonBox = await Hive.openLazyBox<Lesson>('lessons');
 
     final insideData = await compute(_parseJSON, [mainJson, durationJson]);
 
