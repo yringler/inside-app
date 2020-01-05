@@ -11,14 +11,14 @@ import 'package:path_provider/path_provider.dart';
 
 /// An entry point into all saved state in the app.
 class AppData {
-  static const dataTypeVersion = 3;
+  static const dataTypeVersion = 5;
 
   /// Get a list of all primary sections.
   Future<List<PrimaryInside>> getPrimaryInside() async {
     var primarySections =
         List<PrimaryInside>.from(Hive.box<PrimaryInside>('primary').values);
 
-    final sectionBox = Hive.box('sections') as LazyBox;
+    final sectionBox = Hive.lazyBox<SiteSection>('sections');
     for (var section in primarySections) {
       section.section = await sectionBox.get(section.id);
     }
@@ -41,19 +41,19 @@ class AppData {
     // For live reload causes an exception when it registers twice.
     try {
       Hive.init(hiveFolder.path);
-
-      Hive.registerAdapter(PrimaryInsideAdapter(), 1);
-      Hive.registerAdapter(SiteSectionAdapter(), 2);
-      Hive.registerAdapter(LessonAdapter(), 3);
-      Hive.registerAdapter(MediaAdapter(), 4);
+      
+      Hive.registerAdapter(PrimaryInsideAdapter());
+      Hive.registerAdapter(SiteSectionAdapter());
+      Hive.registerAdapter(LessonAdapter());
+      Hive.registerAdapter(MediaAdapter());
     } catch (exception) {
       print(exception);
     }
 
     try {
       final primaryBox = await Hive.openBox<PrimaryInside>('primary');
-      final sectionBox = await Hive.openBox('sections', lazy: true) as LazyBox;
-      final lessonBox = await Hive.openBox('lessons', lazy: true) as LazyBox;
+      final sectionBox = await Hive.openLazyBox<SiteSection>('sections');
+      final lessonBox = await Hive.openLazyBox('lessons');
       final appsettingsBox = await Hive.openBox('settings');
 
       if (primaryBox.keys.isEmpty ||
@@ -104,8 +104,8 @@ class AppData {
 
     // Open the boxes.
     final primaryBox = await Hive.openBox<PrimaryInside>('primary');
-    final sectionBox = await Hive.openBox('sections', lazy: true) as LazyBox;
-    final lessonBox = await Hive.openBox('lessons', lazy: true) as LazyBox;
+    final sectionBox = await Hive.openLazyBox<SiteSection>('sections');
+    final lessonBox = await Hive.openLazyBox('lessons');
 
     final insideData = await compute(_parseJSON, [mainJson, durationJson]);
 
