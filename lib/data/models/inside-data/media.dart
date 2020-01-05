@@ -34,7 +34,7 @@ class Media implements InsideDataBase {
   String title;
 
   Duration get duration {
-    _milliseconds != null ? Duration(milliseconds: _milliseconds) : null;
+    return _milliseconds != null ? Duration(milliseconds: _milliseconds) : null;
   }
 
   set duration(Duration d) => _milliseconds = d?.inMilliseconds;
