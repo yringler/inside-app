@@ -5,7 +5,7 @@ import 'index.dart';
 
 part 'lesson.g.dart';
 
-@HiveType()
+@HiveType(typeId: 3)
 @JsonSerializable(fieldRename: FieldRename.pascal)
 class Lesson implements CountableInsideData {
   @HiveField(3)

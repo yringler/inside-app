@@ -6,8 +6,8 @@ import 'package:inside_chassidus/util/audio-service/audio-task.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MediaManager extends BlocBase {
-  Observable<MediaState> get mediaState => _mediaSubject;
-  Observable<WithMediaState<Duration>> get mediaPosition => _positionSubject;
+  Stream<MediaState> get mediaState => _mediaSubject;
+  Stream<WithMediaState<Duration>> get mediaPosition => _positionSubject;
 
   StreamSubscription<PlaybackState> _audioPlayerStateSubscription;
 
@@ -26,11 +26,11 @@ class MediaManager extends BlocBase {
       }
     });
 
-    Observable.combineLatest4<PlaybackState, dynamic, Duration, MediaState,
+    Rx.combineLatest4<PlaybackState, dynamic, Duration, MediaState,
                 WithMediaState<Duration>>(
             AudioService.playbackStateStream
                 .where((state) => state?.basicState != BasicPlaybackState.none),
-            Observable.periodic(Duration(milliseconds: 20)),
+            Stream.periodic(Duration(milliseconds: 20)),
             _seekingValues,
             _mediaSubject,
             (state, _, displaySeek, mediaState) =>

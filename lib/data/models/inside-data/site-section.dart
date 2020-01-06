@@ -5,11 +5,11 @@ import 'index.dart';
 
 part 'site-section.g.dart';
 
-@HiveType()
+@HiveType(typeId: 2)
 @JsonSerializable(fieldRename: FieldRename.pascal)
 class SiteSection implements CountableInsideData {
-  LazyBox get _sectionsBox => Hive.box("sections");
-  LazyBox get _lessonBox => Hive.box("lessons");
+  LazyBox get _sectionsBox => Hive.lazyBox<SiteSection>("sections");
+  LazyBox get _lessonBox => Hive.lazyBox<Lesson>("lessons");
 
   @HiveField(3)
   @JsonKey(name: "ID")

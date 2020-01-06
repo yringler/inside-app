@@ -68,7 +68,7 @@ class AudioTask extends BackgroundAudioTask {
   @override
   Future<void> onStart() async {
     final playbackStateSubscription =
-        _audioPlayer.playerStateStream.listen(_onPlaybackEvent);
+        _audioPlayer.playbackEventStream.listen(_onPlaybackEvent);
     _playerCompletedSubscription = _audioPlayer.playbackStateStream
         .where((state) =>
             !isStoppingToLoadNext && state == AudioPlaybackState.stopped)
@@ -90,7 +90,7 @@ class AudioTask extends BackgroundAudioTask {
 
   @override
   void onPause() {
-    final state = _audioPlayer.playerState.state;
+    final state = _audioPlayer.playbackEvent.state;
 
     if (state == AudioPlaybackState.buffering ||
         state == AudioPlaybackState.playing) _audioPlayer.pause();
@@ -101,7 +101,7 @@ class AudioTask extends BackgroundAudioTask {
 
   void _seekTo(int position) async {
     final interimState =
-        position < _audioPlayer.playerState.position.inMilliseconds
+        position < _audioPlayer.playbackEvent.position.inMilliseconds
             ? BasicPlaybackState.rewinding
             : BasicPlaybackState.fastForwarding;
 
@@ -109,8 +109,8 @@ class AudioTask extends BackgroundAudioTask {
     await _audioPlayer.seek(Duration(milliseconds: position));
 
     if (AudioServiceBackground.state.basicState !=
-        stateToStateMap[_audioPlayer.playerState.state]) {
-      _setState(state: stateToStateMap[_audioPlayer.playerState.state]);
+        stateToStateMap[_audioPlayer.playbackEvent.state]) {
+      _setState(state: stateToStateMap[_audioPlayer.playbackEvent.state]);
     }
   }
 
@@ -141,9 +141,9 @@ class AudioTask extends BackgroundAudioTask {
     AudioServiceBackground.setState(
         controls: _getControls(state),
         basicState: state,
-        position: _audioPlayer.playerState?.updatePosition?.inMilliseconds ??
+        position: _audioPlayer.playbackEvent?.updatePosition?.inMilliseconds ??
             Duration.zero,
-        updateTime: _audioPlayer.playerState?.updateTime?.inMilliseconds ??
+        updateTime: _audioPlayer.playbackEvent?.updateTime?.inMilliseconds ??
             DateTime.now().millisecondsSinceEpoch);
   }
 
@@ -156,7 +156,7 @@ class AudioTask extends BackgroundAudioTask {
     }
   }
 
-  void _onPlaybackEvent(AudioPlayerState event) {
+  void _onPlaybackEvent(AudioPlaybackEvent event) {
     switch (event.state) {
       case AudioPlaybackState.connecting:
         // Tell background service of the new media.
@@ -190,7 +190,7 @@ class AudioTask extends BackgroundAudioTask {
   }
 
   bool canPlay() {
-    final state = _audioPlayer.playerState.state;
+    final state = _audioPlayer.playbackEvent.state;
     return state == AudioPlaybackState.paused ||
         state == AudioPlaybackState.stopped;
   }

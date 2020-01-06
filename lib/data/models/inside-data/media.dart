@@ -5,7 +5,7 @@ import 'index.dart';
 
 part 'media.g.dart';
 
-@HiveType()
+@HiveType(typeId: 4)
 @JsonSerializable(fieldRename: FieldRename.pascal)
 class Media implements InsideDataBase {
   @HiveField(3)
@@ -15,7 +15,7 @@ class Media implements InsideDataBase {
   String lessonId;
 
   Future<Lesson> getLesson() async {
-    final Lesson lesson = await (Hive.box("lessons") as LazyBox).get(lessonId);
+    final Lesson lesson = await Hive.lazyBox<Lesson>('lessons').get(lessonId);
     return lesson;
   }
 
