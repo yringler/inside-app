@@ -27,10 +27,6 @@ class AudioTask extends BackgroundAudioTask {
 
   final Completer _completer = Completer();
 
-  /// just_audio triggers a stop event when source is set. Don't end service
-  /// because of it.
-  bool isStoppingToLoadNext = false;
-
   /// Closes the background service as soon as there's a stop.
   /// This behaviour is paused when one lesson is played in middle of another.
   StreamSubscription _playerCompletedSubscription;
@@ -47,32 +43,28 @@ class AudioTask extends BackgroundAudioTask {
   void onPlayFromMediaId(String mediaId) => _playFromMediaId(mediaId);
 
   Future<void> _playFromMediaId(String mediaId) async {
-    mediaSource = mediaId;
+    // Don't close player when switching to other media.
+    if (mediaId != mediaSource && _playerCompletedSubscription != null) {
+      _playerCompletedSubscription.cancel();
+      _playerCompletedSubscription = null;
+    }
+
     Duration length;
 
     nextMediaSource = mediaId;
-    isStoppingToLoadNext = true;
 
-    try {
-      length = await _audioPlayer.setUrl(mediaId);
-      nextMediaSource = null;
-      mediaSource = mediaId;
-    } finally {
-      isStoppingToLoadNext = false;
-    }
+    length = await _audioPlayer.setUrl(mediaId);
+    nextMediaSource = null;
+    mediaSource = mediaId;
 
     _setMediaItem(length: length);
-    onPlay();
+    await _onPlay();
   }
 
   @override
   Future<void> onStart() async {
     final playbackStateSubscription =
         _audioPlayer.playbackEventStream.listen(_onPlaybackEvent);
-    _playerCompletedSubscription = _audioPlayer.playbackStateStream
-        .where((state) =>
-            !isStoppingToLoadNext && state == AudioPlaybackState.stopped)
-        .listen((state) => onStop());
 
     await _completer.future;
 
@@ -82,8 +74,26 @@ class AudioTask extends BackgroundAudioTask {
   }
 
   @override
-  void onPlay() {
-    if (canPlay()) {
+  void onPlay() => _onPlay();
+
+  Future<void> _onPlay() async {
+    if (await canPlay()) {
+      if (_playerCompletedSubscription == null) {
+        _playerCompletedSubscription = _audioPlayer.playbackStateStream
+            /*
+             * Goodness, this is embarrassing.
+             * Problem: setUrl triggers a stopped event, which should *not*
+             * playback to stop. I tried using a flag to keep track of whether
+             * the stop is for *real* for real or not, but ended up going in a circle.
+             * Now, I only listen for the stop event after playback starts. This in theory could cause
+             * an issue if the user wants to stop before the file is loaded, but I don't think
+             * that'll happen much...
+             */
+            .skip(1)
+            .where((state) => state == AudioPlaybackState.stopped)
+            .listen((_) => onStop());
+      }
+
       _audioPlayer.play();
     }
   }
@@ -115,9 +125,11 @@ class AudioTask extends BackgroundAudioTask {
   }
 
   @override
-  void onClick(MediaButton button) {
+  void onClick(MediaButton button) => _onClick();
+
+  void _onClick() async {
     // TODO: it would be great if general click on notification would open the app...
-    if (canPlay()) {
+    if (await canPlay()) {
       onPlay();
     } else {
       onPause();
@@ -189,8 +201,10 @@ class AudioTask extends BackgroundAudioTask {
         duration: length?.inMilliseconds));
   }
 
-  bool canPlay() {
-    final state = _audioPlayer.playbackEvent.state;
+  Future<bool> canPlay() async {
+    final state = await _audioPlayer.playbackStateStream
+        .firstWhere((state) => state != AudioPlaybackState.connecting);
+
     return state == AudioPlaybackState.paused ||
         state == AudioPlaybackState.stopped;
   }
