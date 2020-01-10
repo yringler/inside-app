@@ -51,8 +51,23 @@ class SectionContentList extends StatelessWidget {
                 },
               );
             } else {
-              final lesson = snapshot.data as Lesson;
-              return MediaList(media: lesson.audio);
+              List<Media> mediaList;
+
+              if (snapshot.data is Lesson) {
+                mediaList = (snapshot.data as Lesson).audio;
+              } else if (snapshot.data is Media) {
+                mediaList = [snapshot.data as Media];
+              } else {
+                return Text(
+                  "Please let the programmer know that he forgot about a type again.",
+                  style: TextStyle(
+                      backgroundColor: Colors.black,
+                      color: Colors.yellow,
+                      fontWeight: FontWeight.bold),
+                );
+              }
+
+              return MediaList(media: mediaList);
             }
           }
 

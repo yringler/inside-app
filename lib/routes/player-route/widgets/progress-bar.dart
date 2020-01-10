@@ -21,12 +21,19 @@ class ProgressBar extends StatelessWidget {
         Container(
           child: _stateDurationStreamBuilder(mediaManager.mediaPosition,
               inactiveBuilder: (data) => Slider(onChanged: null, value: 0),
-              builder: (data) => Slider(
-                    value: data.data.inMilliseconds.toDouble(),
-                    max: data.state.duration?.inMilliseconds?.toDouble(),
-                    onChanged: (newProgress) => mediaManager.seek(
-                        media, Duration(milliseconds: newProgress.round())),
-                  )),
+              builder: (data) {
+                final max = data.state.duration?.inMilliseconds?.toDouble() ?? 0;
+                double value = data.data.inMilliseconds.toDouble();
+
+                value = value > max ? max : value < 0 ? 0 : value;
+
+                return Slider(
+                  value: value,
+                  max: max,
+                  onChanged: (newProgress) => mediaManager.seek(
+                      media, Duration(milliseconds: newProgress.round())),
+                );
+              }),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -54,7 +61,7 @@ class ProgressBar extends StatelessWidget {
         builder: (context, snapshot) {
           if (!snapshot.hasData ||
               snapshot.data.state.media.source != media.source ||
-              //(snapshot.data.state.duration == null && snapshot.data.data == null) 
+              //(snapshot.data.state.duration == null && snapshot.data.data == null)
               !snapshot.data.state.isLoaded) {
             return inactiveBuilder(
                 WithMediaState<Duration>(data: Duration.zero, state: null));

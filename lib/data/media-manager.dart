@@ -40,7 +40,8 @@ class MediaManager extends BlocBase {
     _seekingValues
         .debounceTime(Duration(milliseconds: 50))
         .where((position) => position != null)
-        .listen((position) => AudioService.seekTo(position.inMilliseconds));
+        .listen((position) => AudioService.seekTo(
+            position.inMilliseconds < 0 ? 0 : position.inMilliseconds));
   }
 
   /// The media which is currently playing.
@@ -151,9 +152,9 @@ class MediaState {
       : isLoaded = state != BasicPlaybackState.connecting &&
             state != BasicPlaybackState.error &&
             state != BasicPlaybackState.none;
-            // state != BasicPlaybackState.buffering &&
-            // state != BasicPlaybackState.fastForwarding &&
-            // state != BasicPlaybackState.rewinding;
+  // state != BasicPlaybackState.buffering &&
+  // state != BasicPlaybackState.fastForwarding &&
+  // state != BasicPlaybackState.rewinding;
 
   MediaState copyWith(
           {Media media, BasicPlaybackState state, Duration duration}) =>
