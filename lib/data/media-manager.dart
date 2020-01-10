@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
+import 'package:hive/hive.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/util/audio-service/audio-task.dart';
 import 'package:rxdart/rxdart.dart';
@@ -65,10 +66,8 @@ class MediaManager extends BlocBase {
     // While getting a file to play, we want to manually handle the state streams.
     _audioPlayerStateSubscription.pause();
 
-    _mediaSubject.value = MediaState(
-        media: media,
-        duration: media.duration,
-        state: BasicPlaybackState.connecting);
+    _mediaSubject.value =
+        MediaState(media: media, state: BasicPlaybackState.connecting);
 
     await AudioService.playFromMediaId(media.source);
     var durationState = await AudioService.currentMediaItemStream
@@ -79,9 +78,18 @@ class MediaManager extends BlocBase {
             item.duration > 0)
         .first;
 
+    if (media.duration == null) {
+      media.duration = Duration(milliseconds: durationState.duration);
+
+      final lesson = await Hive.lazyBox<Lesson>('lessons').get(media.lessonId);
+      lesson.audio
+          .where((source) => source.source == media.source)
+          .forEach((source) => source.duration = media.duration);
+      await lesson.save();
+    }
+
     _mediaSubject.value = current.copyWith(
-        state: AudioService.playbackState.basicState,
-        duration: Duration(milliseconds: durationState.duration));
+        state: AudioService.playbackState.basicState, media: media);
 
     _audioPlayerStateSubscription.resume();
   }
@@ -146,22 +154,14 @@ class MediaState {
   final Media media;
   final BasicPlaybackState state;
   final bool isLoaded;
-  final Duration duration;
 
-  MediaState({this.media, this.state, this.duration})
+  MediaState({this.media, this.state})
       : isLoaded = state != BasicPlaybackState.connecting &&
             state != BasicPlaybackState.error &&
             state != BasicPlaybackState.none;
-  // state != BasicPlaybackState.buffering &&
-  // state != BasicPlaybackState.fastForwarding &&
-  // state != BasicPlaybackState.rewinding;
 
-  MediaState copyWith(
-          {Media media, BasicPlaybackState state, Duration duration}) =>
-      MediaState(
-          media: media ?? this.media,
-          state: state ?? this.state,
-          duration: duration ?? this.duration);
+  MediaState copyWith({Media media, BasicPlaybackState state}) =>
+      MediaState(media: media ?? this.media, state: state ?? this.state);
 }
 
 /// Allows strongly typed binding of media state with any other value.

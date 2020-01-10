@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/media.dart';
@@ -15,40 +16,68 @@ class ProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final mediaManager = BlocProvider.getBloc<MediaManager>();
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Container(
-          child: _stateDurationStreamBuilder(mediaManager.mediaPosition,
-              inactiveBuilder: (data) => Slider(onChanged: null, value: 0),
-              builder: (data) {
-                final max = data.state.duration?.inMilliseconds?.toDouble() ?? 0;
-                double value = data.data.inMilliseconds.toDouble();
+    // Stream of media. A new media object is set when the duration is loaded.
+    // Really, I should have all the durations offline, but I don't yet, so when I
+    // get it rebuild.
+    return StreamBuilder<MediaState>(
+      stream: mediaManager.mediaState.where((state) =>
+          state.media.source == media.source &&
+          state.media.duration != media.duration),
+      initialData:
+          MediaState(media: media, state: BasicPlaybackState.connecting),
+      builder: (context, snapshot) {
+        final media = snapshot.data.media;
+        final maxSliderValue = media.duration?.inMilliseconds?.toDouble() ?? 0;
 
-                value = value > max ? max : value < 0 ? 0 : value;
-
-                return Slider(
-                  value: value,
-                  max: max,
-                  onChanged: (newProgress) => mediaManager.seek(
-                      media, Duration(milliseconds: newProgress.round())),
-                );
-              }),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Column(
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            // Show current time in class.
-            _stateDurationStreamBuilder(mediaManager.mediaPosition,
-                inactiveBuilder: (data) => _time(null),
-                builder: (data) => _time(data.data)),
-            // Show time remaining in class.
-            _stateDurationStreamBuilder(mediaManager.mediaPosition,
-                inactiveBuilder: (data) => _time(media.duration),
-                builder: (data) => _time(data.state.duration - data.data))
+            _slider(mediaManager, maxSliderValue, media),
+            _timeLabels(mediaManager, media)
           ],
-        )
+        );
+      },
+    );
+  }
+
+  Row _timeLabels(MediaManager mediaManager, Media media) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        // Show current time in class.
+        _stateDurationStreamBuilder(mediaManager.mediaPosition,
+            inactiveBuilder: (data) => _time(Duration.zero),
+            builder: (data) => _time(data.data)),
+        // Show time remaining in class.
+        _stateDurationStreamBuilder(mediaManager.mediaPosition,
+            inactiveBuilder: (data) => _time(media.duration),
+            builder: (data) => _time(media.duration - data.data))
       ],
+    );
+  }
+
+  Container _slider(
+      MediaManager mediaManager, double maxSliderValue, Media media) {
+    return Container(
+      child: _stateDurationStreamBuilder(mediaManager.mediaPosition,
+          inactiveBuilder: (data) => Slider(
+                onChanged: null,
+                value: 0,
+                max: maxSliderValue,
+              ),
+          builder: (data) {
+            double value = data.data.inMilliseconds.toDouble();
+
+            value =
+                value > maxSliderValue ? maxSliderValue : value < 0 ? 0 : value;
+
+            return Slider(
+              value: value,
+              max: maxSliderValue,
+              onChanged: (newProgress) => mediaManager.seek(
+                  media, Duration(milliseconds: newProgress.round())),
+            );
+          }),
     );
   }
 

@@ -147,7 +147,7 @@ class SectionContentList extends StatelessWidget {
   _lessonNavigator(BuildContext context, Lesson lesson) {
     if (lesson.audioCount == 1 && mediaBuilder != null) {
       return mediaBuilder(
-          context, Media(title: lesson.title, source: lesson.audio[0].source));
+          context, lesson.audio[0].resolve(lesson));
     }
 
     return InsideNavigator(

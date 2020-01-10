@@ -48,10 +48,25 @@ class Media implements InsideDataBase {
     final description = (this.description?.isEmpty ?? true)
         ? lesson.description
         : this.description;
-    return Media(title: title, description: description, source: source, lessonId: lessonId);
+    return copyWith(title: title, description: description);
   }
 
-  bool operator==(dynamic other) => other is Media && other.source == source;
+  Media copyWith(
+          {String source,
+          String title,
+          String description,
+          String lessonId,
+          List<String> pdf,
+          Duration duration}) =>
+      Media(
+          source: source ?? this.source,
+          description: description ?? this.description,
+          title: title ?? this.title,
+          lessonId: lessonId ?? this.lessonId,
+          pdf: pdf ?? this.pdf)
+        ..duration = duration ?? this.duration;
+
+  bool operator ==(dynamic other) => other is Media && other.source == source;
 
   int get hashCode => source.hashCode;
 

@@ -7,7 +7,7 @@ part 'lesson.g.dart';
 
 @HiveType(typeId: 3)
 @JsonSerializable(fieldRename: FieldRename.pascal)
-class Lesson implements CountableInsideData {
+class Lesson extends HiveObject implements CountableInsideData {
   @HiveField(3)
   @JsonKey(name: "ID")
   final String id;
