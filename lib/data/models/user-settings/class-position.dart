@@ -6,7 +6,9 @@ part 'class-position.g.dart';
 class ClassPosition extends HiveObject {
 
   ClassPosition({this.mediaId, Duration position}) {
-    this.position = position;
+    if (position != null) {
+      this.position = position;
+    }
   }
 
   // The source URL.
@@ -25,8 +27,10 @@ class ClassPosition extends HiveObject {
   Duration get position => Duration(milliseconds: _position);
 
   set position(Duration duration) {
-    _position = duration.inMilliseconds;
-    _updateTime = DateTime.now().millisecondsSinceEpoch;
+    if (duration != null) {
+      _position = duration.inMilliseconds;
+      _updateTime = DateTime.now().millisecondsSinceEpoch;
+    }
   }
 
   DateTime get updateTime => DateTime.fromMillisecondsSinceEpoch(_updateTime);

@@ -52,15 +52,13 @@ class AudioTask extends BackgroundAudioTask {
     if (mediaId != mediaSource && _playerCompletedSubscription != null) {
       _updatePosition();
 
-      _playerCompletedSubscription.cancel();
+      await _playerCompletedSubscription.cancel();
       _playerCompletedSubscription = null;
     }
 
-    Duration length;
-
     nextMediaSource = mediaId;
 
-    length = await _audioPlayer.setUrl(mediaId);
+    final length = await _audioPlayer.setUrl(mediaId);
     nextMediaSource = null;
     mediaSource = mediaId;
 

@@ -41,6 +41,10 @@ class MediaManager extends BlocBase {
                 _onPositionUpdate(state, displaySeek, mediaState))
         .listen((state) => _positionSubject.value = state);
 
+    // Save the current position of media, in case user listens to another class and then comes back.
+    mediaPosition.throttleTime(Duration(milliseconds: 200)).listen((state) =>
+        positionRepository.updatePosition(current.media, state.data));
+
     _seekingValues
         .debounceTime(Duration(milliseconds: 50))
         .where((position) => position != null)

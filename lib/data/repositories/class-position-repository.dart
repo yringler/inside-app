@@ -35,10 +35,12 @@ class ClassPositionRepository {
       : Duration.zero;
 
   updatePosition(Media media, Duration position) {
+    assert(position != null, "Position argument may not be null");
+
     if (_positions.containsKey(media.lessonId)) {
       _positions[media.lessonId].position = position;
     } else {
-      _positions[media.lessonId] = ClassPosition(mediaId: media.lessonId);
+      _positions[media.lessonId] = ClassPosition(mediaId: media.lessonId, position: position);
     }
   }
 }

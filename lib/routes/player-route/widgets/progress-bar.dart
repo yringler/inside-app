@@ -16,7 +16,8 @@ class ProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mediaManager = BlocProvider.getBloc<MediaManager>();
-    final positionRepository = BlocProvider.getDependency<ClassPositionRepository>();
+    final positionRepository =
+        BlocProvider.getDependency<ClassPositionRepository>();
     // As soon as we get to a class you're in the middle of, even before you play, show
     // the position that you're at.
     final startingPosition = positionRepository.getPosition(media);
@@ -32,12 +33,11 @@ class ProgressBar extends StatelessWidget {
           MediaState(media: media, state: BasicPlaybackState.connecting),
       builder: (context, snapshot) {
         final media = snapshot.data.media;
-        final maxSliderValue = media.duration?.inMilliseconds?.toDouble() ?? 0;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            _slider(mediaManager, maxSliderValue, media, start: startingPosition),
+            _slider(mediaManager, media, start: startingPosition),
             _timeLabels(mediaManager, media, start: startingPosition)
           ],
         );
@@ -51,21 +51,22 @@ class ProgressBar extends StatelessWidget {
       children: <Widget>[
         // Show current time in class.
         _stateDurationStreamBuilder(mediaManager.mediaPosition,
-            inactiveBuilder: (data) => _time(start),
+            inactiveBuilder: (_) => _time(start),
             builder: (data) => _time(data.data)),
         // Show time remaining in class.
         _stateDurationStreamBuilder(mediaManager.mediaPosition,
-            inactiveBuilder: (data) => _time(media.duration),
+            inactiveBuilder: (_) => _time(media.duration),
             builder: (data) => _time(media.duration - data.data))
       ],
     );
   }
 
-  Container _slider(
-      MediaManager mediaManager, double maxSliderValue, Media media, {Duration start}) {
+  Container _slider(MediaManager mediaManager, Media media, {Duration start}) {
+    final maxSliderValue = media.duration?.inMilliseconds?.toDouble() ?? 0;
+
     return Container(
       child: _stateDurationStreamBuilder(mediaManager.mediaPosition,
-          inactiveBuilder: (data) => Slider(
+          inactiveBuilder: (_) => Slider(
                 onChanged: null,
                 value: start.inMilliseconds.toDouble(),
                 max: maxSliderValue,
