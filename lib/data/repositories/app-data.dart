@@ -7,6 +7,7 @@ import 'package:hive/hive.dart';
 import 'package:inside_chassidus/data/models/audio-length.dart';
 import 'package:inside_chassidus/data/models/inside-data-json-root.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_chassidus/data/models/user-settings/class-position.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// An entry point into all saved state in the app.
@@ -46,6 +47,7 @@ class AppData {
       Hive.registerAdapter(SiteSectionAdapter());
       Hive.registerAdapter(LessonAdapter());
       Hive.registerAdapter(MediaAdapter());
+      Hive.registerAdapter(ClassPositionAdapter());
     } catch (exception) {
       print(exception);
     }
