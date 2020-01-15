@@ -1,11 +1,12 @@
 import 'package:hive/hive.dart';
+import 'package:inside_chassidus/data/models/inside-data/media.dart';
 import 'package:inside_chassidus/util/audio-service/audio-task.dart';
 import 'package:inside_chassidus/data/models/user-settings/class-position.dart';
 
 /// Provide read access to where user is up to in a lesson.
 /// (Writing only happens in [AudioTask])
 class ClassPositionRepository {
-  Map<String, ClassPosition> positions;
+  Map<String, ClassPosition> _positions;
 
   /// Load class positions and save them to memory. Should be run once, at app
   /// startup.
@@ -16,8 +17,28 @@ class ClassPositionRepository {
   init() async {
     final positionBox = await Hive.openBox<ClassPosition>('positions');
 
-    // ...
+    _positions = Map<String, ClassPosition>.fromIterable(positionBox.values,
+        key: (position) => position.mediaId);
+
+    // Make sure that this doesn't grow out of control.
+    // TODO: when there are 2000 entries, delete the oldest thousand. Must
+    // have a way to test it before implementing.
+    if (positionBox.length > 2000) {
+      await positionBox.clear();
+    }
 
     await positionBox.close();
+  }
+
+  Duration getPosition(Media media) => _positions.containsKey(media.lessonId)
+      ? _positions[media.lessonId].position
+      : Duration.zero;
+
+  updatePosition(Media media, Duration position) {
+    if (_positions.containsKey(media.lessonId)) {
+      _positions[media.lessonId].position = position;
+    } else {
+      _positions[media.lessonId] = ClassPosition(mediaId: media.lessonId);
+    }
   }
 }

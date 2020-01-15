@@ -27,6 +27,16 @@ class AppData {
     return primarySections;
   }
 
+  /// Set up hive folder for use.
+  static Future<Directory> initHiveFolder() async {
+    final folder = await getApplicationSupportDirectory();
+    final hiveFolder = new Directory('${folder.path}/hive');
+
+    await hiveFolder.create();
+
+    return hiveFolder;
+  }
+
   /// Access data store, download data if needed. This method should only be called once per
   /// app run.
   static Future init(BuildContext context) async {
@@ -34,10 +44,7 @@ class AppData {
       return;
     }
 
-    final folder = await getApplicationSupportDirectory();
-    final hiveFolder = new Directory('${folder.path}/hive');
-
-    await hiveFolder.create();
+    final hiveFolder = await initHiveFolder();
 
     // For live reload causes an exception when it registers twice.
     try {

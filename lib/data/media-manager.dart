@@ -3,12 +3,15 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:hive/hive.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_chassidus/data/repositories/class-position-repository.dart';
 import 'package:inside_chassidus/util/audio-service/audio-task.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MediaManager extends BlocBase {
   Stream<MediaState> get mediaState => _mediaSubject;
   Stream<WithMediaState<Duration>> get mediaPosition => _positionSubject;
+
+  final ClassPositionRepository positionRepository;
 
   StreamSubscription<PlaybackState> _audioPlayerStateSubscription;
 
@@ -19,7 +22,7 @@ class MediaManager extends BlocBase {
   // Ensure that seeks don't happen to frequently.
   final BehaviorSubject<Duration> _seekingValues = BehaviorSubject.seeded(null);
 
-  MediaManager() {
+  MediaManager({this.positionRepository}) {
     _audioPlayerStateSubscription =
         AudioService.playbackStateStream.listen((state) {
       if (state != null && state.basicState != BasicPlaybackState.none) {
@@ -70,6 +73,7 @@ class MediaManager extends BlocBase {
         MediaState(media: media, state: BasicPlaybackState.connecting);
 
     await AudioService.playFromMediaId(media.source);
+
     var durationState = await AudioService.currentMediaItemStream
         .where((item) =>
             item != null &&
@@ -92,10 +96,14 @@ class MediaManager extends BlocBase {
         state: AudioService.playbackState.basicState, media: media);
 
     _audioPlayerStateSubscription.resume();
+
+    // Continue a class from where it was left off.
+    if (positionRepository.getPosition(media) != Duration.zero) {
+      seek(media, positionRepository.getPosition(media));
+    }
   }
 
   /// Updates the current location in given media.
-  /// Set [isSkipping] to true if this seek is the computed equivilent of a seek.
   seek(Media media, Duration location) {
     if (media.source != _mediaSubject.value?.media?.source) {
       print('hmmm');
