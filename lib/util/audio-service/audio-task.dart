@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:inside_chassidus/data/models/user-settings/class-position.dart';
+import 'package:inside_chassidus/data/repositories/app-data.dart';
 import 'package:just_audio/just_audio.dart';
 
 const playControl = MediaControl(
@@ -27,6 +30,8 @@ class AudioTask extends BackgroundAudioTask {
 
   final Completer _completer = Completer();
 
+  Box<ClassPosition> _positionBox;
+
   /// Closes the background service as soon as there's a stop.
   /// This behaviour is paused when one lesson is played in middle of another.
   StreamSubscription _playerCompletedSubscription;
@@ -45,15 +50,15 @@ class AudioTask extends BackgroundAudioTask {
   Future<void> _playFromMediaId(String mediaId) async {
     // Don't close player when switching to other media.
     if (mediaId != mediaSource && _playerCompletedSubscription != null) {
-      _playerCompletedSubscription.cancel();
-      _playerCompletedSubscription = null;
-    }
+      _updatePosition();
 
-    Duration length;
+      await _cancelStopSubscription();
+    }
 
     nextMediaSource = mediaId;
 
-    length = await _audioPlayer.setUrl(mediaId);
+    final length = await _audioPlayer.setUrl(mediaId);
+
     nextMediaSource = null;
     mediaSource = mediaId;
 
@@ -66,10 +71,15 @@ class AudioTask extends BackgroundAudioTask {
     final playbackStateSubscription =
         _audioPlayer.playbackEventStream.listen(_onPlaybackEvent);
 
+    final hiveFolder = await AppData.initHiveFolder();
+    Hive.init(hiveFolder.path);
+    Hive.registerAdapter(ClassPositionAdapter());
+    _positionBox = await Hive.openBox<ClassPosition>('positions');
+
     await _completer.future;
 
-    _playerCompletedSubscription.cancel();
     playbackStateSubscription.cancel();
+    await _positionBox.close();
     await _audioPlayer.dispose();
   }
 
@@ -94,7 +104,19 @@ class AudioTask extends BackgroundAudioTask {
             .listen((_) => onStop());
       }
 
+      // Make sure that we continue from where we left off.
+      // If we're resuming a pause, we can just continue, but if we're coming from a stop we
+      // have to check the cache.
+      final startPosition =
+          _audioPlayer.playbackState != AudioPlaybackState.paused
+              ? _positionBox.get(mediaSource)?.position
+              : null;
+
       _audioPlayer.play();
+
+      if (startPosition != null) {
+        _audioPlayer.seek(startPosition);
+      }
     }
   }
 
@@ -140,6 +162,11 @@ class AudioTask extends BackgroundAudioTask {
   void onStop() => _stop();
 
   void _stop() async {
+    // Cancel the subscription to prevent this method being run a second time because of
+    // the stop state from the audio player.
+    await _cancelStopSubscription();
+    await _updatePosition();
+
     await _audioPlayer.stop();
     if (!_completer.isCompleted) {
       _completer.complete();
@@ -166,6 +193,12 @@ class AudioTask extends BackgroundAudioTask {
       default:
         return [pauseControl, stopControl];
     }
+  }
+
+  /// Don't end service because of stop state from player.
+  Future _cancelStopSubscription() async {
+    await _playerCompletedSubscription.cancel();
+    _playerCompletedSubscription = null;
   }
 
   void _onPlaybackEvent(AudioPlaybackEvent event) {
@@ -207,6 +240,20 @@ class AudioTask extends BackgroundAudioTask {
 
     return state == AudioPlaybackState.paused ||
         state == AudioPlaybackState.stopped;
+  }
+
+  /// Save the current position of currently playing class.
+  Future<void> _updatePosition() async {
+    final position = _audioPlayer.playbackEvent.position;
+
+    if (_positionBox.containsKey(mediaSource)) {
+      final classPosition = _positionBox.get(mediaSource);
+      classPosition.position = position;
+      await classPosition.save();
+    } else {
+      await _positionBox.put(
+          mediaSource, ClassPosition(mediaId: mediaSource, position: position));
+    }
   }
 
   static final Map<AudioPlaybackState, BasicPlaybackState> stateToStateMap =

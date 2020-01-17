@@ -1,13 +1,17 @@
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
+import 'package:hive/hive.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_chassidus/data/repositories/class-position-repository.dart';
 import 'package:inside_chassidus/util/audio-service/audio-task.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MediaManager extends BlocBase {
   Stream<MediaState> get mediaState => _mediaSubject;
   Stream<WithMediaState<Duration>> get mediaPosition => _positionSubject;
+
+  final ClassPositionRepository positionRepository;
 
   StreamSubscription<PlaybackState> _audioPlayerStateSubscription;
 
@@ -18,11 +22,19 @@ class MediaManager extends BlocBase {
   // Ensure that seeks don't happen to frequently.
   final BehaviorSubject<Duration> _seekingValues = BehaviorSubject.seeded(null);
 
-  MediaManager() {
+  MediaManager({this.positionRepository}) {
     _audioPlayerStateSubscription =
         AudioService.playbackStateStream.listen((state) {
-      if (state != null && state.basicState != BasicPlaybackState.none) {
-        _mediaSubject.value = current.copyWith(state: state.basicState);
+      if (state != null && current != null) {
+        // E.g. when user stops from lock screen, we miss the stop state and skip to none.
+        // In this case, though, we treat it as stopped. Failing to do so means that the UI
+        // thinks that the media is not yet loaded and needs to be, so it just waits forever.
+
+        final newState = state.basicState == BasicPlaybackState.none
+            ? BasicPlaybackState.stopped
+            : state.basicState;
+
+        _mediaSubject.value = current.copyWith(state: newState);
       }
     });
 
@@ -36,6 +48,10 @@ class MediaManager extends BlocBase {
             (state, _, displaySeek, mediaState) =>
                 _onPositionUpdate(state, displaySeek, mediaState))
         .listen((state) => _positionSubject.value = state);
+
+    // Save the current position of media, in case user listens to another class and then comes back.
+    mediaPosition.throttleTime(Duration(milliseconds: 200)).listen((state) =>
+        positionRepository.updatePosition(current.media, state.data));
 
     _seekingValues
         .debounceTime(Duration(milliseconds: 50))
@@ -65,12 +81,11 @@ class MediaManager extends BlocBase {
     // While getting a file to play, we want to manually handle the state streams.
     _audioPlayerStateSubscription.pause();
 
-    _mediaSubject.value = MediaState(
-        media: media,
-        duration: media.duration,
-        state: BasicPlaybackState.connecting);
+    _mediaSubject.value =
+        MediaState(media: media, state: BasicPlaybackState.connecting);
 
     await AudioService.playFromMediaId(media.source);
+
     var durationState = await AudioService.currentMediaItemStream
         .where((item) =>
             item != null &&
@@ -79,15 +94,23 @@ class MediaManager extends BlocBase {
             item.duration > 0)
         .first;
 
+    if (media.duration == null) {
+      media.duration = Duration(milliseconds: durationState.duration);
+
+      final lesson = await Hive.lazyBox<Lesson>('lessons').get(media.lessonId);
+      lesson.audio
+          .where((source) => source.source == media.source)
+          .forEach((source) => source.duration = media.duration);
+      await lesson.save();
+    }
+
     _mediaSubject.value = current.copyWith(
-        state: AudioService.playbackState.basicState,
-        duration: Duration(milliseconds: durationState.duration));
+        state: AudioService.playbackState.basicState, media: media);
 
     _audioPlayerStateSubscription.resume();
   }
 
   /// Updates the current location in given media.
-  /// Set [isSkipping] to true if this seek is the computed equivilent of a seek.
   seek(Media media, Duration location) {
     if (media.source != _mediaSubject.value?.media?.source) {
       print('hmmm');
@@ -146,22 +169,14 @@ class MediaState {
   final Media media;
   final BasicPlaybackState state;
   final bool isLoaded;
-  final Duration duration;
 
-  MediaState({this.media, this.state, this.duration})
+  MediaState({this.media, this.state})
       : isLoaded = state != BasicPlaybackState.connecting &&
             state != BasicPlaybackState.error &&
             state != BasicPlaybackState.none;
-  // state != BasicPlaybackState.buffering &&
-  // state != BasicPlaybackState.fastForwarding &&
-  // state != BasicPlaybackState.rewinding;
 
-  MediaState copyWith(
-          {Media media, BasicPlaybackState state, Duration duration}) =>
-      MediaState(
-          media: media ?? this.media,
-          state: state ?? this.state,
-          duration: duration ?? this.duration);
+  MediaState copyWith({Media media, BasicPlaybackState state}) =>
+      MediaState(media: media ?? this.media, state: state ?? this.state);
 }
 
 /// Allows strongly typed binding of media state with any other value.

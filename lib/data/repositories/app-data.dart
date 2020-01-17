@@ -7,6 +7,7 @@ import 'package:hive/hive.dart';
 import 'package:inside_chassidus/data/models/audio-length.dart';
 import 'package:inside_chassidus/data/models/inside-data-json-root.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_chassidus/data/models/user-settings/class-position.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// An entry point into all saved state in the app.
@@ -26,6 +27,16 @@ class AppData {
     return primarySections;
   }
 
+  /// Set up hive folder for use.
+  static Future<Directory> initHiveFolder() async {
+    final folder = await getApplicationSupportDirectory();
+    final hiveFolder = new Directory('${folder.path}/hive');
+
+    await hiveFolder.create();
+
+    return hiveFolder;
+  }
+
   /// Access data store, download data if needed. This method should only be called once per
   /// app run.
   static Future init(BuildContext context) async {
@@ -33,10 +44,7 @@ class AppData {
       return;
     }
 
-    final folder = await getApplicationSupportDirectory();
-    final hiveFolder = new Directory('${folder.path}/hive');
-
-    await hiveFolder.create();
+    final hiveFolder = await initHiveFolder();
 
     // For live reload causes an exception when it registers twice.
     try {
@@ -46,6 +54,7 @@ class AppData {
       Hive.registerAdapter(SiteSectionAdapter());
       Hive.registerAdapter(LessonAdapter());
       Hive.registerAdapter(MediaAdapter());
+      Hive.registerAdapter(ClassPositionAdapter());
     } catch (exception) {
       print(exception);
     }
