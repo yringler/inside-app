@@ -70,6 +70,10 @@ class MediaManager extends BlocBase {
           androidNotificationChannelName: "Inside Chassidus Class");
     }
 
+    // Save the saved starting position; when we play, will start from beggining, and that
+    // new location will overright saved position.
+    final startingPosition = positionRepository.getPosition(media);
+
     // While getting a file to play, we want to manually handle the state streams.
     _audioPlayerStateSubscription.pause();
 
@@ -102,8 +106,8 @@ class MediaManager extends BlocBase {
     _audioPlayerStateSubscription.resume();
 
     // Continue a class from where it was left off.
-    if (positionRepository.getPosition(media) != Duration.zero) {
-      seek(media, positionRepository.getPosition(media));
+    if (startingPosition != Duration.zero) {
+      seek(media, startingPosition);
     }
   }
 
