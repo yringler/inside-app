@@ -52,8 +52,7 @@ class AudioTask extends BackgroundAudioTask {
     if (mediaId != mediaSource && _playerCompletedSubscription != null) {
       _updatePosition();
 
-      await _playerCompletedSubscription.cancel();
-      _playerCompletedSubscription = null;
+      await _cancelStopSubscription();
     }
 
     nextMediaSource = mediaId;
@@ -78,7 +77,6 @@ class AudioTask extends BackgroundAudioTask {
 
     await _completer.future;
 
-    _playerCompletedSubscription.cancel();
     playbackStateSubscription.cancel();
     await _positionBox.close();
     await _audioPlayer.dispose();
@@ -151,7 +149,10 @@ class AudioTask extends BackgroundAudioTask {
   void onStop() => _stop();
 
   void _stop() async {
-    _updatePosition();
+    // Cancel the subscription to prevent this method being run a second time because of
+    // the stop state from the audio player.
+    await _cancelStopSubscription();
+    await _updatePosition();
 
     await _audioPlayer.stop();
     if (!_completer.isCompleted) {
@@ -179,6 +180,12 @@ class AudioTask extends BackgroundAudioTask {
       default:
         return [pauseControl, stopControl];
     }
+  }
+
+    /// Don't end service because of stop state from player.
+  Future _cancelStopSubscription() async {
+    await _playerCompletedSubscription.cancel();
+    _playerCompletedSubscription = null;
   }
 
   void _onPlaybackEvent(AudioPlaybackEvent event) {
@@ -223,15 +230,15 @@ class AudioTask extends BackgroundAudioTask {
   }
 
   /// Save the current position of currently playing class.
-  void _updatePosition() async {
+  Future<void> _updatePosition() async {
     final position = _audioPlayer.playbackEvent.position;
 
     if (_positionBox.containsKey(mediaSource)) {
       final classPosition = _positionBox.get(mediaSource);
       classPosition.position = position;
-      classPosition.save();
+      await classPosition.save();
     } else {
-      _positionBox.put(
+      await _positionBox.put(
           mediaSource, ClassPosition(mediaId: mediaSource, position: position));
     }
   }

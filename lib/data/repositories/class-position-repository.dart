@@ -30,17 +30,17 @@ class ClassPositionRepository {
     await positionBox.close();
   }
 
-  Duration getPosition(Media media) => _positions.containsKey(media.lessonId)
-      ? _positions[media.lessonId].position
+  Duration getPosition(Media media) => _positions.containsKey(media.source)
+      ? _positions[media.source].position
       : Duration.zero;
 
   updatePosition(Media media, Duration position) {
     assert(position != null, "Position argument may not be null");
 
-    if (_positions.containsKey(media.lessonId)) {
-      _positions[media.lessonId].position = position;
+    if (_positions.containsKey(media.source)) {
+      _positions[media.source].position = position;
     } else {
-      _positions[media.lessonId] = ClassPosition(mediaId: media.lessonId, position: position);
+      _positions[media.source] = ClassPosition(mediaId: media.lessonId, position: position);
     }
   }
 }
