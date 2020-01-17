@@ -58,6 +58,7 @@ class AudioTask extends BackgroundAudioTask {
     nextMediaSource = mediaId;
 
     final length = await _audioPlayer.setUrl(mediaId);
+
     nextMediaSource = null;
     mediaSource = mediaId;
 
@@ -103,7 +104,19 @@ class AudioTask extends BackgroundAudioTask {
             .listen((_) => onStop());
       }
 
+      // Make sure that we continue from where we left off.
+      // If we're resuming a pause, we can just continue, but if we're coming from a stop we
+      // have to check the cache.
+      final startPosition =
+          _audioPlayer.playbackState != AudioPlaybackState.paused
+              ? _positionBox.get(mediaSource)?.position
+              : null;
+
       _audioPlayer.play();
+
+      if (startPosition != null) {
+        _audioPlayer.seek(startPosition);
+      }
     }
   }
 
@@ -182,7 +195,7 @@ class AudioTask extends BackgroundAudioTask {
     }
   }
 
-    /// Don't end service because of stop state from player.
+  /// Don't end service because of stop state from player.
   Future _cancelStopSubscription() async {
     await _playerCompletedSubscription.cancel();
     _playerCompletedSubscription = null;

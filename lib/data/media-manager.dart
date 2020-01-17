@@ -25,8 +25,16 @@ class MediaManager extends BlocBase {
   MediaManager({this.positionRepository}) {
     _audioPlayerStateSubscription =
         AudioService.playbackStateStream.listen((state) {
-      if (state != null && state.basicState != BasicPlaybackState.none) {
-        _mediaSubject.value = current.copyWith(state: state.basicState);
+      if (state != null && current != null) {
+        // E.g. when user stops from lock screen, we miss the stop state and skip to none.
+        // In this case, though, we treat it as stopped. Failing to do so means that the UI
+        // thinks that the media is not yet loaded and needs to be, so it just waits forever.
+
+        final newState = state.basicState == BasicPlaybackState.none
+            ? BasicPlaybackState.stopped
+            : state.basicState;
+
+        _mediaSubject.value = current.copyWith(state: newState);
       }
     });
 
@@ -70,10 +78,6 @@ class MediaManager extends BlocBase {
           androidNotificationChannelName: "Inside Chassidus Class");
     }
 
-    // Save the saved starting position; when we play, will start from beggining, and that
-    // new location will overright saved position.
-    final startingPosition = positionRepository.getPosition(media);
-
     // While getting a file to play, we want to manually handle the state streams.
     _audioPlayerStateSubscription.pause();
 
@@ -104,11 +108,6 @@ class MediaManager extends BlocBase {
         state: AudioService.playbackState.basicState, media: media);
 
     _audioPlayerStateSubscription.resume();
-
-    // Continue a class from where it was left off.
-    if (startingPosition != Duration.zero) {
-      seek(media, startingPosition);
-    }
   }
 
   /// Updates the current location in given media.
