@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:inside_chassidus/data/models/user-settings/class-position.dart';
 import 'package:inside_chassidus/data/repositories/app-data.dart';
+import 'package:inside_chassidus/util/audio-service/util.dart';
 import 'package:just_audio/just_audio.dart';
 
 const playControl = MediaControl(
@@ -137,7 +138,13 @@ class AudioTask extends BackgroundAudioTask {
             ? BasicPlaybackState.rewinding
             : BasicPlaybackState.fastForwarding;
 
-    _setState(state: interimState);
+    AudioServiceBackground.setState(
+      basicState: interimState,
+      controls: _getControls(interimState),
+      position: position,
+      updateTime: DateTime.now().millisecondsSinceEpoch
+    );
+
     await _audioPlayer.seek(Duration(milliseconds: position));
 
     if (AudioServiceBackground.state.basicState !=
@@ -222,6 +229,14 @@ class AudioTask extends BackgroundAudioTask {
       case AudioPlaybackState.none:
         break;
       default:
+        final state = AudioServiceBackground.state.basicState;
+
+        // During seek don't send updates. This helps prevent UI jerkiness as it goes between
+        // desired position and current postion.
+        if (isSeeking(state)) {
+          break;
+        }
+
         _setState(state: stateToStateMap[event.state]);
     }
   }

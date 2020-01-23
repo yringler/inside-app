@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/data/repositories/class-position-repository.dart';
 import 'package:inside_chassidus/util/audio-service/audio-task.dart';
+import 'package:inside_chassidus/util/audio-service/util.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MediaManager extends BlocBase {
@@ -46,18 +47,33 @@ class MediaManager extends BlocBase {
             _seekingValues,
             _mediaSubject,
             (state, _, displaySeek, mediaState) =>
-                _onPositionUpdate(state, displaySeek, mediaState))
+                _getCurrentPosition(state, displaySeek, mediaState))
         .listen((state) => _positionSubject.value = state);
 
     // Save the current position of media, in case user listens to another class and then comes back.
-    mediaPosition.throttleTime(Duration(milliseconds: 200)).listen((state) =>
+    mediaPosition.sampleTime(Duration(milliseconds: 200)).listen((state) =>
         positionRepository.updatePosition(current.media, state.data));
 
+    // Change the audio position. Makes sure we don't seek to often.
     _seekingValues
-        .debounceTime(Duration(milliseconds: 50))
+        .sampleTime(Duration(milliseconds: 50))
         .where((position) => position != null)
-        .listen((position) => AudioService.seekTo(
-            position.inMilliseconds < 0 ? 0 : position.inMilliseconds));
+        .listen((position) async {
+      AudioService.seekTo(
+          position.inMilliseconds < 0 ? 0 : position.inMilliseconds);
+
+      await AudioService.playbackStateStream
+          .firstWhere((state) => isSeeking(state.basicState));
+
+      // It could be that we are already seeking for something else. Only set seeking to null if that is not the
+      // case.
+      if (_seekingValues.value == position) {
+        // As long as there is a seeking value, it takes precedance on what the UI considers to be the
+        // "current position". Once the seek to this value has started, we can ignore it.
+
+        _seekingValues.value = null;
+      }
+    });
   }
 
   /// The media which is currently playing.
@@ -125,7 +141,7 @@ class MediaManager extends BlocBase {
     seek(media, Duration(milliseconds: currentLocation) + duration);
   }
 
-  WithMediaState<Duration> _onPositionUpdate(
+  WithMediaState<Duration> _getCurrentPosition(
       PlaybackState state, Duration displaySeek, MediaState mediaState) {
     if (state == null) {
       return WithMediaState(
@@ -134,20 +150,9 @@ class MediaManager extends BlocBase {
               milliseconds: AudioService.playbackState?.position ?? 0));
     }
 
-    int position;
-
-    if ((state.basicState == BasicPlaybackState.fastForwarding ||
-            state.basicState == BasicPlaybackState.rewinding) &&
-        displaySeek != null) {
-      position = displaySeek.inMilliseconds;
-    } else if (state.basicState != BasicPlaybackState.playing) {
-      // If playback is paused, then we're in the same place as last update.
-      position = state.position;
-    } else {
-      final timeSinceUpdate = DateTime.now()
-          .difference(DateTime.fromMillisecondsSinceEpoch(state.updateTime));
-      position = state.position + timeSinceUpdate.inMilliseconds;
-    }
+    // If the user wants the audio to be in a particular position, for UI purposes
+    // consider that we are already there.
+    final position = displaySeek?.inMilliseconds ?? state.currentPosition;
 
     return WithMediaState(
         state: mediaState, data: Duration(milliseconds: position));
