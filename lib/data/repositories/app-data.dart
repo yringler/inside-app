@@ -49,7 +49,7 @@ class AppData {
     // For live reload causes an exception when it registers twice.
     try {
       Hive.init(hiveFolder.path);
-      
+
       Hive.registerAdapter(PrimaryInsideAdapter());
       Hive.registerAdapter(SiteSectionAdapter());
       Hive.registerAdapter(LessonAdapter());
@@ -75,7 +75,11 @@ class AppData {
 
       if (appsettingsBox.get("dataversion", defaultValue: 0) <
           dataTypeVersion) {
-        await _refreshData(hiveFolder, context);
+        primaryBox.deleteFromDisk();
+        sectionBox.deleteFromDisk();
+        lessonBox.deleteFromDisk();
+        await _getData(context);
+        await _initSettings();
       }
     } catch (error) {
       print(error);
@@ -115,7 +119,6 @@ class AppData {
     final primaryBox = await Hive.openBox<PrimaryInside>('primary');
     final sectionBox = await Hive.openLazyBox<SiteSection>('sections');
     final lessonBox = await Hive.openLazyBox<Lesson>('lessons');
-
     final insideData = await compute(_parseJSON, [mainJson, durationJson]);
 
     // Create a key/value map for hive.
