@@ -54,7 +54,7 @@ class MediaManager extends BlocBase {
     mediaPosition.sampleTime(Duration(milliseconds: 200)).listen((state) =>
         positionRepository.updatePosition(current.media, state.data));
 
-    // Change the audio position. Makes sure we don't seek to often.
+    // Change the audio position. Makes sure we don't seek too often.
     _seekingValues
         .sampleTime(Duration(milliseconds: 50))
         .where((position) => position != null)
