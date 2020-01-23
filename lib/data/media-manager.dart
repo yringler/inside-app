@@ -56,24 +56,24 @@ class MediaManager extends BlocBase {
 
     // Change the audio position. Makes sure we don't seek too often.
     _seekingValues
-        .sampleTime(Duration(milliseconds: 50))
         .where((position) => position != null)
+        .sampleTime(Duration(milliseconds: 50))
         .listen((position) async {
       AudioService.seekTo(
           position.inMilliseconds < 0 ? 0 : position.inMilliseconds);
+    });
 
-      await AudioService.playbackStateStream
-          .firstWhere((state) => isSeeking(state.basicState));
-
-      // It could be that we are already seeking for something else. Only set seeking to null if that is not the
-      // case.
-      if (_seekingValues.value == position) {
-        // As long as there is a seeking value, it takes precedance on what the UI considers to be the
-        // "current position". Once the seek to this value has started, we can ignore it.
-
+    // Clear seeking value as soon as the latest value is being used by audio_service.
+    // Untill then, it holds information relevant to the UI; after, that information has been
+    // moved to audio_service.
+    Rx.combineLatest2<PlaybackState, Duration, void>(
+        AudioService.playbackStateStream, _seekingValues, (state, seeking) {
+      // Clear seeking_value if it's latest value has been consumed by audio_service.
+      if (isSeeking(state.basicState) &&
+          state.currentPosition == seeking.inMilliseconds) {
         _seekingValues.value = null;
       }
-    });
+    }).listen((_) {});
   }
 
   /// The media which is currently playing.
