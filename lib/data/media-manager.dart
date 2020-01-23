@@ -68,6 +68,7 @@ class MediaManager extends BlocBase {
     // moved to audio_service.
     Rx.combineLatest2<PlaybackState, Duration, void>(
         AudioService.playbackStateStream, _seekingValues, (state, seeking) {
+      
       // Clear seeking_value if it's latest value has been consumed by audio_service.
       if (isSeeking(state.basicState) &&
           state.currentPosition == seeking.inMilliseconds) {
