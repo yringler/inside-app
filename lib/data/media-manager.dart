@@ -35,28 +35,32 @@ class MediaManager extends BlocBase {
             ? BasicPlaybackState.stopped
             : state.basicState;
 
-        _mediaSubject.value = current.copyWith(state: newState);
+        _mediaSubject.value = current.copyWith(state: newState, event: state);
       }
     });
 
-    Rx.combineLatest4<PlaybackState, dynamic, Duration, MediaState,
-                WithMediaState<Duration>>(
-            AudioService.playbackStateStream
-                .where((state) => state?.basicState != BasicPlaybackState.none),
-            Stream.periodic(Duration(milliseconds: 20)),
-            _seekingValues,
-            _mediaSubject,
-            (state, _, displaySeek, mediaState) =>
-                _getCurrentPosition(state, displaySeek, mediaState))
-        .listen((state) => _positionSubject.value = state);
+    Rx.combineLatest3<dynamic, Duration, MediaState, WithMediaState<Duration>>(
+        Stream.periodic(Duration(milliseconds: 20)),
+        _seekingValues,
+        // When user hits play, until play back starts, the manager doesn't know where
+        // the player is holding.
+        // The position repository and audio task are in charge of that.
+        // Therefore, when event is null (from being set in play method) - don't update what
+        // we consider to be current postion based on that.
+        _mediaSubject.where((media) => media.event != null),
+        (_, displaySeek, mediaState) =>
+            _getCurrentPosition(displaySeek, mediaState)).listen(
+        (state) => _positionSubject.value = state);
 
     // Save the current position of media, in case user listens to another class and then comes back.
     mediaPosition.sampleTime(Duration(milliseconds: 200)).listen((state) =>
         positionRepository.updatePosition(current.media, state.data));
 
+    final nonNullSeekingValues =
+        _seekingValues.where((position) => position != null);
+
     // Change the audio position. Makes sure we don't seek too often.
-    _seekingValues
-        .where((position) => position != null)
+    nonNullSeekingValues
         .sampleTime(Duration(milliseconds: 50))
         .listen((position) async {
       AudioService.seekTo(
@@ -66,12 +70,11 @@ class MediaManager extends BlocBase {
     // Clear seeking value as soon as the latest value is being used by audio_service.
     // Untill then, it holds information relevant to the UI; after, that information has been
     // moved to audio_service.
-    Rx.combineLatest2<PlaybackState, Duration, void>(
-        AudioService.playbackStateStream, _seekingValues, (state, seeking) {
-      
+    Rx.combineLatest2<MediaState, Duration, void>(mediaState, nonNullSeekingValues,
+        (state, seeking) {
       // Clear seeking_value if it's latest value has been consumed by audio_service.
-      if (isSeeking(state.basicState) &&
-          state.currentPosition == seeking.inMilliseconds) {
+      if (isSeeking(state.state) &&
+          state.event.currentPosition == seeking.inMilliseconds) {
         _seekingValues.value = null;
       }
     }).listen((_) {});
@@ -143,8 +146,8 @@ class MediaManager extends BlocBase {
   }
 
   WithMediaState<Duration> _getCurrentPosition(
-      PlaybackState state, Duration displaySeek, MediaState mediaState) {
-    if (state == null) {
+      Duration displaySeek, MediaState mediaState) {
+    if (mediaState.state == null) {
       return WithMediaState(
           state: mediaState,
           data: Duration(
@@ -153,7 +156,8 @@ class MediaManager extends BlocBase {
 
     // If the user wants the audio to be in a particular position, for UI purposes
     // consider that we are already there.
-    final position = displaySeek?.inMilliseconds ?? state.currentPosition;
+    final position =
+        displaySeek?.inMilliseconds ?? mediaState.event.currentPosition;
 
     return WithMediaState(
         state: mediaState, data: Duration(milliseconds: position));
@@ -174,15 +178,20 @@ backgroundTaskEntrypoint() async =>
 class MediaState {
   final Media media;
   final BasicPlaybackState state;
+  final PlaybackState event;
   final bool isLoaded;
 
-  MediaState({this.media, this.state})
+  MediaState({this.media, this.state, this.event})
       : isLoaded = state != BasicPlaybackState.connecting &&
             state != BasicPlaybackState.error &&
             state != BasicPlaybackState.none;
 
-  MediaState copyWith({Media media, BasicPlaybackState state}) =>
-      MediaState(media: media ?? this.media, state: state ?? this.state);
+  MediaState copyWith(
+          {Media media, BasicPlaybackState state, PlaybackState event}) =>
+      MediaState(
+          media: media ?? this.media,
+          state: state ?? this.state,
+          event: event ?? this.event);
 }
 
 /// Allows strongly typed binding of media state with any other value.

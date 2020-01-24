@@ -3,6 +3,7 @@ import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/data/media-manager.dart';
+import 'package:inside_chassidus/util/audio-service/util.dart';
 
 class PlayButton extends StatelessWidget {
   final Media media;
@@ -16,7 +17,8 @@ class PlayButton extends StatelessWidget {
     final mediaManger = BlocProvider.getBloc<MediaManager>();
 
     return StreamBuilder<MediaState>(
-      stream: mediaManger.mediaState,
+      // It's tricky to get the button right during seeking, so just forget about it.
+      stream: mediaManger.mediaState.where((state) => !isSeeking(state.state)),
       builder: (context, snapshot) {
         VoidCallback onPressed = () => mediaManger.play(media);
         var icon = Icons.play_circle_filled;
