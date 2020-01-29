@@ -22,14 +22,7 @@ class PlayerRoute extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   ..._title(context, snapshot.data),
-                  if (media.description?.isNotEmpty ?? false)
-                    Container(
-                      margin: EdgeInsets.only(top: 8),
-                      child: Text(
-                        media.description,
-                        style: Theme.of(context).textTheme.body1,
-                      ),
-                    ),
+                    _description(context),
                   ProgressBar(
                     media: media,
                   ),
@@ -71,4 +64,19 @@ class PlayerRoute extends StatelessWidget {
       )
     ];
   }
+
+  /// Create scrollable description. This is also rendered when
+  /// there isn't any description, because it expands and pushes the player
+  /// to the bottom of the screen into a consistant location.
+  _description(BuildContext context) => Expanded(
+        child: SingleChildScrollView(
+          child: Container(
+            margin: EdgeInsets.only(top: 8),
+            child: Text(
+              media.description ?? "",
+              style: Theme.of(context).textTheme.body1,
+            ),
+          ),
+        ),
+      );
 }
