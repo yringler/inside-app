@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/data/media-manager.dart';
 import 'package:inside_chassidus/data/repositories/app-data.dart';
-import 'package:inside_chassidus/data/repositories/class-position-repository.dart';
+import 'package:inside_chassidus/data/repositories/recently-played-repository.dart';
 import 'package:inside_chassidus/routes/lesson-route/index.dart';
 import 'package:inside_chassidus/routes/player-route/player-route.dart';
 import 'package:inside_chassidus/routes/primary-section-route.dart';
@@ -14,11 +14,11 @@ import 'package:inside_chassidus/routes/ternary-section-route.dart';
 void main() => runApp(BlocProvider(
       blocs: [
         Bloc((i) => MediaManager(
-            positionRepository: i.getDependency<ClassPositionRepository>()))
+            recentlyPlayedRepository: i.getDependency<RecentlyPlayedRepository>()))
       ],
       dependencies: [
         Dependency((i) => AppData()),
-        Dependency((i) => ClassPositionRepository())
+        Dependency((i) => RecentlyPlayedRepository())
       ],
       child: MyApp(),
     ));
@@ -126,6 +126,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   /// Initilize and load from hive data.
   initData(BuildContext context) async {
     await AppData.init(context);
-    await BlocProvider.getDependency<ClassPositionRepository>().init();
+    
+    final isAudioRunning = await AudioService.running;
+
+    final positionRepository = BlocProvider.getDependency<RecentlyPlayedRepository>();
+    await positionRepository.init(isAudioRunning);
+    await BlocProvider.getBloc<MediaManager>().init();
   }
 }

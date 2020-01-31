@@ -91,14 +91,14 @@ class SiteSection implements CountableInsideData {
           audio.add(media);
         }
 
-        return Lesson(audio: audio, description: description, title: title);
+        return Lesson(id: id, audio: audio, description: description, title: title);
       }
     } else {
       var lessons = await getLessons();
       if (lessons.every((lesson) => lesson.audioCount == 1)) {
         final audio =
             List<Media>.from(lessons.map((lesson) => lesson.audio[0].resolve(lesson)));
-        return Lesson(audio: audio, description: description, title: title);
+        return Lesson(id: id, audio: audio, description: description, title: title);
       }
     }
 

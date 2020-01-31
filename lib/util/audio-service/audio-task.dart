@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:inside_chassidus/data/models/user-settings/class-position.dart';
+import 'package:inside_chassidus/data/models/user-settings/recently-played.dart';
 import 'package:inside_chassidus/data/repositories/app-data.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -30,7 +30,7 @@ class AudioTask extends BackgroundAudioTask {
 
   final Completer _completer = Completer();
 
-  Box<ClassPosition> _positionBox;
+  Box<RecentlyPlayed> _positionBox;
 
   /// Closes the background service as soon as there's a stop.
   /// This behaviour is paused when one lesson is played in middle of another.
@@ -73,8 +73,8 @@ class AudioTask extends BackgroundAudioTask {
 
     final hiveFolder = await AppData.initHiveFolder();
     Hive.init(hiveFolder.path);
-    Hive.registerAdapter(ClassPositionAdapter());
-    _positionBox = await Hive.openBox<ClassPosition>('positions');
+    Hive.registerAdapter(RecentlyPlayedAdapter());
+    _positionBox = await Hive.openBox<RecentlyPlayed>('positions');
 
     await _completer.future;
 
@@ -252,7 +252,7 @@ class AudioTask extends BackgroundAudioTask {
       await classPosition.save();
     } else {
       await _positionBox.put(
-          mediaSource, ClassPosition(mediaId: mediaSource, position: position));
+          mediaSource, RecentlyPlayed(mediaId: mediaSource, position: position, parentId: null));
     }
   }
 
