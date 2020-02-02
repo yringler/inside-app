@@ -3,4 +3,9 @@
 # inside-app
 App to make it easier to learn with Rabbi Paltiel's (Inside Chassidus).
 
+# Beta URLs
+The app is currently available on the app store and google play store in beta.<br>
+[google play beta](https://play.google.com/store/apps/details?id=org.insidechassidus.inside_chassidus)<br>
+[apple testflight](https://testflight.apple.com/join/i9eR1Quy)
+
 Testing assisted by [BrowserStack](https://www.browserstack.com/) ![BrowserStack Logo](https://raw.githubusercontent.com/yringler/inside-app/master/Browserstack-logo%402x.png)
