@@ -3,7 +3,7 @@ import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/media.dart';
 import 'package:inside_chassidus/data/media-manager.dart';
-import 'package:inside_chassidus/data/repositories/class-position-repository.dart';
+import 'package:inside_chassidus/data/repositories/recently-played-repository.dart';
 import 'package:inside_chassidus/util/duration-helpers.dart';
 
 typedef Widget ProgressStreamBuilder(WithMediaState<Duration> state);
@@ -17,7 +17,7 @@ class ProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final mediaManager = BlocProvider.getBloc<MediaManager>();
     final positionRepository =
-        BlocProvider.getDependency<ClassPositionRepository>();
+        BlocProvider.getDependency<RecentlyPlayedRepository>();
     // As soon as we get to a class you're in the middle of, even before you play, show
     // the position that you're at.
     final startingPosition = positionRepository.getPosition(media);

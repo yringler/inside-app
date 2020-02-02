@@ -1,11 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
-part 'class-position.g.dart';
+part 'recently-played.g.dart';
 
 @HiveType(typeId: 5)
-class ClassPosition extends HiveObject {
+class RecentlyPlayed extends HiveObject {
 
-  ClassPosition({this.mediaId, Duration position}) {
+  RecentlyPlayed({@required this.mediaId, @required this.parentId, Duration position}) {
     if (position != null) {
       this.position = position;
     }
@@ -14,6 +15,12 @@ class ClassPosition extends HiveObject {
   // The source URL.
   @HiveField(0)
   final String mediaId;
+
+
+  // This is usually a lesson ID, but can be a section ID if a section was turned into a lesson...
+  // TODO: after #53, we can better keep track of the type of the parent.
+  @HiveField(3)
+  final String parentId;
 
   /// The position in milliseconds.
   @HiveField(1)

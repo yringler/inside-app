@@ -3,7 +3,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:hive/hive.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
-import 'package:inside_chassidus/data/repositories/class-position-repository.dart';
+import 'package:inside_chassidus/data/repositories/recently-played-repository.dart';
 import 'package:inside_chassidus/util/audio-service/audio-task.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -11,7 +11,7 @@ class MediaManager extends BlocBase {
   Stream<MediaState> get mediaState => _mediaSubject;
   Stream<WithMediaState<Duration>> get mediaPosition => _positionSubject;
 
-  final ClassPositionRepository positionRepository;
+  final RecentlyPlayedRepository recentlyPlayedRepository;
 
   StreamSubscription<PlaybackState> _audioPlayerStateSubscription;
 
@@ -22,7 +22,15 @@ class MediaManager extends BlocBase {
   // Ensure that seeks don't happen to frequently.
   final BehaviorSubject<Duration> _seekingValues = BehaviorSubject.seeded(null);
 
-  MediaManager({this.positionRepository}) {
+  Future<void> init() async {
+    final newCurrent = await _getCurrentFromService();
+
+    if (newCurrent != null) {
+      _mediaSubject.value = MediaState(
+          media: newCurrent, state: AudioService.playbackState.basicState);
+    }
+
+    // Listen for updates of audio state.
     _audioPlayerStateSubscription =
         AudioService.playbackStateStream.listen((state) {
       if (state != null && current != null) {
@@ -38,6 +46,7 @@ class MediaManager extends BlocBase {
       }
     });
 
+    // Keep up to date on where the class is holding.
     Rx.combineLatest4<PlaybackState, dynamic, Duration, MediaState,
                 WithMediaState<Duration>>(
             AudioService.playbackStateStream
@@ -49,16 +58,19 @@ class MediaManager extends BlocBase {
                 _onPositionUpdate(state, displaySeek, mediaState))
         .listen((state) => _positionSubject.value = state);
 
-    // Save the current position of media, in case user listens to another class and then comes back.
-    mediaPosition.throttleTime(Duration(milliseconds: 200)).listen((state) =>
-        positionRepository.updatePosition(current.media, state.data));
+    // Save the current position of media.
+    mediaPosition.sampleTime(Duration(milliseconds: 200)).listen((state) =>
+        recentlyPlayedRepository.updatePosition(current.media, state.data));
 
+    // Seek, but not to often.
     _seekingValues
-        .debounceTime(Duration(milliseconds: 50))
+        .sampleTime(Duration(milliseconds: 50))
         .where((position) => position != null)
         .listen((position) => AudioService.seekTo(
             position.inMilliseconds < 0 ? 0 : position.inMilliseconds));
   }
+
+  MediaManager({this.recentlyPlayedRepository});
 
   /// The media which is currently playing.
   MediaState get current => _mediaSubject.value;
@@ -159,6 +171,32 @@ class MediaManager extends BlocBase {
     _positionSubject.close();
     _seekingValues.close();
     super.dispose();
+  }
+
+  /// Figure out what is currently playing (after app start) from audio_service
+  Future<Media> _getCurrentFromService() async {
+    final currentMediaId = AudioService.currentMediaItem?.id;
+
+    if (currentMediaId?.isNotEmpty ?? false) {
+      final currentPlaying =
+          recentlyPlayedRepository.getRecentlyPlayed(currentMediaId);
+
+      assert(currentPlaying != null,
+          "There must be a record of currently playing lesson");
+
+      // Find the media which is being played.
+      // To do that, we figure out the lesson, and take it from there.
+      final Lesson lesson = (await Hive.lazyBox<Lesson>('lessons')
+              .get(currentPlaying.parentId)) ??
+          await (await Hive.lazyBox<SiteSection>('sections')
+                  .get(currentPlaying.parentId))
+              .resolve();
+
+      return lesson?.audio
+          ?.firstWhere((audio) => audio.source == currentMediaId, orElse: null);
+    }
+
+    return null;
   }
 }
 
