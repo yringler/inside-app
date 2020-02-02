@@ -79,7 +79,16 @@ class AudioTask extends BackgroundAudioTask {
     await _completer.future;
 
     playbackStateSubscription?.cancel();
-    await _positionBox.close();
+
+    if (_positionBox?.isOpen ?? false) {
+      try {
+        await _positionBox.close();
+      }
+      catch (ex) {
+        print("I hate it when that happens. " + ex);
+      }
+    }
+
     await _audioPlayer.dispose();
   }
 
