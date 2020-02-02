@@ -1,5 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/observer.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/data/media-manager.dart';
@@ -10,8 +12,19 @@ import 'package:inside_chassidus/routes/player-route/player-route.dart';
 import 'package:inside_chassidus/routes/primary-section-route.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/index.dart';
 import 'package:inside_chassidus/routes/ternary-section-route.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
-void main() => runApp(BlocProvider(
+void main() {
+  // Set `enableInDevMode` to true to see reports while in debug mode
+  // This is only to be used for confirming that reports are being
+  // submitted as expected. It is not intended to be used for everyday
+  // development.
+  Crashlytics.instance.enableInDevMode = false;
+  
+  // Pass all uncaught errors from the framework to Crashlytics.
+  
+  FlutterError.onError = Crashlytics.instance.recordFlutterError;
+  runApp(BlocProvider(
       blocs: [
         Bloc((i) => MediaManager(
             recentlyPlayedRepository: i.getDependency<RecentlyPlayedRepository>()))
@@ -22,6 +35,7 @@ void main() => runApp(BlocProvider(
       ],
       child: MyApp(),
     ));
+}
 
 class MyApp extends StatefulWidget {
   @override
@@ -32,9 +46,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    FirebaseAnalytics analytics = FirebaseAnalytics();
+
+    analytics.logAppOpen();
+
     return MaterialApp(
       title: 'Inside Chassidus',
       theme: ThemeData(primarySwatch: Colors.grey),
+      navigatorObservers: [FirebaseAnalyticsObserver(analytics: analytics)],
       onGenerateRoute: (settings) {
         WidgetBuilder builder;
 
