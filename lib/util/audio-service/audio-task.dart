@@ -85,7 +85,7 @@ class AudioTask extends BackgroundAudioTask {
         await _positionBox.close();
       }
       catch (ex) {
-        print("I hate it when that happens. " + ex);
+        print("I hate it when that happens. " + ex.toString());
       }
     }
 
@@ -253,15 +253,19 @@ class AudioTask extends BackgroundAudioTask {
 
   /// Save the current position of currently playing class.
   Future<void> _updatePosition() async {
-    final position = _audioPlayer.playbackEvent.position;
+    try {
+      final position = _audioPlayer.playbackEvent.position;
 
-    if (_positionBox.containsKey(mediaSource)) {
-      final classPosition = _positionBox.get(mediaSource);
-      classPosition.position = position;
-      await classPosition.save();
-    } else {
-      await _positionBox.put(
-          mediaSource, RecentlyPlayed(mediaId: mediaSource, position: position, parentId: null));
+      if (_positionBox.containsKey(mediaSource)) {
+        final classPosition = _positionBox.get(mediaSource);
+        classPosition.position = position;
+        await classPosition.save();
+      } else {
+        await _positionBox.put(
+            mediaSource, RecentlyPlayed(mediaId: mediaSource, position: position, parentId: null));
+      } 
+    } catch (ex) {
+      print("The box is closed? Why?" + ex.toString());
     }
   }
 
