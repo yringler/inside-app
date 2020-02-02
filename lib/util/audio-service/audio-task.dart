@@ -78,7 +78,7 @@ class AudioTask extends BackgroundAudioTask {
 
     await _completer.future;
 
-    playbackStateSubscription.cancel();
+    playbackStateSubscription?.cancel();
     await _positionBox.close();
     await _audioPlayer.dispose();
   }
@@ -197,7 +197,7 @@ class AudioTask extends BackgroundAudioTask {
 
   /// Don't end service because of stop state from player.
   Future _cancelStopSubscription() async {
-    await _playerCompletedSubscription.cancel();
+    await _playerCompletedSubscription?.cancel();
     _playerCompletedSubscription = null;
   }
 
