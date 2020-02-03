@@ -20,42 +20,49 @@ void main() {
   // submitted as expected. It is not intended to be used for everyday
   // development.
   Crashlytics.instance.enableInDevMode = false;
-  
+
   // Pass all uncaught errors from the framework to Crashlytics.
-  
+
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
   runApp(BlocProvider(
-      blocs: [
-        Bloc((i) => MediaManager(
-            recentlyPlayedRepository: i.getDependency<RecentlyPlayedRepository>()))
-      ],
-      dependencies: [
-        Dependency((i) => AppData()),
-        Dependency((i) => RecentlyPlayedRepository())
-      ],
-      child: MyApp(),
-    ));
+    blocs: [
+      Bloc((i) => MediaManager(
+          recentlyPlayedRepository:
+              i.getDependency<RecentlyPlayedRepository>()))
+    ],
+    dependencies: [
+      Dependency((i) => AppData()),
+      Dependency((i) => RecentlyPlayedRepository())
+    ],
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatefulWidget {
+  static FirebaseAnalytics analytics = FirebaseAnalytics();
+
   @override
-  _MyAppState createState() => new _MyAppState();
+  _MyAppState createState() {
+    MyApp.analytics.logAppOpen();
+    return _MyAppState(analytics: analytics);
+  }
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  final FirebaseAnalytics analytics;
+
+  _MyAppState({this.analytics});
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    FirebaseAnalytics analytics = FirebaseAnalytics();
-
-    analytics.logAppOpen();
-
     return MaterialApp(
       title: 'Inside Chassidus',
       theme: ThemeData(primarySwatch: Colors.grey),
-      navigatorObservers: [FirebaseAnalyticsObserver(analytics: analytics)],
       onGenerateRoute: (settings) {
         WidgetBuilder builder;
+
+        _setViewedPage(settings);
 
         switch (settings.name) {
           case SecondarySectionRoute.routeName:
@@ -145,11 +152,29 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   /// Initilize and load from hive data.
   initData(BuildContext context) async {
     await AppData.init(context);
-    
+
     final isAudioRunning = await AudioService.running;
 
-    final positionRepository = BlocProvider.getDependency<RecentlyPlayedRepository>();
+    final positionRepository =
+        BlocProvider.getDependency<RecentlyPlayedRepository>();
     await positionRepository.init(isAudioRunning);
     await BlocProvider.getBloc<MediaManager>().init();
   }
+
+  /// Send firebase analytics page view event.
+  void _setViewedPage(RouteSettings settings) {
+        String screenName = settings.name;
+        
+        if (settings.arguments is InsideDataBase) {
+          final InsideDataBase data = settings.arguments;
+          screenName += "/" + data.title;
+        }
+        if (settings.arguments is Media) {
+          final Media media = settings.arguments;
+          screenName += "/" + media.title ?? media.source;
+        }
+
+
+        analytics.setCurrentScreen(screenName: screenName);
+      }
 }

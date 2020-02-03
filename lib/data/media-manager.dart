@@ -4,6 +4,7 @@ import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:hive/hive.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/data/repositories/recently-played-repository.dart';
+import 'package:inside_chassidus/main.dart';
 import 'package:inside_chassidus/util/audio-service/audio-task.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -84,6 +85,11 @@ class MediaManager extends BlocBase {
       return;
     }
 
+    MyApp.analytics.logEvent(name: "start_audio", parameters: {
+      'class_source': media.source,
+      'class_parent': media.lessonId
+    });
+
     if (!serviceIsRunning) {
       await AudioService.start(
           backgroundTaskEntrypoint: backgroundTaskEntrypoint,
@@ -152,13 +158,8 @@ class MediaManager extends BlocBase {
             state.basicState == BasicPlaybackState.rewinding) &&
         displaySeek != null) {
       position = displaySeek.inMilliseconds;
-    } else if (state.basicState != BasicPlaybackState.playing) {
-      // If playback is paused, then we're in the same place as last update.
-      position = state.position;
     } else {
-      final timeSinceUpdate = DateTime.now()
-          .difference(DateTime.fromMillisecondsSinceEpoch(state.updateTime));
-      position = state.position + timeSinceUpdate.inMilliseconds;
+      position = state.currentPosition;
     }
 
     return WithMediaState(
