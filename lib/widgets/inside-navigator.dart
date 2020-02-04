@@ -15,5 +15,5 @@ class InsideNavigator extends StatelessWidget {
       GestureDetector(onTap: () => _navigate(context), child: child);
 
   _navigate(BuildContext context) =>
-      Navigator.pushNamed(context, routeName, arguments: data);
+      Navigator.of(context).pushNamed(routeName, arguments: data);
 }
