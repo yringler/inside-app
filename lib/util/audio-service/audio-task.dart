@@ -133,8 +133,7 @@ class AudioTask extends BackgroundAudioTask {
   void onPause() {
     final state = _audioPlayer.playbackEvent.state;
 
-    if (state == AudioPlaybackState.buffering ||
-        state == AudioPlaybackState.playing) _audioPlayer.pause();
+    if (state == AudioPlaybackState.playing) _audioPlayer.pause();
   }
 
   @override
@@ -271,7 +270,6 @@ class AudioTask extends BackgroundAudioTask {
 
   static final Map<AudioPlaybackState, BasicPlaybackState> stateToStateMap =
       Map.fromEntries([
-    MapEntry(AudioPlaybackState.buffering, BasicPlaybackState.buffering),
     MapEntry(AudioPlaybackState.connecting, BasicPlaybackState.connecting),
     MapEntry(AudioPlaybackState.none, BasicPlaybackState.none),
     MapEntry(AudioPlaybackState.paused, BasicPlaybackState.paused),

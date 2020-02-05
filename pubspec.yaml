@@ -25,7 +25,10 @@ dependencies:
   cupertino_icons: ^0.1.2
   json_annotation: ^3.0.1
   expandable: ^3.0.0
-  just_audio: ^0.0.6
+  just_audio:
+    git:
+      url: https://github.com/ryanheise/just_audio.git
+      ref: a8263ff22102805d7b83562912f2feeacd1c6140
   cached_network_image: ^2.0.0-rc.1
   rxdart: ^0.23.1
   bloc_pattern: ^2.4.4
