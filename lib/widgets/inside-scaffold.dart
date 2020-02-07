@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
 
 class InsideScaffold extends StatelessWidget {
   final InsideDataBase insideData;
@@ -9,9 +10,9 @@ class InsideScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-            title: Text(insideData.title,
-                style: Theme.of(context).appBarTheme.textTheme?.title)),
-                body: body
-      );
+      appBar: AppBar(
+          title: Text(insideData.title,
+              style: Theme.of(context).appBarTheme.textTheme?.title)),
+      body: body,
+      bottomSheet: CurrentMediaButtonBar());
 }

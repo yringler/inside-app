@@ -17,6 +17,9 @@ class LessonRoute extends StatelessWidget {
       insideData: lesson,
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 8).copyWith(top: 8),
-        child: MediaList(media: lesson.audio, leadingWidget: textIfNotEmpty(lesson.description),),
+        child: MediaList(
+          media: lesson.audio,
+          leadingWidget: textIfNotEmpty(lesson.description),
+        ),
       ));
 }

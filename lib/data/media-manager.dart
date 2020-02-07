@@ -199,6 +199,8 @@ class MediaManager extends BlocBase {
 
     return null;
   }
+
+  stop() => AudioService.stop();
 }
 
 backgroundTaskEntrypoint() async =>

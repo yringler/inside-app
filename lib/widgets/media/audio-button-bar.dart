@@ -10,13 +10,13 @@ class AudioButtonBar extends StatelessWidget {
   final Media media;
   final Lesson lesson;
 
-  AudioButtonBar({this.media, this.lesson});
+  AudioButtonBar({@required this.media, this.lesson});
 
   @override
   Widget build(BuildContext context) {
     final mediaManager = BlocProvider.getBloc<MediaManager>();
 
-    return Row(
+    return ButtonBar(
       children: <Widget>[
         IconButton(
           icon: Icon(FontAwesomeIcons.stepBackward),
@@ -32,14 +32,20 @@ class AudioButtonBar extends StatelessWidget {
         IconButton(
             icon: Icon(FontAwesomeIcons.redo),
             onPressed: () => mediaManager.skip(media, Duration(seconds: 15))),
-        IconButton(
-          icon: Icon(FontAwesomeIcons.stepForward),
-          onPressed: null,
-        )
+        _stopButton(mediaManager)
       ],
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      alignment: MainAxisAlignment.spaceBetween,
     );
   }
+
+  _stopButton(MediaManager mediaManager) => StreamBuilder<MediaState>(
+        stream: mediaManager.mediaState,
+        builder: (context, state) => IconButton(
+          icon: Icon(Icons.stop),
+          onPressed:
+              media == state.data?.media ? () => mediaManager.stop() : null,
+        ),
+      );
 
   _playNext(BuildContext context) {
     if ((lesson?.audio?.isEmpty ?? true) || lesson.audio.length == 1) {
@@ -47,7 +53,7 @@ class AudioButtonBar extends StatelessWidget {
     }
 
     // The next class is first lesson or next lesson.
-    final nextIndex = 
+    final nextIndex =
         lesson.audio.last == media ? 0 : lesson.audio.indexOf(media) + 1;
     Navigator.of(context)
         .pushNamed(PlayerRoute.routeName, arguments: lesson.audio[nextIndex]);

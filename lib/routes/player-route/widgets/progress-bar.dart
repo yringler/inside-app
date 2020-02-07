@@ -73,6 +73,8 @@ class ProgressBar extends StatelessWidget {
               ),
           builder: (data) {
             double value = data.data.inMilliseconds.toDouble();
+            final maxSliderValue =
+                data.state.media?.duration?.inMilliseconds?.toDouble() ?? 0;
 
             value =
                 value > maxSliderValue ? maxSliderValue : value < 0 ? 0 : value;
