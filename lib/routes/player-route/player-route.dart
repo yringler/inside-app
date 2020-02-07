@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/routes/player-route/widgets/index.dart';
+import 'package:inside_chassidus/widgets/home-button.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar.dart';
 
 class PlayerRoute extends StatelessWidget {
@@ -12,7 +13,9 @@ class PlayerRoute extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: <Widget>[HomeButton()],
+      ),
       body: FutureBuilder<Lesson>(
         future: media.getLesson(),
         builder: (context, snapshot) {
