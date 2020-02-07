@@ -13,8 +13,8 @@ class PrimarySectionsRoute extends StatelessWidget {
           backgroundColor: Colors.white,
           title: _title(context),
         ),
-        body: Column(
-          children: [_sectionsFuture(context)],
+        body: Container(
+          child: _sectionsFuture(context)
         ),
         bottomSheet: CurrentMediaButtonBar(),
       );
@@ -32,19 +32,18 @@ class PrimarySectionsRoute extends StatelessWidget {
             InputDecoration(hintText: "Search", suffixIcon: Icon(Icons.search)),
       ));
 
-  Widget _sectionsFuture(BuildContext context) => Expanded(
-        child: FutureBuilder<List<PrimaryInside>>(
-          future: BlocProvider.getDependency<AppData>().getPrimaryInside(),
-          builder: (context, snapShot) {
-            if (snapShot.hasData) {
-              return _sections(context, snapShot.data);
-            } else if (snapShot.hasError) {
-              return ErrorWidget(snapShot.error);
-            } else {
-              return Container();
-            }
-          },
-        ),
+  Widget _sectionsFuture(BuildContext context) =>
+      FutureBuilder<List<PrimaryInside>>(
+        future: BlocProvider.getDependency<AppData>().getPrimaryInside(),
+        builder: (context, snapShot) {
+          if (snapShot.hasData) {
+            return _sections(context, snapShot.data);
+          } else if (snapShot.hasError) {
+            return ErrorWidget(snapShot.error);
+          } else {
+            return Container();
+          }
+        },
       );
 
   Widget _sections(BuildContext context, List<PrimaryInside> topLevel) =>
