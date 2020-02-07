@@ -17,8 +17,11 @@ class CurrentMediaButtonBar extends StatelessWidget {
         if (state.hasData &&
             state.data?.media != null &&
             _isMediaActive(state.data.state)) {
-          return AudioButtonBar(
-            media: state.data.media,
+          return Container(
+            child: AudioButtonBar(
+              media: state.data.media,
+            ),
+            color: Colors.grey.shade300,
           );
         }
 
