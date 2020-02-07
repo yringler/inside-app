@@ -2,6 +2,7 @@ import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart';
 import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
 import 'package:inside_chassidus/widgets/navigate-to-section.dart';
 import 'package:inside_chassidus/data/repositories/app-data.dart';
@@ -13,9 +14,7 @@ class PrimarySectionsRoute extends StatelessWidget {
           backgroundColor: Colors.white,
           title: _title(context),
         ),
-        body: Container(
-          child: _sectionsFuture(context)
-        ),
+        body: AudioButtonbarAwareBody(body: _sectionsFuture(context)),
         bottomSheet: CurrentMediaButtonBar(),
       );
 
