@@ -46,8 +46,8 @@ class PrimarySectionsRoute extends StatelessWidget {
       );
 
   Widget _sections(BuildContext context, List<PrimaryInside> topLevel) =>
-      GridView.count(
-          crossAxisCount: 2,
+      GridView.extent(
+          maxCrossAxisExtent: 200,
           padding: const EdgeInsets.all(4),
           mainAxisSpacing: 4,
           crossAxisSpacing: 4,
@@ -75,7 +75,7 @@ class PrimarySectionsRoute extends StatelessWidget {
                 child: Text(primaryInside.section.title.toUpperCase(),
                     style: TextStyle(
                         color: Colors.white,
-                        fontSize: 14,
+                        fontSize: Theme.of(context).textTheme.title.fontSize,
                         fontWeight: FontWeight.w600),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 3)),
