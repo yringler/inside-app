@@ -274,6 +274,7 @@ class AudioTask extends BackgroundAudioTask {
     MapEntry(AudioPlaybackState.none, BasicPlaybackState.none),
     MapEntry(AudioPlaybackState.paused, BasicPlaybackState.paused),
     MapEntry(AudioPlaybackState.playing, BasicPlaybackState.playing),
-    MapEntry(AudioPlaybackState.stopped, BasicPlaybackState.stopped)
+    MapEntry(AudioPlaybackState.stopped, BasicPlaybackState.stopped),
+    MapEntry(AudioPlaybackState.completed, BasicPlaybackState.stopped)
   ]);
 }

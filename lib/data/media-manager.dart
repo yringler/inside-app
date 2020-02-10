@@ -43,6 +43,10 @@ class MediaManager extends BlocBase {
             ? BasicPlaybackState.stopped
             : state.basicState;
 
+        if (newState == BasicPlaybackState.stopped) {
+          recentlyPlayedRepository.updatePosition(current.media, Duration.zero);
+        }
+
         _mediaSubject.value = current.copyWith(state: newState);
       }
     });
@@ -132,6 +136,12 @@ class MediaManager extends BlocBase {
   seek(Media media, Duration location) {
     if (media.source != _mediaSubject.value?.media?.source) {
       print('hmmm');
+      return;
+    }
+
+    if (location.inMilliseconds > media?.duration?.inMilliseconds ??
+        Duration.millisecondsPerDay) {
+      print('can\'t seek past end');
       return;
     }
 
