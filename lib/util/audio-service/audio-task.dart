@@ -82,8 +82,11 @@ class AudioTask extends BackgroundAudioTask {
 
     final trackListeningSubscription = _setupListingSubscription();
 
-    final logCopmletedSubscription = _audioPlayer.playbackStateStream
+    // Log an analytics event when a lesson is finished.
+    // Note that if someone listens to the same class 3 times in a row, it is only logged once.
+    final logCompletedSubscription = _audioPlayer.playbackStateStream
         .where((state) => state == AudioPlaybackState.completed)
+        .map((state) => mediaSource)
         .distinct()
         .listen((_) => analytics.logEvent(
             name: "completed_class",
@@ -93,7 +96,7 @@ class AudioTask extends BackgroundAudioTask {
 
     playbackStateSubscription?.cancel();
     trackListeningSubscription?.cancel();
-    logCopmletedSubscription?.cancel();
+    logCompletedSubscription?.cancel();
 
     if (_positionBox?.isOpen ?? false) {
       try {
@@ -328,7 +331,8 @@ class AudioTask extends BackgroundAudioTask {
 
       return false;
     }).listen((_) => analytics.logEvent(
-            name: 'listened_15', parameters: {"class_source": mediaSource}));
+            name: 'listening',
+            parameters: {"class_source": mediaSource, "minutes": 15}));
   }
 
   static final Map<AudioPlaybackState, BasicPlaybackState> stateToStateMap =
