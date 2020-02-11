@@ -205,6 +205,10 @@ class AudioTask extends BackgroundAudioTask {
   }
 
   void _setState({@required BasicPlaybackState state}) {
+    if (state == null) {
+      return;
+    }
+
     // TODO: Confirm that connecting state (which is after stopped state) has
     // null position and updateTime.
 
@@ -315,7 +319,7 @@ class AudioTask extends BackgroundAudioTask {
         if (!watch.isRunning) {
           watch.start();
           return false;
-        } else if (watch.elapsedMilliseconds ==
+        } else if (watch.elapsedMilliseconds >
             15 * Duration.millisecondsPerMinute) {
           // Now that the event will be logged, reset the stop watch.
           // We'll trigger again in another 15 minutes.
