@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'package:rxdart/rxdart.dart';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:inside_chassidus/data/models/user-settings/recently-played.dart';
@@ -26,6 +28,8 @@ const stopControl = MediaControl(
 );
 
 class AudioTask extends BackgroundAudioTask {
+  final FirebaseAnalytics analytics = FirebaseAnalytics();
+
   final _audioPlayer = AudioPlayer();
 
   final Completer _completer = Completer();
@@ -76,9 +80,20 @@ class AudioTask extends BackgroundAudioTask {
     Hive.registerAdapter(RecentlyPlayedAdapter());
     _positionBox = await Hive.openBox<RecentlyPlayed>('positions');
 
+    final trackListeningSubscription = _setupListingSubscription();
+
+    final logCopmletedSubscription = _audioPlayer.playbackStateStream
+        .where((state) => state == AudioPlaybackState.completed)
+        .distinct()
+        .listen((_) => analytics.logEvent(
+            name: "completed_class",
+            parameters: {"class_source": mediaSource ?? ""}));
+
     await _completer.future;
 
     playbackStateSubscription?.cancel();
+    trackListeningSubscription?.cancel();
+    logCopmletedSubscription?.cancel();
 
     if (_positionBox?.isOpen ?? false) {
       try {
@@ -99,14 +114,14 @@ class AudioTask extends BackgroundAudioTask {
       if (_playerCompletedSubscription == null) {
         _playerCompletedSubscription = _audioPlayer.playbackStateStream
             /*
-             * Goodness, this is embarrassing.
-             * Problem: setUrl triggers a stopped event, which should *not*
-             * playback to stop. I tried using a flag to keep track of whether
-             * the stop is for *real* for real or not, but ended up going in a circle.
-             * Now, I only listen for the stop event after playback starts. This in theory could cause
-             * an issue if the user wants to stop before the file is loaded, but I don't think
-             * that'll happen much...
-             */
+                 * Goodness, this is embarrassing.
+                 * Problem: setUrl triggers a stopped event, which should *not*
+                 * playback to stop. I tried using a flag to keep track of whether
+                 * the stop is for *real* for real or not, but ended up going in a circle.
+                 * Now, I only listen for the stop event after playback starts. This in theory could cause
+                 * an issue if the user wants to stop before the file is loaded, but I don't think
+                 * that'll happen much...
+                 */
             .skip(1)
             .where((state) =>
                 state == AudioPlaybackState.stopped ||
@@ -273,6 +288,47 @@ class AudioTask extends BackgroundAudioTask {
     } catch (ex) {
       print("The box is closed? Why?" + ex.toString());
     }
+  }
+
+  /// Log analytics event whenever one class is listed to for 15 minutes.
+  StreamSubscription _setupListingSubscription() {
+    final watch = Stopwatch();
+    String lastClass;
+
+    return _audioPlayer.playbackEventStream
+        .sampleTime(Duration(seconds: 30))
+        .where((event) {
+      if (lastClass?.isEmpty ?? true) {
+        lastClass = mediaSource;
+      }
+
+      if (lastClass != mediaSource) {
+        watch.stop();
+        watch.reset();
+        return false;
+      }
+
+      if (event.state == AudioPlaybackState.playing) {
+        if (!watch.isRunning) {
+          watch.start();
+          return false;
+        } else if (watch.elapsedMilliseconds ==
+            15 * Duration.millisecondsPerMinute) {
+          // Now that the event will be logged, reset the stop watch.
+          // We'll trigger again in another 15 minutes.
+          watch.stop();
+          watch.reset();
+          return true;
+        }
+      } else {
+        // Lesson is paused or something. That doesn't count as listening.
+        watch.stop();
+        return false;
+      }
+
+      return false;
+    }).listen((_) => analytics.logEvent(
+            name: 'listened_15', parameters: {"class_source": mediaSource}));
   }
 
   static final Map<AudioPlaybackState, BasicPlaybackState> stateToStateMap =
