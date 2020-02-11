@@ -93,7 +93,8 @@ class MediaManager extends BlocBase {
     if (!serviceIsRunning) {
       await AudioService.start(
           backgroundTaskEntrypoint: backgroundTaskEntrypoint,
-          androidNotificationChannelName: "Inside Chassidus Class");
+          androidNotificationChannelName: "Inside Chassidus Class",
+          androidStopForegroundOnPause: true);
     }
 
     // While getting a file to play, we want to manually handle the state streams.
