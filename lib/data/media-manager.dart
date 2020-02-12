@@ -43,6 +43,10 @@ class MediaManager extends BlocBase {
             ? BasicPlaybackState.stopped
             : state.basicState;
 
+        if (newState == BasicPlaybackState.stopped) {
+          recentlyPlayedRepository.updatePosition(current.media, Duration.zero);
+        }
+
         _mediaSubject.value = current.copyWith(state: newState);
       }
     });
@@ -136,6 +140,12 @@ class MediaManager extends BlocBase {
       return;
     }
 
+    if (location.inMilliseconds > media?.duration?.inMilliseconds ??
+        Duration.millisecondsPerDay) {
+      print('can\'t seek past end');
+      return;
+    }
+
     _seekingValues.add(location);
   }
 
@@ -159,6 +169,8 @@ class MediaManager extends BlocBase {
             state.basicState == BasicPlaybackState.rewinding) &&
         displaySeek != null) {
       position = displaySeek.inMilliseconds;
+    } else if (state.basicState == BasicPlaybackState.stopped) {
+      position = 0;
     } else {
       position = state.currentPosition;
     }
