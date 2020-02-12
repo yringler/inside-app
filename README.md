@@ -3,6 +3,9 @@
 # inside-app
 App to make it easier to learn with Rabbi Paltiel's (Inside Chassidus).
 
+# Support
+If you have any issues with this app, please open an issue above, or email me at yrappdev@gmail.com.
+
 # Beta URLs
 The app is currently available on the app store and google play store in beta.<br>
 [google play beta](https://play.google.com/store/apps/details?id=org.insidechassidus.inside_chassidus)<br>
