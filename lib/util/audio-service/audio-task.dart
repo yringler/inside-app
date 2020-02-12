@@ -302,9 +302,12 @@ class AudioTask extends BackgroundAudioTask {
     final watch = Stopwatch();
     String lastClass;
 
-    return _audioPlayer.playbackEventStream
-        .sampleTime(Duration(seconds: 30))
-        .where((event) {
+    const listeningEventInterval = Duration(minutes: 15);
+
+    return Rx.combineLatest2<AudioPlaybackEvent, int, AudioPlaybackEvent>(
+        _audioPlayer.playbackEventStream,
+        Stream.periodic(listeningEventInterval),
+        (event, _) => event).where((event) {
       if (lastClass?.isEmpty ?? true) {
         lastClass = mediaSource;
       }
@@ -312,31 +315,27 @@ class AudioTask extends BackgroundAudioTask {
       if (lastClass != mediaSource) {
         watch.stop();
         watch.reset();
-        return false;
       }
 
       if (event.state == AudioPlaybackState.playing) {
-        if (!watch.isRunning) {
-          watch.start();
-          return false;
-        } else if (watch.elapsedMilliseconds >
-            15 * Duration.millisecondsPerMinute) {
-          // Now that the event will be logged, reset the stop watch.
-          // We'll trigger again in another 15 minutes.
-          watch.stop();
-          watch.reset();
-          return true;
-        }
+        watch.start();
       } else {
         // Lesson is paused or something. That doesn't count as listening.
         watch.stop();
-        return false;
+      }
+
+      if (watch.elapsedMilliseconds > listeningEventInterval.inMilliseconds) {
+        // Now that the event will be logged, reset the stop watch.
+        // We'll trigger again in another 15 minutes.
+        watch.reset();
+
+        return true;
       }
 
       return false;
     }).listen((_) => analytics.logEvent(
-            name: 'listening',
-            parameters: {"class_source": mediaSource, "minutes": 15}));
+        name: 'listening',
+        parameters: {"class_source": mediaSource, "minutes": 15}));
   }
 
   static final Map<AudioPlaybackState, BasicPlaybackState> stateToStateMap =
