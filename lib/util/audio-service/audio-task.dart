@@ -83,8 +83,7 @@ class AudioTask extends BackgroundAudioTask {
     if (_positionBox?.isOpen ?? false) {
       try {
         await _positionBox.close();
-      }
-      catch (ex) {
+      } catch (ex) {
         print("I hate it when that happens. " + ex.toString());
       }
     }
@@ -109,7 +108,9 @@ class AudioTask extends BackgroundAudioTask {
              * that'll happen much...
              */
             .skip(1)
-            .where((state) => state == AudioPlaybackState.stopped)
+            .where((state) =>
+                state == AudioPlaybackState.stopped ||
+                state == AudioPlaybackState.completed)
             .listen((_) => onStop());
       }
 
@@ -173,7 +174,11 @@ class AudioTask extends BackgroundAudioTask {
     // Cancel the subscription to prevent this method being run a second time because of
     // the stop state from the audio player.
     await _cancelStopSubscription();
-    await _updatePosition();
+    try {
+      await _positionBox.delete(mediaSource);
+    } catch (ex) {
+      print(ex?.toString());
+    }
 
     await _audioPlayer.stop();
     if (!_completer.isCompleted) {
@@ -209,7 +214,7 @@ class AudioTask extends BackgroundAudioTask {
     _playerCompletedSubscription = null;
   }
 
-  void _onPlaybackEvent(AudioPlaybackEvent event) {
+  Future<void> _onPlaybackEvent(AudioPlaybackEvent event) async {
     switch (event.state) {
       case AudioPlaybackState.connecting:
         // Tell background service of the new media.
@@ -261,8 +266,10 @@ class AudioTask extends BackgroundAudioTask {
         await classPosition.save();
       } else {
         await _positionBox.put(
-            mediaSource, RecentlyPlayed(mediaId: mediaSource, position: position, parentId: null));
-      } 
+            mediaSource,
+            RecentlyPlayed(
+                mediaId: mediaSource, position: position, parentId: null));
+      }
     } catch (ex) {
       print("The box is closed? Why?" + ex.toString());
     }

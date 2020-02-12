@@ -168,6 +168,8 @@ class MediaManager extends BlocBase {
             state.basicState == BasicPlaybackState.rewinding) &&
         displaySeek != null) {
       position = displaySeek.inMilliseconds;
+    } else if (state.basicState == BasicPlaybackState.stopped) {
+      position = 0;
     } else {
       position = state.currentPosition;
     }
