@@ -57,6 +57,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Inside Chassidus',
       theme: ThemeData(primarySwatch: Colors.grey),
       onGenerateRoute: (settings) {
