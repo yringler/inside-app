@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:inside_chassidus/util/extract-id.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'package:audio_service/audio_service.dart';
@@ -137,7 +138,7 @@ class AudioTask extends BackgroundAudioTask {
       // have to check the cache.
       final startPosition =
           _audioPlayer.playbackState != AudioPlaybackState.paused
-              ? _positionBox.get(mediaSource)?.position
+              ? _positionBox.get(mediaHiveId)?.position
               : null;
 
       _audioPlayer.play();
@@ -193,7 +194,7 @@ class AudioTask extends BackgroundAudioTask {
     // the stop state from the audio player.
     await _cancelStopSubscription();
     try {
-      await _positionBox.delete(mediaSource);
+      await _positionBox.delete(mediaHiveId);
     } catch (ex) {
       print(ex?.toString());
     }
@@ -282,13 +283,13 @@ class AudioTask extends BackgroundAudioTask {
     try {
       final position = _audioPlayer.playbackEvent.position;
 
-      if (_positionBox.containsKey(mediaSource)) {
-        final classPosition = _positionBox.get(mediaSource);
+      if (_positionBox.containsKey(mediaHiveId)) {
+        final classPosition = _positionBox.get(mediaHiveId);
         classPosition.position = position;
         await classPosition.save();
       } else {
         await _positionBox.put(
-            mediaSource,
+            mediaHiveId,
             RecentlyPlayed(
                 mediaId: mediaSource, position: position, parentId: null));
       }
@@ -296,6 +297,8 @@ class AudioTask extends BackgroundAudioTask {
       print("The box is closed? Why?" + ex.toString());
     }
   }
+
+  String get mediaHiveId => extractID(mediaSource);
 
   /// Log analytics event whenever one class is listed to for 15 minutes.
   StreamSubscription _setupListingSubscription() {

@@ -37,8 +37,8 @@ class RecentlyPlayedRepository {
     }
   }
 
-  Duration getPosition(Media media) => _recent.containsKey(media.source)
-      ? _recent.get(media.source).position
+  Duration getPosition(Media media) => _recent.containsKey(media.hiveID)
+      ? _recent.get(media.hiveID).position
       : Duration.zero;
 
   RecentlyPlayed getRecentlyPlayed(String id) {
@@ -48,13 +48,13 @@ class RecentlyPlayedRepository {
   updatePosition(Media media, Duration position) {
     assert(position != null, "Position argument may not be null");
 
-    if (_recent.containsKey(media.source)) {
-      var recent = _recent.get(media.source);
+    if (_recent.containsKey(media.hiveID)) {
+      var recent = _recent.get(media.hiveID);
       recent.position = position;
       recent.save();
     } else {
       _recent.put(
-          media.source,
+          media.hiveID,
           RecentlyPlayed(
               mediaId: media.source,
               parentId: media.lessonId,

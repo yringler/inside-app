@@ -1,5 +1,6 @@
 import 'dart:core';
 import 'package:hive/hive.dart';
+import 'package:inside_chassidus/util/extract-id.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'index.dart';
 
@@ -13,6 +14,8 @@ class Media implements InsideDataBase {
 
   @HiveField(5)
   String lessonId;
+
+  String get hiveID => extractID(source);
 
   Future<Lesson> getLesson() async {
     final Lesson lesson = await Hive.lazyBox<Lesson>('lessons').get(lessonId);
