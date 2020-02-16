@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
+import 'package:dart_extensions/dart_extensions.dart';
 import 'package:hive/hive.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/data/repositories/recently-played-repository.dart';
@@ -90,8 +91,8 @@ class MediaManager extends BlocBase {
     }
 
     MyApp.analytics.logEvent(name: "start_audio", parameters: {
-      'class_source': media.source,
-      'class_parent': media.lessonId
+      'class_source': media.source.limitFromEnd(100),
+      'class_parent': media.lessonId.limitFromEnd(100)
     });
 
     if (!serviceIsRunning) {

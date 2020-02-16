@@ -4,6 +4,7 @@ import 'package:rxdart/rxdart.dart';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:dart_extensions/dart_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:inside_chassidus/data/models/user-settings/recently-played.dart';
@@ -91,7 +92,7 @@ class AudioTask extends BackgroundAudioTask {
         .distinct()
         .listen((_) => analytics.logEvent(
             name: "completed_class",
-            parameters: {"class_source": mediaSource ?? ""}));
+            parameters: {"class_source": mediaSource?.limitFromEnd(100) ?? ""}));
 
     await _completer.future;
 
@@ -338,7 +339,7 @@ class AudioTask extends BackgroundAudioTask {
       return false;
     }).listen((_) => analytics.logEvent(
         name: 'listening',
-        parameters: {"class_source": mediaSource, "minutes": 15}));
+        parameters: {"class_source": mediaSource?.limitFromEnd(100), "minutes": 15}));
   }
 
   static final Map<AudioPlaybackState, BasicPlaybackState> stateToStateMap =

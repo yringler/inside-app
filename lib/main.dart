@@ -1,7 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_analytics/observer.dart';
+import 'package:dart_extensions/dart_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/data/media-manager.dart';
@@ -176,6 +176,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         }
 
 
-        analytics.setCurrentScreen(screenName: screenName);
+        analytics.setCurrentScreen(screenName: screenName.limitFromStart(100));
       }
 }

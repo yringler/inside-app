@@ -37,6 +37,10 @@ dependencies:
   firebase_core: ^0.4.3+3
   firebase_analytics: ^5.0.11
   firebase_crashlytics: ^0.1.2+5
+  dart_extensions:
+    git:
+      url: https://github.com/yringler/dart_extensions
+      ref: add-string-limit
 dev_dependencies:
   flutter_test:
     sdk: flutter
