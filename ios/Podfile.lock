@@ -165,7 +165,7 @@ SPEC CHECKSUMS:
   Fabric: 706c8b8098fff96c33c0db69cbf81f9c551d0d74
   Firebase: 497158b816d0a86fc31babbd05546fcd7e6083ff
   firebase_analytics: dacdcfc524d722fff13dcff942f0dfa47e6be567
-  firebase_core: 0c84455537bed6d6b5b8c2dd611ff1fbb1ea5cbd
+  firebase_core: 920b9b2a74489a0cf6c5009b744f7f7f5fd84cf6
   firebase_core_web: d501d8b946b60c8af265428ce483b0fff5ad52d1
   firebase_crashlytics: 36c88d34d725558fc09f7bb2610cc13bfa15be37
   FirebaseAnalytics: cf95d3aab897612783020fbd98401d5366f135ee
