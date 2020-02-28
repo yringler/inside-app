@@ -23,11 +23,11 @@ const pauseControl = MediaControl(
   action: MediaAction.pause,
 );
 
-const stopControl = MediaControl(
-  androidIcon: 'drawable/ic_action_stop',
-  label: 'Stop',
-  action: MediaAction.stop,
-);
+// const stopControl = MediaControl(
+//   androidIcon: 'drawable/ic_action_stop',
+//   label: 'Stop',
+//   action: MediaAction.stop,
+// );
 
 class AudioTask extends BackgroundAudioTask {
   final FirebaseAnalytics analytics = FirebaseAnalytics();
@@ -240,9 +240,9 @@ class AudioTask extends BackgroundAudioTask {
   List<MediaControl> _getControls(BasicPlaybackState state) {
     switch (state) {
       case BasicPlaybackState.paused:
-        return [playControl, stopControl];
+        return [playControl];
       default:
-        return [pauseControl, stopControl];
+        return [pauseControl];
     }
   }
 
