@@ -36,6 +36,8 @@ class AudioTask extends BackgroundAudioTask {
 
   final Completer _completer = Completer();
 
+  double speed = 1;
+
   Box<RecentlyPlayed> _positionBox;
 
   /// Closes the background service as soon as there's a stop.
@@ -63,7 +65,7 @@ class AudioTask extends BackgroundAudioTask {
 
     nextMediaSource = mediaId;
 
-    final length = await _audioPlayer.setUrl(mediaId);
+    final length = await _audioPlayer.setUrl(Uri.encodeFull(mediaId));
 
     nextMediaSource = null;
     mediaSource = mediaId;
@@ -94,11 +96,19 @@ class AudioTask extends BackgroundAudioTask {
             name: "completed_class",
             parameters: {"class_source": mediaSource?.limitFromEnd(100) ?? ""}));
 
+    final speedSubscription = _audioPlayer.playbackEventStream
+      .map((event) => event?.speed)
+      .distinct()
+      .where((speed) => speed != null)
+      // Update the speed.
+      .listen((speed) => _setState(state: AudioServiceBackground.state.basicState));
+
     await _completer.future;
 
     playbackStateSubscription?.cancel();
     trackListeningSubscription?.cancel();
     logCompletedSubscription?.cancel();
+    speedSubscription?.cancel();
 
     if (_positionBox?.isOpen ?? false) {
       try {
@@ -143,6 +153,9 @@ class AudioTask extends BackgroundAudioTask {
               : null;
 
       _audioPlayer.play();
+
+      // Continue with same speed.
+      _audioPlayer.setSpeed(speed);
 
       if (startPosition != null) {
         _audioPlayer.seek(startPosition);
@@ -217,6 +230,7 @@ class AudioTask extends BackgroundAudioTask {
     AudioServiceBackground.setState(
         controls: _getControls(state),
         basicState: state,
+        speed: speed,
         position: _audioPlayer.playbackEvent?.updatePosition?.inMilliseconds ??
             Duration.zero,
         updateTime: _audioPlayer.playbackEvent?.updateTime?.inMilliseconds ??
@@ -269,6 +283,19 @@ class AudioTask extends BackgroundAudioTask {
         title: "Class",
         album: "Inside Chassidus",
         duration: length?.inMilliseconds));
+  }
+
+  void onCustomAction(String name, dynamic arguments) {
+    if (name == 'setspeed') {
+      speed = (arguments as int).toDouble() / 100;
+
+      _setState(state: AudioServiceBackground.state.basicState);
+
+      // Only set the speed if playing. Otherwise, it ends the pause.
+      if (_audioPlayer.playbackState == AudioPlaybackState.playing) {
+        _audioPlayer.setSpeed(speed);
+      }
+    }
   }
 
   Future<bool> canPlay() async {

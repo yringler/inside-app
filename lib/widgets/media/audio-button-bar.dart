@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -32,11 +33,29 @@ class AudioButtonBar extends StatelessWidget {
         IconButton(
             icon: Icon(FontAwesomeIcons.redo),
             onPressed: () => mediaManager.skip(media, Duration(seconds: 15))),
-        _stopButton(mediaManager)
+        _speedButton(mediaManager)
       ],
       alignment: MainAxisAlignment.spaceBetween,
     );
   }
+
+  /// Speeds, in integer percentages.
+  static const speeds = [75, 100, 125, 150, 200];
+
+  _speedButton(MediaManager mediaManager) => StreamBuilder<MediaState>(
+        stream: mediaManager.mediaState,
+        builder: (context, state) {
+          final currentSpeed = ((state.data?.speed ?? 1) * 100).floor();
+          final nextSpeedIndex = speeds.indexOf(currentSpeed) + 1;
+          final nextSpeed =
+              speeds[nextSpeedIndex >= speeds.length ? 0 : nextSpeedIndex];
+          final currentDisplaySpeed = (currentSpeed.toDouble() / 100).toStringAsFixed(2).replaceAll('.00', '');
+
+          return MaterialButton(
+              onPressed: () => mediaManager.setSpeed(nextSpeed),
+              child: Text('$currentDisplaySpeed x'));
+        },
+      );
 
   _stopButton(MediaManager mediaManager) => StreamBuilder<MediaState>(
         stream: mediaManager.mediaState,

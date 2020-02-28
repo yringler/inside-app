@@ -48,7 +48,7 @@ class MediaManager extends BlocBase {
           recentlyPlayedRepository.updatePosition(current.media, Duration.zero);
         }
 
-        _mediaSubject.value = current.copyWith(state: newState);
+        _mediaSubject.value = current.copyWith(state: newState, speed: state.speed);
       }
     });
 
@@ -96,7 +96,7 @@ class MediaManager extends BlocBase {
     });
 
     if (!serviceIsRunning) {
-      await AudioService.start(
+            await AudioService.start(
           backgroundTaskEntrypoint: backgroundTaskEntrypoint,
           androidNotificationChannelName: "Inside Chassidus Class",
           androidStopForegroundOnPause: true);
@@ -154,6 +154,8 @@ class MediaManager extends BlocBase {
     final currentLocation = _positionSubject.value.data.inMilliseconds;
     seek(media, Duration(milliseconds: currentLocation) + duration);
   }
+
+  setSpeed(int speed) => AudioService.customAction('setspeed', speed);
 
   WithMediaState<Duration> _onPositionUpdate(
       PlaybackState state, Duration displaySeek, MediaState mediaState) {
@@ -223,15 +225,16 @@ backgroundTaskEntrypoint() async =>
 class MediaState {
   final Media media;
   final BasicPlaybackState state;
+  final double speed;
   final bool isLoaded;
 
-  MediaState({this.media, this.state})
+  MediaState({this.media, this.state, this.speed})
       : isLoaded = state != BasicPlaybackState.connecting &&
             state != BasicPlaybackState.error &&
             state != BasicPlaybackState.none;
 
-  MediaState copyWith({Media media, BasicPlaybackState state}) =>
-      MediaState(media: media ?? this.media, state: state ?? this.state);
+  MediaState copyWith({Media media, BasicPlaybackState state, double speed}) =>
+      MediaState(media: media ?? this.media, state: state ?? this.state, speed: speed ?? this.speed);
 }
 
 /// Allows strongly typed binding of media state with any other value.
