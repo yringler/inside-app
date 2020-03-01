@@ -158,7 +158,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     final positionRepository =
         BlocProvider.getDependency<RecentlyPlayedRepository>();
-    await positionRepository.init(isAudioRunning);
+    await positionRepository.init(loadBackgroundPositions: !isAudioRunning);
     await BlocProvider.getBloc<MediaManager>().init();
   }
 
