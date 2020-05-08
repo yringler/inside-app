@@ -154,7 +154,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   initData(BuildContext context) async {
     await AppData.init(context);
 
-    final isAudioRunning = await AudioService.running;
+    final isAudioRunning = AudioService.running;
 
     final positionRepository =
         BlocProvider.getDependency<RecentlyPlayedRepository>();

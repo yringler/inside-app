@@ -84,7 +84,7 @@ class MediaManager extends BlocBase {
   pause() => AudioService.pause();
 
   play(Media media) async {
-    final serviceIsRunning = await AudioService.running;
+    final serviceIsRunning = AudioService.running;
     if (serviceIsRunning && media == _mediaSubject.value?.media) {
       AudioService.play();
       return;
@@ -220,7 +220,7 @@ class MediaManager extends BlocBase {
 }
 
 backgroundTaskEntrypoint() async =>
-    await AudioServiceBackground.run(() => AudioTask());
+    await AudioServiceBackground.run(() => LoggingAudioTask());
 
 class MediaState {
   final Media media;
