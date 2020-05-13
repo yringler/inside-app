@@ -50,11 +50,11 @@ class ProgressBar extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         // Show current time in class.
-        _stateDurationStreamBuilder(mediaManager.mediaPosition,
+        _stateDurationStreamBuilder(mediaManager.mediaPositionStream,
             inactiveBuilder: (_) => _time(start),
             builder: (data) => _time(data.data)),
         // Show time remaining in class.
-        _stateDurationStreamBuilder(mediaManager.mediaPosition,
+        _stateDurationStreamBuilder(mediaManager.mediaPositionStream,
             inactiveBuilder: (_) => _time(media.duration),
             builder: (data) => _time(media.duration - data.data))
       ],
@@ -65,7 +65,7 @@ class ProgressBar extends StatelessWidget {
     final maxSliderValue = media.duration?.inMilliseconds?.toDouble() ?? 0;
 
     return Container(
-      child: _stateDurationStreamBuilder(mediaManager.mediaPosition,
+      child: _stateDurationStreamBuilder(mediaManager.mediaPositionStream,
           inactiveBuilder: (_) => Slider(
                 onChanged: null,
                 value: start.inMilliseconds.toDouble(),

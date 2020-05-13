@@ -7,24 +7,31 @@ import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/data/repositories/recently-played-repository.dart';
 import 'package:inside_chassidus/main.dart';
 import 'package:inside_chassidus/util/audio-service/audio-task.dart';
+import 'package:just_audio_service/position-manager.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MediaManager extends BlocBase {
+  /// Keep track of what's going on with the current media.
   Stream<MediaState> get mediaState => _mediaSubject;
-  Stream<WithMediaState<Duration>> get mediaPosition => _positionSubject;
 
+  /// Save the current location in media
   final RecentlyPlayedRepository recentlyPlayedRepository;
 
+  /// What's going on with audio_service. Saved, to unsubscribe on close.
   StreamSubscription<PlaybackState> _audioPlayerStateSubscription;
 
+  /// Keep track of what's going on with the current media.
   BehaviorSubject<MediaState> _mediaSubject = BehaviorSubject();
+
+  /// Keep track of where we're currently holding in the media.
   BehaviorSubject<WithMediaState<Duration>> _positionSubject =
       BehaviorSubject();
 
-  // Ensure that seeks don't happen to frequently.
-  final BehaviorSubject<Duration> _seekingValues = BehaviorSubject.seeded(null);
+  // Provides access to "UI" position - notably, provides smoother seeking for slider.
+  final PositionManager _positionManager = PositionManager();
 
   Future<void> init() async {
+    // Try to restore media state from already running audio_service.
     final newCurrent = await _getCurrentFromService();
 
     if (newCurrent != null) {
@@ -40,40 +47,20 @@ class MediaManager extends BlocBase {
         // In this case, though, we treat it as stopped. Failing to do so means that the UI
         // thinks that the media is not yet loaded and needs to be, so it just waits forever.
 
-        final newState = state.basicState == BasicPlaybackState.none
-            ? BasicPlaybackState.stopped
-            : state.basicState;
+        /* Disabled. TODO: test, see if this is still neccesary, and if there's a better way of handling. */
 
-        if (newState == BasicPlaybackState.stopped) {
+        // final newState = state.basicState == BasicPlaybackState.none
+        //     ? BasicPlaybackState.stopped
+        //     : state.basicState;
+
+        if (state.basicState == BasicPlaybackState.stopped) {
           recentlyPlayedRepository.updatePosition(current.media, Duration.zero);
         }
 
-        _mediaSubject.value = current.copyWith(state: newState, speed: state.speed);
+        _mediaSubject.value =
+            current.copyWith(state: state.basicState, speed: state.speed);
       }
     });
-
-    // Keep up to date on where the class is holding.
-    Rx.combineLatest4<PlaybackState, dynamic, Duration, MediaState,
-                WithMediaState<Duration>>(
-            AudioService.playbackStateStream
-                .where((state) => state?.basicState != BasicPlaybackState.none),
-            Stream.periodic(Duration(milliseconds: 20)),
-            _seekingValues,
-            _mediaSubject,
-            (state, _, displaySeek, mediaState) =>
-                _onPositionUpdate(state, displaySeek, mediaState))
-        .listen((state) => _positionSubject.value = state);
-
-    // Save the current position of media.
-    mediaPosition.sampleTime(Duration(milliseconds: 200)).listen((state) =>
-        recentlyPlayedRepository.updatePosition(current.media, state.data));
-
-    // Seek, but not to often.
-    _seekingValues
-        .sampleTime(Duration(milliseconds: 50))
-        .where((position) => position != null)
-        .listen((position) => AudioService.seekTo(
-            position.inMilliseconds < 0 ? 0 : position.inMilliseconds));
   }
 
   MediaManager({this.recentlyPlayedRepository});
@@ -81,14 +68,27 @@ class MediaManager extends BlocBase {
   /// The media which is currently playing.
   MediaState get current => _mediaSubject.value;
 
+  /// Stream of current position in media.
+  Stream<WithMediaState<Duration>> get mediaPositionStream {
+    return Rx.combineLatest2<Duration, MediaState, WithMediaState<Duration>>(
+        _positionManager.positionStream,
+        _mediaSubject,
+        (position, state) =>
+            WithMediaState<Duration>(state: state, data: position));
+  }
+
   pause() => AudioService.pause();
 
   play(Media media) async {
     final serviceIsRunning = AudioService.running;
+
+    // Resume playback if paused.
     if (serviceIsRunning && media == _mediaSubject.value?.media) {
       AudioService.play();
       return;
     }
+
+    // Start playing a new media.
 
     MyApp.analytics.logEvent(name: "start_audio", parameters: {
       'class_source': media.source.limitFromEnd(100),
@@ -96,14 +96,15 @@ class MediaManager extends BlocBase {
     });
 
     if (!serviceIsRunning) {
-            await AudioService.start(
+      await AudioService.start(
           backgroundTaskEntrypoint: backgroundTaskEntrypoint,
           androidNotificationChannelName: "Inside Chassidus Class",
           androidStopForegroundOnPause: true);
     }
 
     // While getting a file to play, we want to manually handle the state streams.
-    _audioPlayerStateSubscription.pause();
+    // Disabled. TODO: See if this is still needed.
+    //_audioPlayerStateSubscription.pause();
 
     _mediaSubject.value =
         MediaState(media: media, state: BasicPlaybackState.connecting);
@@ -131,7 +132,7 @@ class MediaManager extends BlocBase {
     _mediaSubject.value = current.copyWith(
         state: AudioService.playbackState.basicState, media: media);
 
-    _audioPlayerStateSubscription.resume();
+    //_audioPlayerStateSubscription.resume();
   }
 
   /// Updates the current location in given media.
@@ -141,52 +142,18 @@ class MediaManager extends BlocBase {
       return;
     }
 
-    if (location.inMilliseconds > media?.duration?.inMilliseconds ??
-        Duration.millisecondsPerDay) {
-      print('can\'t seek past end');
-      return;
-    }
-
-    _seekingValues.add(location);
+    _positionManager.seek(location);
   }
 
-  skip(Media media, Duration duration) async {
-    final currentLocation = _positionSubject.value.data.inMilliseconds;
-    seek(media, Duration(milliseconds: currentLocation) + duration);
-  }
+  skip(Media media, Duration duration) async =>
+      seek(media, _positionManager.currentPosition + duration);
 
   setSpeed(int speed) => AudioService.customAction('setspeed', speed);
-
-  WithMediaState<Duration> _onPositionUpdate(
-      PlaybackState state, Duration displaySeek, MediaState mediaState) {
-    if (state == null) {
-      return WithMediaState(
-          state: mediaState,
-          data: Duration(
-              milliseconds: AudioService.playbackState?.position ?? 0));
-    }
-
-    int position;
-
-    if ((state.basicState == BasicPlaybackState.fastForwarding ||
-            state.basicState == BasicPlaybackState.rewinding) &&
-        displaySeek != null) {
-      position = displaySeek.inMilliseconds;
-    } else if (state.basicState == BasicPlaybackState.stopped) {
-      position = 0;
-    } else {
-      position = state.currentPosition;
-    }
-
-    return WithMediaState(
-        state: mediaState, data: Duration(milliseconds: position));
-  }
 
   @override
   void dispose() {
     _mediaSubject.close();
     _positionSubject.close();
-    _seekingValues.close();
     super.dispose();
   }
 
@@ -234,7 +201,10 @@ class MediaState {
             state != BasicPlaybackState.none;
 
   MediaState copyWith({Media media, BasicPlaybackState state, double speed}) =>
-      MediaState(media: media ?? this.media, state: state ?? this.state, speed: speed ?? this.speed);
+      MediaState(
+          media: media ?? this.media,
+          state: state ?? this.state,
+          speed: speed ?? this.speed);
 }
 
 /// Allows strongly typed binding of media state with any other value.
