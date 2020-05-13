@@ -17,9 +17,6 @@ class MediaManager extends BlocBase {
   /// Save the current location in media
   final RecentlyPlayedRepository recentlyPlayedRepository;
 
-  /// What's going on with audio_service. Saved, to unsubscribe on close.
-  StreamSubscription<PlaybackState> _audioPlayerStateSubscription;
-
   /// Keep track of what's going on with the current media.
   BehaviorSubject<MediaState> _mediaSubject = BehaviorSubject();
 
@@ -40,8 +37,7 @@ class MediaManager extends BlocBase {
     }
 
     // Listen for updates of audio state.
-    _audioPlayerStateSubscription =
-        AudioService.playbackStateStream.listen((state) {
+    AudioService.playbackStateStream.listen((state) {
       if (state != null && current != null) {
         // E.g. when user stops from lock screen, we miss the stop state and skip to none.
         // In this case, though, we treat it as stopped. Failing to do so means that the UI
