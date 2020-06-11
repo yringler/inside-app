@@ -17,6 +17,6 @@ class IsMediaPlayingWatcher extends StatelessWidget {
     return StreamBuilder<PositionState>(
         stream: positionManager.positionStateStream,
         builder: (context, state) => builder(context,
-            mediaSource:state.data.position.id , isPlaying: state.data.state.playing));
+            mediaSource:state.data.position.id , isPlaying: state.data.state?.playing ?? false));
   }
 }

@@ -16,11 +16,12 @@ class PlayButton extends StatelessWidget {
 
     return StreamBuilder<PositionState>(
       stream: mediaManger.positionStateStream,
+      // Default: play button (in case never gets stream, because from diffirent media not now playing)
       builder: (context, snapshot) {
         VoidCallback onPressed = () => AudioService.playFromMediaId(mediaSource);
         var icon = Icons.play_circle_filled;
 
-        if (snapshot.hasData && snapshot.data.position?.id == mediaSource) {
+        if (snapshot.hasData && snapshot.data.position?.id == mediaSource && snapshot.data.state != null) {
           if (snapshot.data.state.processingState == AudioProcessingState.connecting) {
             return CircularProgressIndicator();
           }
