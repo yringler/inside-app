@@ -1,14 +1,14 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:just_audio_service/background/audio-task.dart';
 import 'package:dart_extensions/dart_extensions.dart';
+import 'package:just_audio_service/position-manager/positioned-audio-task.dart';
 
-class LoggingAudioTask extends AudioTask {
+class LoggingAudioTask extends PositionedAudioTask {
   final FirebaseAnalytics analytics = FirebaseAnalytics();
 
   @override
-  Future<void> onStart() async {
-        // Log an analytics event when a lesson is finished.
+  Future<void> onStart(Map<String, dynamic> params) async {
+    // Log an analytics event when a lesson is finished.
     // Note that if someone listens to the same class 3 times in a row, it is only logged once.
     final logCompletedSubscription = context.mediaPlayer.playbackStateStream
         .where((state) => state == AudioPlaybackState.completed)
@@ -18,8 +18,8 @@ class LoggingAudioTask extends AudioTask {
             name: "completed_class",
             parameters: {"class_source": id?.limitFromEnd(100) ?? ""}));
 
-        await super.onStart();
+    await super.onStart(params);
 
-    logCompletedSubscription.cancel();
+    await logCompletedSubscription.cancel();
   }
 }

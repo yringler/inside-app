@@ -1,34 +1,33 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/models/inside-data/index.dart';
-import 'package:inside_chassidus/data/media-manager.dart';
+import 'package:just_audio_service/position-manager/position-manager.dart';
 
 class PlayButton extends StatelessWidget {
-  final Media media;
+  final String mediaSource;
   final double iconSize;
   final VoidCallback onPressed;
 
-  PlayButton({this.media, this.onPressed, this.iconSize = 24});
+  PlayButton({this.mediaSource, this.onPressed, this.iconSize = 24});
 
   @override
   Widget build(BuildContext context) {
-    final mediaManger = BlocProvider.getBloc<MediaManager>();
+    final mediaManger = BlocProvider.getBloc<PositionManager>();
 
-    return StreamBuilder<MediaState>(
-      stream: mediaManger.mediaState,
+    return StreamBuilder<PositionState>(
+      stream: mediaManger.positionStateStream,
       builder: (context, snapshot) {
-        VoidCallback onPressed = () => mediaManger.play(media);
+        VoidCallback onPressed = () => AudioService.playFromMediaId(mediaSource);
         var icon = Icons.play_circle_filled;
 
-        if (snapshot.hasData && snapshot.data.media == media) {
-          if (!snapshot.data.isLoaded) {
+        if (snapshot.hasData && snapshot.data.position?.id == mediaSource) {
+          if (snapshot.data.state.processingState == AudioProcessingState.connecting) {
             return CircularProgressIndicator();
           }
 
-          if (snapshot.data.state == BasicPlaybackState.playing || snapshot.data.state == BasicPlaybackState.buffering) {
+          if (snapshot.data.state.playing) {
             icon = Icons.pause_circle_filled;
-            onPressed = () => mediaManger.pause();
+            onPressed = () => AudioService.pause();
           }
         }
 

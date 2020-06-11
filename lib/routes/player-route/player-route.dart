@@ -30,7 +30,7 @@ class PlayerRoute extends StatelessWidget {
                   ProgressBar(
                     media: media,
                   ),
-                  AudioButtonBar(media: media, lesson: snapshot.data)
+                  AudioButtonBar(mediaSource: media.source, lesson: snapshot.data)
                 ],
               ),
             );

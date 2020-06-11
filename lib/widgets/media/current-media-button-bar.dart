@@ -16,10 +16,10 @@ class CurrentMediaButtonBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IsMediaPlayingWatcher(
-        builder: (context, {isPlaying, media}) => isPlaying
+        builder: (context, {isPlaying, mediaSource}) => isPlaying
             ? Container(
                 child: AudioButtonBar(
-                  media: media,
+                  mediaSource: mediaSource,
                 ),
                 color: Colors.grey.shade300,
                 height: _barHeight,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -13,6 +14,8 @@ import 'package:path_provider/path_provider.dart';
 /// An entry point into all saved state in the app.
 class AppData {
   static const dataTypeVersion = 10;
+
+  static Completer<Directory> hiveFolderCompleter;
 
   /// Get a list of all primary sections.
   Future<List<PrimaryInside>> getPrimaryInside() async {
@@ -33,6 +36,8 @@ class AppData {
     final hiveFolder = new Directory('${folder.path}/hive');
 
     await hiveFolder.create();
+
+    hiveFolderCompleter.complete(hiveFolder);
 
     return hiveFolder;
   }

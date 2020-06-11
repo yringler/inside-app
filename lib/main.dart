@@ -4,15 +4,15 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:dart_extensions/dart_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
-import 'package:inside_chassidus/data/media-manager.dart';
 import 'package:inside_chassidus/data/repositories/app-data.dart';
-import 'package:inside_chassidus/data/repositories/recently-played-repository.dart';
 import 'package:inside_chassidus/routes/lesson-route/index.dart';
 import 'package:inside_chassidus/routes/player-route/player-route.dart';
 import 'package:inside_chassidus/routes/primary-section-route.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/index.dart';
 import 'package:inside_chassidus/routes/ternary-section-route.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:just_audio_service/position-manager/position-data-manager.dart';
+import 'package:just_audio_service/position-manager/position-manager.dart';
 
 void main() {
   // Set `enableInDevMode` to true to see reports while in debug mode
@@ -25,14 +25,9 @@ void main() {
 
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
   runApp(BlocProvider(
-    blocs: [
-      Bloc((i) => MediaManager(
-          recentlyPlayedRepository:
-              i.getDependency<RecentlyPlayedRepository>()))
-    ],
     dependencies: [
+      Dependency((i) => PositionManager(positionDataManager: PositionDataManager())),
       Dependency((i) => AppData()),
-      Dependency((i) => RecentlyPlayedRepository())
     ],
     child: MyApp(),
   ));
@@ -153,13 +148,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   /// Initilize and load from hive data.
   initData(BuildContext context) async {
     await AppData.init(context);
-
-    final isAudioRunning = AudioService.running;
-
-    final positionRepository =
-        BlocProvider.getDependency<RecentlyPlayedRepository>();
-    await positionRepository.init(loadBackgroundPositions: !isAudioRunning);
-    await BlocProvider.getBloc<MediaManager>().init();
   }
 
   /// Send firebase analytics page view event.
