@@ -31,6 +31,7 @@ class ProgressBar extends StatelessWidget {
     // Stream of media. A new media object is set when the duration is loaded.
     // Really, I should have all the durations offline, but I don't yet, so when I
     // get it rebuild.
+    // TODO: get all durations.
     return StreamBuilder<PositionState>(
       stream: mediaManager.positionStateStream
           .where((state) => state.position.id == media.source),
