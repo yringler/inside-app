@@ -12,11 +12,11 @@ class IsMediaPlayingWatcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final positionManager = BlocProvider.getBloc<PositionManager>();
+    final positionManager = BlocProvider.getDependency<PositionManager>();
 
     return StreamBuilder<PositionState>(
         stream: positionManager.positionStateStream,
         builder: (context, state) => builder(context,
-            mediaSource:state.data.position.id , isPlaying: state.data.state?.playing ?? false));
+            mediaSource:state.data?.position?.id ?? null, isPlaying: state.data?.state?.playing ?? false));
   }
 }

@@ -15,8 +15,6 @@ import 'package:path_provider/path_provider.dart';
 class AppData {
   static const dataTypeVersion = 10;
 
-  static Completer<Directory> hiveFolderCompleter;
-
   /// Get a list of all primary sections.
   Future<List<PrimaryInside>> getPrimaryInside() async {
     var primarySections =
@@ -36,8 +34,6 @@ class AppData {
     final hiveFolder = new Directory('${folder.path}/hive');
 
     await hiveFolder.create();
-
-    hiveFolderCompleter.complete(hiveFolder);
 
     return hiveFolder;
   }

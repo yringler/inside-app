@@ -14,7 +14,7 @@ class AudioButtonBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mediaManager = BlocProvider.getBloc<PositionManager>();
+    final mediaManager = BlocProvider.getDependency<PositionManager>();
 
     return ButtonBar(
       children: <Widget>[

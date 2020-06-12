@@ -14,7 +14,7 @@ class ProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mediaManager = BlocProvider.getBloc<PositionManager>();
+    final mediaManager = BlocProvider.getDependency<PositionManager>();
 
     // As soon as we get to a class you're in the middle of, even before you play, show
     // the position that you're at.

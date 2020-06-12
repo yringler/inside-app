@@ -12,7 +12,7 @@ class PlayButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mediaManger = BlocProvider.getBloc<PositionManager>();
+    final mediaManger = BlocProvider.getDependency<PositionManager>();
 
     return StreamBuilder<PositionState>(
       stream: mediaManger.positionStateStream,
