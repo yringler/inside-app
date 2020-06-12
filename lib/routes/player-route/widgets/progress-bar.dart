@@ -26,63 +26,47 @@ class ProgressBar extends StatelessWidget {
     );
   }
 
-  StreamBuilder<PositionState> _progressBar(
-      PositionManager mediaManager, Duration start) {
-    // Stream of media. A new media object is set when the duration is loaded.
-    // Really, I should have all the durations offline, but I don't yet, so when I
-    // get it rebuild.
-    // TODO: get all durations.
-    return StreamBuilder<PositionState>(
-      stream: mediaManager.positionStateStream
-          .where((state) => state.position.id == media.source),
-      initialData:
-          PositionState(position: Position(id: media.source, position: start)),
-      builder: (context, snapshot) {
-        final duration = snapshot.data.mediaItem?.duration;
-
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            _slider(mediaManager, duration, start: start),
-            _timeLabels(mediaManager, duration, start: start)
-          ],
-        );
-      },
-    );
-  }
-
-  Row _timeLabels(PositionManager mediaManager, Duration duration,
-      {Duration start}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _progressBar(PositionManager mediaManager, Duration start) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        // Show current time in class.
-        _stateDurationStreamBuilder(mediaManager.positionStateStream,
-            inactiveBuilder: (_) => _time(start),
-            builder: (data) => _time(data.position.position),
-            duration: duration),
-        // Show time remaining in class.
-        _stateDurationStreamBuilder(mediaManager.positionStateStream,
-            inactiveBuilder: (_) => _time(null),
-            builder: (data) => _time(duration - data.position.position),
-            duration: duration)
+        _slider(mediaManager, start: start),
+        _timeLabels(mediaManager, start: start)
       ],
     );
   }
 
-  Widget _slider(PositionManager positionManager, Duration duration,
-      {Duration start}) {
-    final maxSliderValue = duration?.inMilliseconds?.toDouble() ?? 0;
+  Row _timeLabels(PositionManager positionManager, {Duration start}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        // Show current time in class.
+        _stateDurationStreamBuilder(positionManager.positionStateStreamOf(media.source),
+            inactiveBuilder: (_) => _time(start),
+            builder: (data) => _time(data.position.position)),
+        // Show time remaining in class.
+        _stateDurationStreamBuilder(positionManager.positionStateStreamOf(media.source),
+            inactiveBuilder: (_) => _time(media.duration - start),
+            builder: (data) => _time(media.duration - data.position.position))
+      ],
+    );
+  }
+
+  Widget _slider(PositionManager positionManager, {Duration start}) {
+    final maxSliderValue = media.duration.inMilliseconds.toDouble();
 
     if (maxSliderValue == 0) {
       return Container(child: Slider(onChanged: null, value: 0, max: 0));
     }
 
+    final onChanged = (double newProgress) => positionManager.seek(
+                  Duration(milliseconds: newProgress.round()),
+                  id: media.source);
+
     return Container(
-      child: _stateDurationStreamBuilder(positionManager.positionStateStream,
-          duration: duration,
+      child: _stateDurationStreamBuilder(positionManager.positionStateStreamOf(media.source),
           inactiveBuilder: (_) => Slider(
-                onChanged: null,
+                onChanged: onChanged,
                 value: start.inMilliseconds.toDouble(),
                 max: maxSliderValue,
               ),
@@ -95,9 +79,7 @@ class ProgressBar extends StatelessWidget {
             return Slider(
               value: value,
               max: maxSliderValue,
-              onChanged: (newProgress) => positionManager.seek(
-                  Duration(milliseconds: newProgress.round()),
-                  id: media.source),
+              onChanged: onChanged,
             );
           }),
     );
@@ -106,14 +88,12 @@ class ProgressBar extends StatelessWidget {
   /// Simplifies creating a [StreamBuilder] for [WithMediaState<Duration>]
   Widget _stateDurationStreamBuilder<T>(Stream<PositionState> stream,
           {ProgressStreamBuilder builder,
-          ProgressStreamBuilder inactiveBuilder,
-          @required Duration duration}) =>
+          ProgressStreamBuilder inactiveBuilder}) =>
       StreamBuilder<PositionState>(
         stream: stream,
         builder: (context, snapshot) {
           if (!snapshot.hasData ||
-              snapshot.data.position?.position == null ||
-              duration == null) {
+              snapshot.data.position?.position == null) {
             return inactiveBuilder(PositionState(
                 position: Position(id: media.source, position: Duration.zero)));
           }
