@@ -22,7 +22,9 @@ class PlayButton extends StatelessWidget {
         VoidCallback onPressed = () {
           if (!AudioService.running) {
             AudioService.start(
-                    backgroundTaskEntrypoint: _audioServiceEntryPoint)
+                    backgroundTaskEntrypoint: _audioServiceEntryPoint,
+                    androidNotificationChannelName: "Inside Chassidus Class",
+                    androidStopForegroundOnPause: true)
                 .then((_) => AudioService.playFromMediaId(mediaSource));
           } else {
             AudioService.playFromMediaId(mediaSource);
