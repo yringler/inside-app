@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
+import 'package:inside_chassidus/util/audio-service/audio-task.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 
 class PlayButton extends StatelessWidget {
@@ -18,11 +19,22 @@ class PlayButton extends StatelessWidget {
       stream: mediaManger.positionStateStream,
       // Default: play button (in case never gets stream, because from diffirent media not now playing)
       builder: (context, snapshot) {
-        VoidCallback onPressed = () => AudioService.playFromMediaId(mediaSource);
+        VoidCallback onPressed = () {
+          if (!AudioService.running) {
+            AudioService.start(
+                    backgroundTaskEntrypoint: _audioServiceEntryPoint)
+                .then((_) => AudioService.playFromMediaId(mediaSource));
+          } else {
+            AudioService.playFromMediaId(mediaSource);
+          }
+        };
         var icon = Icons.play_circle_filled;
 
-        if (snapshot.hasData && snapshot.data.position?.id == mediaSource && snapshot.data.state != null) {
-          if (snapshot.data.state.processingState == AudioProcessingState.connecting) {
+        if (snapshot.hasData &&
+            snapshot.data.position?.id == mediaSource &&
+            snapshot.data.state != null) {
+          if (snapshot.data.state.processingState ==
+              AudioProcessingState.connecting) {
             return CircularProgressIndicator();
           }
 
@@ -45,4 +57,8 @@ class PlayButton extends StatelessWidget {
       },
     );
   }
+}
+
+_audioServiceEntryPoint() {
+  AudioServiceBackground.run(() => LoggingAudioTask());
 }
