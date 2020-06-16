@@ -2,18 +2,12 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:dart_extensions/dart_extensions.dart';
 import 'package:just_audio_service/background/audio-task-decorator.dart';
-import 'package:just_audio_service/background/audio-task.dart';
 import 'package:just_audio_service/position-manager/positioned-audio-task.dart';
-import 'package:just_audio_service/position-manager/position-data-manager.dart';
 
 class LoggingAudioTask extends AudioTaskDecorater {
   final FirebaseAnalytics analytics = FirebaseAnalytics();
 
-  LoggingAudioTask()
-      : super(
-            baseTask: PositionedAudioTask(
-                audioTask: AudioTask(),
-                dataManager: HivePositionDataManager()));
+  LoggingAudioTask() : super(baseTask: PositionedAudioTask.standard());
 
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
