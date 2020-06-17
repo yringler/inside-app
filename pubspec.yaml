@@ -11,7 +11,7 @@ description: A new Flutter project.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.3+12
+version: 1.1.0+12
 
 environment:
   sdk: ">=2.2.2 <3.0.0"
@@ -38,9 +38,9 @@ dependencies:
   firebase_crashlytics: ^0.1.3
   dart_extensions: ^1.0.1
   just_audio_service:
-    path: ../just_audio_service
-    #git:
-    #  url: https://github.com/yringler/just_audio_service.git
+    git:
+      url: https://github.com/yringler/just_audio_service.git
+      ref: 5958442e9b91c654a934dd3d905374490eb7b95e
 
 dependency_overrides:
     hive:
