@@ -1,6 +1,5 @@
-import 'package:bloc_pattern/bloc_pattern.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/media-manager.dart';
 import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/routes/player-route/index.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
@@ -23,12 +22,10 @@ class MediaItem extends StatelessWidget {
       title = fallbackTitle;
     }
 
-    final mediaManager = BlocProvider.getBloc<MediaManager>();
-
-    final style = mediaManager.current?.media == media
+    final style = AudioService.currentMediaItem?.id == media?.source
         ? Theme.of(context)
             .textTheme
-            .body1
+            .bodyText2
             .copyWith(fontWeight: FontWeight.bold)
         : null;
 
@@ -47,7 +44,7 @@ class MediaItem extends StatelessWidget {
         ),
         subtitle: subtitle,
         trailing: PlayButton(
-          media: media,
+          mediaSource: media.source,
           onPressed: onPressed,
         ),
       ),

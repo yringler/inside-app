@@ -1,11 +1,9 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/media-manager.dart';
-import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:just_audio_service/position-manager/position-manager.dart';
 
 typedef Widget PlayerAwareBuilder(BuildContext context,
-    {bool isPlaying, Media media});
+    {bool isPlaying, String mediaSource});
 
 class IsMediaPlayingWatcher extends StatelessWidget {
   final PlayerAwareBuilder builder;
@@ -14,17 +12,11 @@ class IsMediaPlayingWatcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mediaManager = BlocProvider.getBloc<MediaManager>();
+    final positionManager = BlocProvider.getDependency<PositionManager>();
 
-    return StreamBuilder<MediaState>(
-        stream: mediaManager.mediaState,
+    return StreamBuilder<PositionState>(
+        stream: positionManager.positionStateStream,
         builder: (context, state) => builder(context,
-            media: state.data?.media, isPlaying: _isMediaActive(state.data?.state)));
+            mediaSource:state.data?.position?.id ?? null, isPlaying: state.data?.state?.playing ?? false));
   }
-
-  _isMediaActive(BasicPlaybackState state) =>
-      state != null &&
-      state != BasicPlaybackState.error &&
-      state != BasicPlaybackState.none &&
-      state != BasicPlaybackState.stopped;
 }
