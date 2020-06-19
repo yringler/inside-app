@@ -41,22 +41,23 @@ class AudioButtonBar extends StatelessWidget {
   }
 
   /// Speeds, in integer percentages.
-  static const speeds = [75, 100, 125, 150, 200];
+  static const speeds = [.75, 1.0, 1.25, 1.5, 2.0];
 
-  _speedButton() => StreamBuilder<PlaybackState>(
-        stream: AudioService.playbackStateStream,
+  _speedButton() => StreamBuilder<double>(
+        stream: AudioService.playbackStateStream.map((event) => event?.speed ?? 1.0).where((speed) => speed != 0),
+        initialData: 1,
         builder: (context, state) {
-          final currentSpeed = ((state.data?.speed ?? 1) * 100).floor();
+          double currentSpeed = state.data;
+
           final nextSpeedIndex = speeds.indexOf(currentSpeed) + 1;
           final nextSpeed =
               speeds[nextSpeedIndex >= speeds.length ? 0 : nextSpeedIndex];
-          final currentDisplaySpeed = (currentSpeed.toDouble() / 100)
-              .toStringAsFixed(2)
-              .replaceAll('.00', '');
+          final currentDisplaySpeed =
+              currentSpeed.toStringAsFixed(2).replaceAll('.00', '');
 
           return MaterialButton(
               onPressed: () =>
-                  AudioService.setSpeed(nextSpeed.toDouble() / 100),
+                  AudioService.setSpeed(nextSpeed),
               child: Text('$currentDisplaySpeed x'));
         },
       );

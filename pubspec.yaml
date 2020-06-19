@@ -40,7 +40,8 @@ dependencies:
   just_audio_service:
     git:
       url: https://github.com/yringler/just_audio_service.git
-      ref: 5958442e9b91c654a934dd3d905374490eb7b95e
+      ref: 21174408109aca84cdc03c632312d585a0aa0392
+    #path: ../just_audio_service
 
 dependency_overrides:
     hive:
