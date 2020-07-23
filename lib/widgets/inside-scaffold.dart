@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/widgets/home-button.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart';
 import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
 
 class InsideScaffold extends StatelessWidget {
-  final InsideDataBase insideData;
+  final SiteDataItem insideData;
   final Widget body;
 
   InsideScaffold({@required this.insideData, @required this.body});

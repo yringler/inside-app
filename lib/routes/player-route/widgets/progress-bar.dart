@@ -1,6 +1,6 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/models/inside-data/media.dart';
+import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/util/duration-helpers.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 import 'package:just_audio_service/position-manager/position.dart';
@@ -46,14 +46,14 @@ class ProgressBar extends StatelessWidget {
             builder: (data) => _time(data.position.position)),
         // Show time remaining in class.
         _stateDurationStreamBuilder(positionManager.positionStateStreamOf(media.source),
-            inactiveBuilder: (_) => _time(media.duration - start),
-            builder: (data) => _time(media.duration - data.position.position))
+            inactiveBuilder: (_) => _time(media.length - start),
+            builder: (data) => _time(media.length - data.position.position))
       ],
     );
   }
 
   Widget _slider(PositionManager positionManager, {Duration start}) {
-    final maxSliderValue = media.duration.inMilliseconds.toDouble();
+    final maxSliderValue = media.length.inMilliseconds.toDouble();
 
     if (maxSliderValue == 0) {
       return Container(child: Slider(onChanged: null, value: 0, max: 0));

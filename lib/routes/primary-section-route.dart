@@ -1,11 +1,11 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_api/models.dart';
+import 'package:inside_api/site-service.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart';
 import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
 import 'package:inside_chassidus/widgets/navigate-to-section.dart';
-import 'package:inside_chassidus/data/repositories/app-data.dart';
 
 class PrimarySectionsRoute extends StatelessWidget {
   @override
@@ -14,38 +14,23 @@ class PrimarySectionsRoute extends StatelessWidget {
           backgroundColor: Colors.white,
           title: _title(context),
         ),
-        body: AudioButtonbarAwareBody(body: _sectionsFuture(context)),
+        body: AudioButtonbarAwareBody(
+            body: _sections(
+                context,
+                BlocProvider.getDependency<SiteBoxes>()
+                    .topItems
+                    .values
+                    .toList())),
         bottomSheet: CurrentMediaButtonBar(),
       );
 
   Widget _title(BuildContext context) => Container(
         padding: EdgeInsets.symmetric(vertical: 16),
         child: Text("Inside Chassidus",
-            style: Theme.of(context).appBarTheme.textTheme?.title),
+            style: Theme.of(context).appBarTheme.textTheme?.headline6),
       );
 
-  Widget _search() => Container(
-      padding: EdgeInsets.symmetric(horizontal: 4),
-      child: TextField(
-        decoration:
-            InputDecoration(hintText: "Search", suffixIcon: Icon(Icons.search)),
-      ));
-
-  Widget _sectionsFuture(BuildContext context) =>
-      FutureBuilder<List<PrimaryInside>>(
-        future: BlocProvider.getDependency<AppData>().getPrimaryInside(),
-        builder: (context, snapShot) {
-          if (snapShot.hasData) {
-            return _sections(context, snapShot.data);
-          } else if (snapShot.hasError) {
-            return ErrorWidget(snapShot.error);
-          } else {
-            return Container();
-          }
-        },
-      );
-
-  Widget _sections(BuildContext context, List<PrimaryInside> topLevel) =>
+  Widget _sections(BuildContext context, List<TopItem> topLevel) =>
       GridView.extent(
           maxCrossAxisExtent: 200,
           padding: const EdgeInsets.all(4),
@@ -55,7 +40,7 @@ class PrimarySectionsRoute extends StatelessWidget {
             for (var topItem in topLevel) _primarySection(topItem, context)
           ]);
 
-  Widget _primarySection(PrimaryInside primaryInside, BuildContext context) =>
+  Widget _primarySection(TopItem primaryInside, BuildContext context) =>
       NavigateToSection(
         section: primaryInside.section,
         child: Stack(

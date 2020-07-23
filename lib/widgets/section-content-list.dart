@@ -1,19 +1,21 @@
+import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_api/models.dart';
+import 'package:inside_api/site-service.dart';
 import 'package:inside_chassidus/routes/lesson-route/lesson-route.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
 import 'package:inside_chassidus/widgets/media-list/media-list.dart';
 
-typedef Widget InsideDataBuilder<T extends InsideDataBase>(
+typedef Widget InsideDataBuilder<T extends SiteDataItem>(
     BuildContext context, T data);
 
 /// Given a section, provides simple way to build a list of it's sections
 /// and lessons.
 class SectionContentList extends StatelessWidget {
   final bool isSeperated;
-  final SiteSection section;
-  final InsideDataBuilder<SiteSection> sectionBuilder;
-  final InsideDataBuilder<Lesson> lessonBuiler;
+  final Section section;
+  final InsideDataBuilder<Section> sectionBuilder;
+  final InsideDataBuilder<MediaSection> lessonBuiler;
   final InsideDataBuilder<Media> mediaBuilder;
 
   /// A widget to go before other items in the list.
@@ -31,123 +33,54 @@ class SectionContentList extends StatelessWidget {
       this.leadingWidget});
 
   @override
-  Widget build(BuildContext context) => _sectionsFuture(context);
-
-  Widget _sectionsFuture(BuildContext context) => FutureBuilder(
-        future: section.resolve(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            if (snapshot.data is SiteSection) {
-              return FutureBuilder<NestedContent>(
-                future: snapshot.data.getContent(),
-                builder: (context, snapShot) {
-                  if (snapShot.hasData) {
-                    return _sections(context, snapShot.data);
-                  } else if (snapShot.hasError) {
-                    return ErrorWidget(snapShot.error);
-                  } else {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                },
+  Widget build(BuildContext context) => FutureBuilder(
+        future: BlocProvider.getDependency<SiteBoxes>().resolve(section),
+        builder: (context, snapShot) {
+          if (snapShot.hasData) {
+            if (isSeperated) {
+              return ListView.separated(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                itemCount: section.content.length,
+                itemBuilder: _sectionContent(),
+                separatorBuilder: (context, i) => Divider(),
               );
             } else {
-              List<Media> mediaList;
-
-              if (snapshot.data is Lesson) {
-                mediaList = (snapshot.data as Lesson).audio;
-              } else if (snapshot.data is Media) {
-                mediaList = [snapshot.data as Media];
-              } else {
-                return Text(
-                  "Please let the programmer know that he forgot about a type again.",
-                  style: TextStyle(
-                      backgroundColor: Colors.black,
-                      color: Colors.yellow,
-                      fontWeight: FontWeight.bold),
-                );
-              }
-
-              return MediaList(media: mediaList);
+              return ListView.builder(
+                itemCount: section.content.length,
+                itemBuilder: _sectionContent(),
+              );
             }
+          } else if (snapShot.hasError) {
+            return ErrorWidget(snapShot.error);
+          } else {
+            return Center(child: CircularProgressIndicator());
           }
-
-          return Container();
         },
       );
 
-  Widget _sections(BuildContext context, NestedContent content) {
-    final itemCount =
-        content.sections.length + content.lessons.length + indexOffset;
-
-    return FutureBuilder<List<InsideDataBase>>(
-      future: _getResolvedData(content),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          if (isSeperated) {
-            return ListView.separated(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              itemCount: itemCount,
-              itemBuilder: _builder(content, snapshot.data, indexOffset),
-              separatorBuilder: (context, i) => Divider(),
-            );
-          } else {
-            return ListView.builder(
-              itemCount: itemCount,
-              itemBuilder: _builder(content, snapshot.data, indexOffset),
-            );
-          }
-        } else {
-          return Center(child: CircularProgressIndicator());
-        }
-      },
-    );
-  }
-
-  Future<List<InsideDataBase>> _getResolvedData(NestedContent content) async {
-    var data = List<InsideDataBase>();
-
-    for (var section in content.sections) {
-      data.add(await section.resolve());
-    }
-
-    data.addAll(content.lessons);
-
-    return data;
-  }
-
-  IndexedWidgetBuilder _builder(NestedContent content,
-          List<InsideDataBase> dataList, int indexOffset) =>
-      (BuildContext context, int i) {
+  IndexedWidgetBuilder _sectionContent() => (BuildContext context, int i) {
         if (i == 0 && leadingWidget != null) {
           return leadingWidget;
         }
 
         i -= indexOffset;
 
-        if (i < content.sections.length) {
-          final dataItem = dataList[i];
-          if (dataItem is SiteSection) {
-            return sectionBuilder(context, dataItem);
-          } else if (dataItem is Lesson) {
-            return _lessonNavigator(context, dataItem);
-          } else if (dataItem is Media) {
-            if (mediaBuilder != null) {
-              return mediaBuilder(context, dataItem);
-            }
+        final dataItem = section.content[i];
+        if (dataItem.section != null) {
+          return sectionBuilder(context, dataItem.section);
+        } else if (dataItem.mediaSection != null) {
+          return _lessonNavigator(context, dataItem.mediaSection);
+        } else if (dataItem.media != null) {
+          if (mediaBuilder != null) {
+            return mediaBuilder(context, dataItem.media);
           }
-          return sectionBuilder(context, content.sections[i]);
-        } else {
-          final adjustedIndex = i - content.sections.length;
-          final lesson = content.lessons[adjustedIndex];
-
-          return _lessonNavigator(context, lesson);
         }
+        throw 'Error: item contained no data';
       };
 
-  _lessonNavigator(BuildContext context, Lesson lesson) {
+  _lessonNavigator(BuildContext context, MediaSection lesson) {
     if (lesson.audioCount == 1 && mediaBuilder != null) {
-      return mediaBuilder(
-          context, lesson.audio[0].resolve(lesson));
+      return mediaBuilder(context, lesson.media[0]);
     }
 
     return InsideNavigator(

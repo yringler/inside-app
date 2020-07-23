@@ -1,10 +1,10 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/widgets/informative-text-painter.dart';
 
 class InsideDataCard extends StatefulWidget {
-  final CountableInsideData insideData;
+  final CountableSiteDataItem insideData;
 
   InsideDataCard({this.insideData});
 

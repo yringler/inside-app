@@ -2,15 +2,13 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:inside_chassidus/data/models/inside-data/index.dart';
 import 'package:inside_chassidus/widgets/media-list/play-button.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 
 class AudioButtonBar extends StatelessWidget {
   final String mediaSource;
-  final Lesson lesson;
 
-  AudioButtonBar({@required this.mediaSource, this.lesson});
+  AudioButtonBar({@required this.mediaSource});
 
   @override
   Widget build(BuildContext context) {
