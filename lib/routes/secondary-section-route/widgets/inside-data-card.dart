@@ -37,10 +37,10 @@ class _InsideDataCardData extends State<InsideDataCard> {
         Text(
           "${widget.insideData.audioCount} classes",
           style:
-              Theme.of(context).textTheme.body1.merge(TextStyle(fontSize: 12)),
+              Theme.of(context).textTheme.bodyText2.merge(TextStyle(fontSize: 12)),
         ),
         Text(widget.insideData.title?.trim(),
-            style: Theme.of(context).textTheme.title)
+            style: Theme.of(context).textTheme.headline6)
       ]);
 
   Widget _description() => LayoutBuilder(builder: (context, constraints) {
@@ -48,7 +48,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
             widget.insideData.description?.trim(),
             maxLines: 3,
             maxWidth: constraints.maxWidth,
-            style: Theme.of(context).textTheme.body1);
+            style: Theme.of(context).textTheme.bodyText2);
 
         if (descriptionPainter.willOverflow())
           return _expandableDescription(context, descriptionPainter);

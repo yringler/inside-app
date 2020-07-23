@@ -69,7 +69,7 @@ class PlayerRoute extends StatelessWidget {
             margin: EdgeInsets.only(top: 8),
             child: Text(
               media.description ?? "",
-              style: Theme.of(context).textTheme.body1,
+              style: Theme.of(context).textTheme.bodyText2,
             ),
           ),
         ),

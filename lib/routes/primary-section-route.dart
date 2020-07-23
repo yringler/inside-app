@@ -60,7 +60,7 @@ class PrimarySectionsRoute extends StatelessWidget {
                 child: Text(primaryInside.section.title.toUpperCase(),
                     style: TextStyle(
                         color: Colors.white,
-                        fontSize: Theme.of(context).textTheme.title.fontSize,
+                        fontSize: Theme.of(context).textTheme.headline6.fontSize,
                         fontWeight: FontWeight.w600),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 3)),

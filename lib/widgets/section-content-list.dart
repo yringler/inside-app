@@ -4,7 +4,6 @@ import 'package:inside_api/models.dart';
 import 'package:inside_api/site-service.dart';
 import 'package:inside_chassidus/routes/lesson-route/lesson-route.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
-import 'package:inside_chassidus/widgets/media-list/media-list.dart';
 
 typedef Widget InsideDataBuilder<T extends SiteDataItem>(
     BuildContext context, T data);

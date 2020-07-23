@@ -14,7 +14,7 @@ class InsideScaffold extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         title: Text(insideData.title,
-            style: Theme.of(context).appBarTheme.textTheme?.title),
+            style: Theme.of(context).appBarTheme.textTheme?.headline6),
         actions: <Widget>[HomeButton()],
       ),
       body: AudioButtonbarAwareBody(body: body),
