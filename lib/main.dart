@@ -31,6 +31,8 @@ void main() async {
 
   final completer = Completer<SiteBoxes>();
 
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(MaterialApp(
       home: Scaffold(
     body: Center(
@@ -126,5 +128,5 @@ Future<SiteBoxes> getBoxes() async {
   return await getSiteBoxesWithData(
       currentVersion: DateTime.parse('2020-07-22'),
       hivePath: '${boxPath.path}/siteservice_hive',
-      rawData: await rootBundle.loadString('asstets/site.json'));
+      rawData: await rootBundle.loadString('assets/site.json'));
 }
