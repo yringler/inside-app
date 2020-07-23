@@ -23,6 +23,6 @@ class SecondarySectionRoute extends StatelessWidget {
               routeName: TernarySectionRoute.routeName,
               data: section,
               child: InsideDataCard(insideData: section)),
-          lessonBuiler: (context, lesson) =>
+          lessonBuilder: (context, lesson) =>
               InsideDataCard(insideData: lesson)));
 }

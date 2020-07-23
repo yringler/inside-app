@@ -25,7 +25,7 @@ class TernarySectionRoute extends StatelessWidget {
                 child: _tile(section),
                 routeName: TernarySectionRoute.routeName,
               ),
-          lessonBuiler: (context, lesson) => _tile(lesson),
+          lessonBuilder: (context, lesson) => _tile(lesson),
           mediaBuilder: (context, media) => MediaItem(media: media)));
 
   static Widget _tile(CountableSiteDataItem data) {

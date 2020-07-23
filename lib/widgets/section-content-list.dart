@@ -14,7 +14,7 @@ class SectionContentList extends StatelessWidget {
   final bool isSeperated;
   final Section section;
   final InsideDataBuilder<Section> sectionBuilder;
-  final InsideDataBuilder<MediaSection> lessonBuiler;
+  final InsideDataBuilder<MediaSection> lessonBuilder;
   final InsideDataBuilder<Media> mediaBuilder;
 
   /// A widget to go before other items in the list.
@@ -26,7 +26,7 @@ class SectionContentList extends StatelessWidget {
   SectionContentList(
       {@required this.section,
       @required this.sectionBuilder,
-      @required this.lessonBuiler,
+      @required this.lessonBuilder,
       this.mediaBuilder,
       this.isSeperated = false,
       this.leadingWidget});
@@ -83,7 +83,7 @@ class SectionContentList extends StatelessWidget {
     }
 
     return InsideNavigator(
-      child: lessonBuiler(context, lesson),
+      child: lessonBuilder(context, lesson),
       routeName: LessonRoute.routeName,
       data: lesson,
     );

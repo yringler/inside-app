@@ -29,25 +29,14 @@ void main() async {
 
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
 
-  final completer = Completer<SiteBoxes>();
+  runApp(MaterialApp(
+      home: Scaffold(
+    body: Center(child: CircularProgressIndicator()),
+  )));
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(MaterialApp(
-      home: Scaffold(
-    body: Center(
-        child: FutureBuilder(
-            future: getBoxes(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                completer.complete(snapshot.data);
-              }
-
-              return CircularProgressIndicator();
-            })),
-  )));
-
-  final siteBoxes = await completer.future;
+  final siteBoxes = await getBoxes();
 
   runApp(BlocProvider(
     dependencies: [
