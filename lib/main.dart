@@ -6,6 +6,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:dart_extensions/dart_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive/hive.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_api/site-service.dart';
 import 'package:inside_chassidus/routes/lesson-route/index.dart';
@@ -111,11 +112,25 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// The data version which is shipped with the app. This ensures that if a new
+/// version is released with new data, that new data will be used.
+final lowestDataVersion = DateTime.fromMillisecondsSinceEpoch(1595551840653);
+
 Future<SiteBoxes> getBoxes() async {
   final boxPath = await getApplicationDocumentsDirectory();
+  Hive.init('${boxPath.path}/insideapp');
 
-  return await getSiteBoxesWithData(
-      currentVersion: DateTime.parse('2020-07-22'),
-      hivePath: '${boxPath.path}/siteservice_hive',
-      rawData: await rootBundle.loadString('assets/site.json'));
+  var siteBoxes = await getSiteBoxesWithData(
+      currentVersion: lowestDataVersion,
+      hivePath: '${boxPath.path}/siteservice_hive');
+
+  // Only load the huge json file if we don't already have the data.
+  if (siteBoxes == null) {
+    siteBoxes = await getSiteBoxesWithData(
+        currentVersion: lowestDataVersion,
+        hivePath: '${boxPath.path}/siteservice_hive',
+        rawData: await rootBundle.loadString('assets/site.json'));
+  }
+
+  return siteBoxes;
 }
