@@ -42,7 +42,7 @@ packages:
       name: characters
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "1.1.0-nullsafety.2"
   charcode:
     dependency: transitive
     description:
@@ -63,7 +63,7 @@ packages:
       name: collection
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.14.13"
+    version: "1.15.0-nullsafety.2"
   convert:
     dependency: transitive
     description:
@@ -84,7 +84,7 @@ packages:
       name: csslib
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.16.1"
+    version: "0.16.2"
   cupertino_icons:
     dependency: "direct main"
     description:
@@ -133,7 +133,7 @@ packages:
       name: firebase_analytics_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.1"
+    version: "1.0.3"
   firebase_analytics_web:
     dependency: transitive
     description:
@@ -168,7 +168,7 @@ packages:
       name: firebase_crashlytics
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.3+3"
+    version: "0.1.4+1"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -215,7 +215,7 @@ packages:
       name: hive
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.1+1"
+    version: "1.4.2"
   html:
     dependency: transitive
     description:
@@ -241,8 +241,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: a3d6dbd7fe4a905c5191dc27c3d54c8333549105
-      resolved-ref: a3d6dbd7fe4a905c5191dc27c3d54c8333549105
+      ref: e10744fe0b98ded89dd561534e99409ce47a04f4
+      resolved-ref: e10744fe0b98ded89dd561534e99409ce47a04f4
       url: "https://github.com/yringler/inside-api.git"
     source: git
     version: "0.0.0"
@@ -303,7 +303,7 @@ packages:
       name: meta
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.8"
+    version: "1.3.0-nullsafety.2"
   path:
     dependency: transitive
     description:
@@ -455,7 +455,7 @@ packages:
       name: typed_data
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.0"
+    version: "1.3.0-nullsafety.2"
   uuid:
     dependency: transitive
     description:
@@ -469,7 +469,7 @@ packages:
       name: vector_math
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.8"
+    version: "2.1.0-nullsafety.2"
   xdg_directories:
     dependency: transitive
     description:
@@ -485,5 +485,5 @@ packages:
     source: hosted
     version: "2.2.1"
 sdks:
-  dart: ">=2.9.0-14.0.dev <3.0.0"
+  dart: ">=2.10.0-0.0.dev <2.10.0"
   flutter: ">=1.12.13+hotfix.5 <2.0.0"

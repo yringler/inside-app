@@ -39,13 +39,13 @@ class SectionContentList extends StatelessWidget {
             if (isSeperated) {
               return ListView.separated(
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                itemCount: section.content.length,
+                itemCount: section.content.length + indexOffset,
                 itemBuilder: _sectionContent(),
                 separatorBuilder: (context, i) => Divider(),
               );
             } else {
               return ListView.builder(
-                itemCount: section.content.length,
+                itemCount: section.content.length + indexOffset,
                 itemBuilder: _sectionContent(),
               );
             }
