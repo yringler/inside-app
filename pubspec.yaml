@@ -35,16 +35,16 @@ dependencies:
   firebase_analytics: ^5.0.11
   firebase_crashlytics: ^0.1.3
   dart_extensions: ^1.0.1
-  hive: ^1.4.1+1
+  hive: ^1.4.2
   inside_api:
     git:
       url: https://github.com/yringler/inside-api.git
-      ref: e10744fe0b98ded89dd561534e99409ce47a04f4
+      ref: 909b065da032907f65f9ba8aa524309a4c216ec2
   #  path: ../inside-api
   just_audio_service:
     git:
       url: https://github.com/yringler/just_audio_service.git
-      ref: c9795c143d232e6154f49057bcbda43a72f58030
+      ref: 4d51aa4fe2c90456f7797cd54db28fdff67830e0
     #path: ../just_audio_service
 
 # For information on the generic Dart part of this file, see the

@@ -241,8 +241,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: e10744fe0b98ded89dd561534e99409ce47a04f4
-      resolved-ref: e10744fe0b98ded89dd561534e99409ce47a04f4
+      ref: "909b065da032907f65f9ba8aa524309a4c216ec2"
+      resolved-ref: "909b065da032907f65f9ba8aa524309a4c216ec2"
       url: "https://github.com/yringler/inside-api.git"
     source: git
     version: "0.0.0"
@@ -285,8 +285,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: c9795c143d232e6154f49057bcbda43a72f58030
-      resolved-ref: c9795c143d232e6154f49057bcbda43a72f58030
+      ref: "4d51aa4fe2c90456f7797cd54db28fdff67830e0"
+      resolved-ref: "4d51aa4fe2c90456f7797cd54db28fdff67830e0"
       url: "https://github.com/yringler/just_audio_service.git"
     source: git
     version: "0.0.1"
