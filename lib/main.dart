@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:dart_extensions/dart_extensions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
@@ -47,6 +48,8 @@ void main() async {
     ],
     child: MyApp(),
   ));
+
+  await siteBoxes.tryPrepareUpdate();
 }
 
 class MyApp extends StatelessWidget {
@@ -112,25 +115,31 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// The data version which is shipped with the app. This ensures that if a new
-/// version is released with new data, that new data will be used.
-final lowestDataVersion = DateTime.fromMillisecondsSinceEpoch(1595551840653);
-
 Future<SiteBoxes> getBoxes() async {
   final boxPath = await getApplicationDocumentsDirectory();
+  final servicePath = '${boxPath.path}/siteservice_hive';
   Hive.init('${boxPath.path}/insideapp');
 
-  var siteBoxes = await getSiteBoxesWithData(
-      currentVersion: lowestDataVersion,
-      hivePath: '${boxPath.path}/siteservice_hive');
+  var hasData = await compute(_ensureDataLoaded, [servicePath]);
 
   // Only load the huge json file if we don't already have the data.
-  if (siteBoxes == null) {
-    siteBoxes = await getSiteBoxesWithData(
-        currentVersion: lowestDataVersion,
-        hivePath: '${boxPath.path}/siteservice_hive',
-        rawData: await rootBundle.loadString('assets/site.json'));
+  if (!hasData) {
+    final rawData = await rootBundle.loadString('assets/site.json');
+    await compute(_ensureDataLoaded, [servicePath, rawData]);
   }
 
-  return siteBoxes;
+  return await getSiteBoxesWithData(hivePath: servicePath);
+}
+
+Future<bool> _ensureDataLoaded(List<dynamic> args) async {
+  final path = args[0] as String;
+  final boxes = await getSiteBoxesWithData(
+      hivePath: path, rawData: args.length == 2 ? args.last as String : null);
+
+  if (boxes == null) {
+    return false;
+  }
+
+  await boxes.hive.close();
+  return true;
 }
