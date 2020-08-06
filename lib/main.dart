@@ -48,7 +48,7 @@ void main() async {
     ],
     child: MyApp(),
   ));
-
+  
   await siteBoxes.tryPrepareUpdate();
 }
 
@@ -115,6 +115,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// Ensure that any source JSON is parsed and loaded in to hive, return
+/// open boxes.
 Future<SiteBoxes> getBoxes() async {
   final boxPath = await getApplicationDocumentsDirectory();
   final servicePath = '${boxPath.path}/siteservice_hive';
@@ -131,6 +133,7 @@ Future<SiteBoxes> getBoxes() async {
   return await getSiteBoxesWithData(hivePath: servicePath);
 }
 
+/// Make sure that there is data loaded in to hive. Return true if there is data.
 Future<bool> _ensureDataLoaded(List<dynamic> args) async {
   final path = args[0] as String;
   final boxes = await getSiteBoxesWithData(
