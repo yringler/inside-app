@@ -37,10 +37,10 @@ dependencies:
   dart_extensions: ^1.0.1
   hive: ^1.4.2
   inside_api:
-  #  git:
-  #    url: https://github.com/yringler/inside-api.git
-  #    ref: 909b065da032907f65f9ba8aa524309a4c216ec2
-    path: ../inside-api
+    git:
+      url: https://github.com/yringler/inside-api.git
+      ref: 22bdcbd6f2627be89d23f162699aef5483330052
+  #  path: ../inside-api
   just_audio_service:
     git:
       url: https://github.com/yringler/just_audio_service.git
