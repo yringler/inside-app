@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/routes/player-route/widgets/index.dart';
 import 'package:inside_chassidus/widgets/home-button.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar.dart';
@@ -16,33 +16,24 @@ class PlayerRoute extends StatelessWidget {
       appBar: AppBar(
         actions: <Widget>[HomeButton()],
       ),
-      body: FutureBuilder<Lesson>(
-        future: media.getLesson(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return Container(
-              padding: EdgeInsets.all(8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  ..._title(context, snapshot.data),
-                    _description(context),
-                  ProgressBar(
-                    media: media,
-                  ),
-                  AudioButtonBar(mediaSource: media.source, lesson: snapshot.data)
-                ],
-              ),
-            );
-          }
-
-          return Container();
-        },
+      body: Container(
+        padding: EdgeInsets.all(8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ..._title(context, media),
+            _description(context),
+            ProgressBar(
+              media: media,
+            ),
+            AudioButtonBar(mediaSource: media.source)
+          ],
+        ),
       ));
 
   /// Returns lesson title and media title.
   /// If the media doesn't have a title, just returns lesson title as title.
-  List<Widget> _title(BuildContext context, Lesson lesson) {
+  List<Widget> _title(BuildContext context, SiteDataItem lesson) {
     if ((media.title?.isNotEmpty ?? false) &&
         (lesson?.title?.isNotEmpty ?? false) &&
         media.title != lesson.title) {
@@ -51,12 +42,12 @@ class PlayerRoute extends StatelessWidget {
           margin: EdgeInsets.only(bottom: 8),
           child: Text(
             lesson.title,
-            style: Theme.of(context).textTheme.subtitle,
+            style: Theme.of(context).textTheme.subtitle2,
           ),
         ),
         Text(
           media.title,
-          style: Theme.of(context).textTheme.title,
+          style: Theme.of(context).textTheme.headline1,
         )
       ];
     }
@@ -64,7 +55,7 @@ class PlayerRoute extends StatelessWidget {
     return [
       Text(
         media.title?.isNotEmpty ?? false ? media.title : lesson.title,
-        style: Theme.of(context).textTheme.title,
+        style: Theme.of(context).textTheme.headline6,
       )
     ];
   }
@@ -78,7 +69,7 @@ class PlayerRoute extends StatelessWidget {
             margin: EdgeInsets.only(top: 8),
             child: Text(
               media.description ?? "",
-              style: Theme.of(context).textTheme.body1,
+              style: Theme.of(context).textTheme.bodyText2,
             ),
           ),
         ),

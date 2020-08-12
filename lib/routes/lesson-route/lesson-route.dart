@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/models/inside-data/lesson.dart';
+import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import 'package:inside_chassidus/widgets/inside-scaffold.dart';
 import 'package:inside_chassidus/widgets/media-list/index.dart';
@@ -8,7 +8,7 @@ import 'package:inside_chassidus/widgets/media-list/index.dart';
 class LessonRoute extends StatelessWidget {
   static const String routeName = "/lessons";
 
-  final Lesson lesson;
+  final MediaSection lesson;
 
   LessonRoute({this.lesson});
 
@@ -18,7 +18,7 @@ class LessonRoute extends StatelessWidget {
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 8).copyWith(top: 8),
         child: MediaList(
-          media: lesson.audio,
+          media: lesson.media,
           leadingWidget: textIfNotEmpty(lesson.description),
         ),
       ));

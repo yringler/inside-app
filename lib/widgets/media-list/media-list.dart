@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/data/models/inside-data/index.dart';
+import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/widgets/media-list/media-item.dart';
 
 class MediaList extends StatelessWidget {
