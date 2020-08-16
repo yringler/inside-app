@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar.dart';
-import 'package:inside_chassidus/widgets/media/is-media-playing-watcher.dart';
+import 'package:inside_chassidus/widgets/media/is-global-buttons-showing-watcher.dart';
 
 /// A button bar which always effects the current media, and is an empty
 /// container if there's nothing going on.
@@ -15,17 +15,18 @@ class CurrentMediaButtonBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IsMediaPlayingWatcher(
-        builder: (context, {isPlaying, mediaSource}) => isPlaying
-            ? Container(
-                child: AudioButtonBar(
-                  mediaSource: mediaSource,
-                ),
-                color: Colors.grey.shade300,
-                height: _barHeight,
-              )
-            : Container(
-                height: 0,
-              ));
+    return IsGlobalMediaButtonsShowingWatcher(
+        builder: (context, {isGlobalButtonsShowing, mediaSource}) =>
+            isGlobalButtonsShowing
+                ? Container(
+                    child: AudioButtonBar(
+                      mediaSource: mediaSource,
+                    ),
+                    color: Colors.grey.shade300,
+                    height: _barHeight,
+                  )
+                : Container(
+                    height: 0,
+                  ));
   }
 }

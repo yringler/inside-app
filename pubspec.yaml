@@ -27,7 +27,7 @@ dependencies:
   expandable: ^3.0.0
   cached_network_image: ^2.0.0-rc.1
   rxdart: ^0.24.0
-  bloc_pattern: ^2.4.4
+  bloc_pattern: ^2.5.1
   path_provider: ^1.4.0
   font_awesome_flutter: ^8.5.0
   audio_service: ^0.10.0

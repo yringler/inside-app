@@ -3,34 +3,17 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_api/site-service.dart';
-import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart';
-import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
 import 'package:inside_chassidus/widgets/navigate-to-section.dart';
 
 class PrimarySectionsRoute extends StatelessWidget {
+  static const String routeName = '/library';
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          title: _title(context),
-        ),
-        body: AudioButtonbarAwareBody(
-            body: _sections(
-                context,
-                BlocProvider.getDependency<SiteBoxes>()
-                    .topItems
-                    .values
-                    .toList())),
-        bottomSheet: CurrentMediaButtonBar(),
-      );
+  Widget build(BuildContext context) => _sections(context,
+      BlocProvider.getDependency<SiteBoxes>().topItems.values.toList());
 
-  Widget _title(BuildContext context) => Container(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        child: Text("Inside Chassidus",
-            style: Theme.of(context).appBarTheme.textTheme?.headline6),
-      );
-
-  Widget _sections(BuildContext context, List<TopItem> topLevel) =>
+  Widget _sections(
+          BuildContext context, List<TopItem> topLevel) =>
       GridView.extent(
           maxCrossAxisExtent: 200,
           padding: const EdgeInsets.all(4),
@@ -60,7 +43,8 @@ class PrimarySectionsRoute extends StatelessWidget {
                 child: Text(primaryInside.section.title.toUpperCase(),
                     style: TextStyle(
                         color: Colors.white,
-                        fontSize: Theme.of(context).textTheme.headline6.fontSize,
+                        fontSize:
+                            Theme.of(context).textTheme.headline6.fontSize,
                         fontWeight: FontWeight.w600),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 3)),

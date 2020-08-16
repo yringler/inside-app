@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
-import 'package:inside_chassidus/widgets/media/is-media-playing-watcher.dart';
+import 'package:inside_chassidus/widgets/media/is-global-buttons-showing-watcher.dart';
 
 /// A widget which sizes its child based on how much size it has left over from the [CurrentMediaButtonBar].
 class AudioButtonbarAwareBody extends StatelessWidget {
@@ -9,11 +9,11 @@ class AudioButtonbarAwareBody extends StatelessWidget {
   AudioButtonbarAwareBody({this.body});
 
   @override
-  Widget build(BuildContext context) => IsMediaPlayingWatcher(
-      builder: (context, {isPlaying, mediaSource}) => Padding(
+  Widget build(BuildContext context) => IsGlobalMediaButtonsShowingWatcher(
+      builder: (context, {isGlobalButtonsShowing, mediaSource}) => Padding(
             child: body,
             padding: EdgeInsets.only(
                 bottom: CurrentMediaButtonBar.heightOfMediaBar(context,
-                    isPlaying: isPlaying)),
+                    isPlaying: isGlobalButtonsShowing)),
           ));
 }
