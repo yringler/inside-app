@@ -53,11 +53,11 @@ class LessonTab extends StatelessWidget {
           }
 
           BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
-              .isPlayerButtonsShowing(isShowing: isMediaButtonsShowing);
+              .isOtherButtonsShowing(isShowing: isMediaButtonsShowing);
 
           onRouteChange(settings);
 
-          return MaterialPageRoute(builder: builder);
+          return MaterialPageRoute(builder: builder, );
         },
         initialRoute: PrimarySectionsRoute.routeName,
       );

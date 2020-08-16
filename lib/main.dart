@@ -69,6 +69,8 @@ class MyAppState extends State<MyApp> {
 
   int _currentTabIndex = 0;
 
+  bool lessonRouteOnRoot = true;
+
   @override
   Widget build(BuildContext context) => AudioServiceWidget(
           child: MaterialApp(
@@ -86,11 +88,10 @@ class MyAppState extends State<MyApp> {
                 Offstage(
                   offstage: _currentTabIndex != 0,
                   child: LessonTab(
-                    navigatorKey: lessonNavigatorKey,
-                    onRouteChange: _onLessonRouteChange,
-                  ),
+                      navigatorKey: lessonNavigatorKey,
+                      onRouteChange: _onLessonRouteChange),
                 ),
-                if (_currentTabIndex > 0) _getCurrentTab()
+                if (_currentTabIndex != 0) _getCurrentTab()
               ],
             )),
             bottomSheet: CurrentMediaButtonBar(),
@@ -113,15 +114,17 @@ class MyAppState extends State<MyApp> {
   void _onBottomNavigationTap(value) {
     // If the home button is pressed when already on home section, we show the
     // lesson tab, but go back to root.
-    if (value == 0 && _currentTabIndex == 0) {
+    if (value == 0 && _currentTabIndex == 0 && !lessonRouteOnRoot) {
       lessonNavigatorKey.currentState.pushNamedAndRemoveUntil(
           PrimarySectionsRoute.routeName, (_) => false);
     }
 
-    // It's only possible for a tab to be showing buttons if it's a tab which
-    // might be showing buttons.
+    if (value == _currentTabIndex) {
+      return;
+    }
+
     BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
-        .isPossiblePlayerButtonsShowing(isPossible: value == 0);
+        .canGlobalButtonsShow(value == 0);
 
     setState(() {
       _currentTabIndex = value;
@@ -130,6 +133,8 @@ class MyAppState extends State<MyApp> {
 
   /// Send firebase analytics page view event.
   void _onLessonRouteChange(RouteSettings routeData) {
+    lessonRouteOnRoot = routeData.name == PrimarySectionsRoute.routeName;
+
     String screenName = routeData.name;
     SiteDataItem data =
         routeData.arguments == null ? null : routeData.arguments;
@@ -150,7 +155,7 @@ class MyAppState extends State<MyApp> {
   Widget _getCurrentTab() {
     switch (_currentTabIndex) {
       case 0:
-        throw ArgumentError('Can not render primary tab');
+        throw ArgumentError('Can not render home');
       case 1:
         return Text('Recent');
       case 2:

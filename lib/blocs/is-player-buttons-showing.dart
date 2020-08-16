@@ -4,31 +4,31 @@ import 'package:rxdart/rxdart.dart';
 /// Keep track of wether player buttons are already visible, even with global
 /// play buttons.
 class IsPlayerButtonsShowingBloc extends BlocBase {
-  /// True when other media buttons are showing besides for global buttons.
-  Stream<bool> get buttonsShowingStream => Rx.combineLatest2<bool, bool, bool>(
-      _isPlayerButtonsShowing,
-      _isPossibleButtonShowing,
-      (isShowing, canShow) => isShowing && canShow);
+  /// True when global buttons are showing.
+  Stream<bool> get globalButtonsShowingStream => Rx.combineLatest2<bool, bool, bool>(
+      _isOtherButtonsShowing,
+      _canGlobalShow,
+      (isOtherShowing, canGlobalShow) => !isOtherShowing && canGlobalShow);
       
-  BehaviorSubject<bool> _isPlayerButtonsShowing = BehaviorSubject.seeded(false);
-  BehaviorSubject<bool> _isPossibleButtonShowing = BehaviorSubject.seeded(true);
+  BehaviorSubject<bool> _isOtherButtonsShowing = BehaviorSubject.seeded(false);
+  BehaviorSubject<bool> _canGlobalShow = BehaviorSubject.seeded(true);
 
-  void isPlayerButtonsShowing({bool isShowing}) {
-    if (isShowing != _isPlayerButtonsShowing.value) {
-      _isPlayerButtonsShowing.add(isShowing);
+  void isOtherButtonsShowing({bool isShowing}) {
+    if (isShowing != _isOtherButtonsShowing.value) {
+      _isOtherButtonsShowing.add(isShowing);
     }
   }
 
-  void isPossiblePlayerButtonsShowing({bool isPossible}) {
-    if (isPossible != _isPossibleButtonShowing.value) {
-      _isPossibleButtonShowing.add(isPossible);
+  void canGlobalButtonsShow(bool isPossible) {
+    if (isPossible != _canGlobalShow.value) {
+      _canGlobalShow.add(isPossible);
     }
   }
 
   @override
   void dispose() {
-    _isPlayerButtonsShowing.close();
-    _isPossibleButtonShowing.close();
+    _isOtherButtonsShowing.close();
+    _canGlobalShow.close();
     super.dispose();
   }
 }
