@@ -7,9 +7,10 @@ import 'package:inside_chassidus/widgets/media-list/play-button.dart';
 
 class MediaItem extends StatelessWidget {
   final Media media;
+  final int sectionId;
   final String fallbackTitle;
 
-  MediaItem({this.media, this.fallbackTitle});
+  MediaItem({this.media, this.fallbackTitle, @required this.sectionId});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +31,7 @@ class MediaItem extends StatelessWidget {
         : null;
 
     final onPressed = () => Navigator.of(context)
-        .pushNamed(PlayerRoute.routeName, arguments: media);
+        .pushNamed(PlayerRoute.routeName, arguments: media..parentId = sectionId);
 
     return GestureDetector(
       onTap: onPressed,
@@ -45,6 +46,7 @@ class MediaItem extends StatelessWidget {
         subtitle: subtitle,
         trailing: PlayButton(
           mediaSource: media.source,
+          sectionId: sectionId,
           onPressed: onPressed,
         ),
       ),

@@ -36,8 +36,12 @@ class LessonTab extends StatelessWidget {
               builder = (context) => SecondarySectionRoute(section: data);
               break;
             case LessonRoute.routeName:
-              data = settings.arguments;
-              builder = (context) => LessonRoute(lesson: data);
+              MediaSection dataSection = settings.arguments;
+              // See comment in section-content-list.dart about this. Basically,
+              // I set parent ID to section ID over there.
+              // Which is it's intended usage... maybe I should rename it.
+              builder = (context) => LessonRoute(
+                  lesson: dataSection, sectionId: dataSection.parentId);
               break;
             case TernarySectionRoute.routeName:
               data = settings.arguments;
@@ -57,7 +61,11 @@ class LessonTab extends StatelessWidget {
 
           onRouteChange(settings);
 
-          return MaterialPageRoute(builder: builder, );
+          return MaterialPageRoute(
+            builder: (context) => Material(
+              child: builder(context),
+            ),
+          );
         },
         initialRoute: PrimarySectionsRoute.routeName,
       );

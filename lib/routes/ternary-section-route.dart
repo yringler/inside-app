@@ -10,7 +10,7 @@ class TernarySectionRoute extends StatelessWidget {
   static const routeName = '/library/ternary-section';
   final Section section;
 
-  TernarySectionRoute({this.section});
+  TernarySectionRoute({@required this.section});
 
   @override
   Widget build(BuildContext context) => SectionContentList(
@@ -23,7 +23,10 @@ class TernarySectionRoute extends StatelessWidget {
             routeName: TernarySectionRoute.routeName,
           ),
       lessonBuilder: (context, lesson) => _tile(lesson),
-      mediaBuilder: (context, media) => MediaItem(media: media));
+      mediaBuilder: (context, media) => MediaItem(
+            media: media,
+            sectionId: section.id,
+          ));
 
   static Widget _tile(CountableSiteDataItem data) {
     var itemWord = data.audioCount > 1 ? 'classes' : 'class';

@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/util/audio-service/audio-task.dart';
+import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 
 class PlayButton extends StatelessWidget {
@@ -9,7 +10,16 @@ class PlayButton extends StatelessWidget {
   final double iconSize;
   final VoidCallback onPressed;
 
-  PlayButton({this.mediaSource, this.onPressed, this.iconSize = 24});
+  /// The ID of the section which the given media source belongs to.
+  /// Setting to null means that playing it will not cause it to be logged to
+  /// recently played.
+  final int sectionId;
+
+  PlayButton(
+      {@required this.mediaSource,
+      this.onPressed,
+      @required this.sectionId,
+      this.iconSize = 24});
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +38,11 @@ class PlayButton extends StatelessWidget {
                 .then((_) => AudioService.playFromMediaId(mediaSource));
           } else {
             AudioService.playFromMediaId(mediaSource);
+          }
+
+          if (sectionId != null) {
+            BlocProvider.getDependency<ChosenClassService>()
+                .set(source: mediaSource, sectionId: sectionId, isRecent: true);
           }
         };
         var icon = Icons.play_circle_filled;

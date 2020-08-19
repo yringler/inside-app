@@ -22,6 +22,9 @@ class SecondarySectionRoute extends StatelessWidget {
             data: section,
             child: InsideDataCard(insideData: section)),
         lessonBuilder: (context, lesson) => InsideDataCard(insideData: lesson),
-        mediaBuilder: (context, media) => MediaItem(media: media),
+        mediaBuilder: (context, media) => MediaItem(
+          media: media,
+          sectionId: section.id,
+        ),
       );
 }

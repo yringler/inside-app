@@ -85,7 +85,12 @@ class SectionContentList extends StatelessWidget {
     return InsideNavigator(
       child: lessonBuilder(context, lesson),
       routeName: LessonRoute.routeName,
-      data: lesson,
+      // IDK if this is really bad or not. I'm undecided over wether or not to
+      // store the parentId (AKA section ID) in media and media sections... so
+      // the property is there, just not set in JSON or anything... but it's
+      // easier just to set it here than to make data dynamic or add a property
+      // to InsideNavigator to support section IDs...
+      data: lesson..parentId = section.parentId,
     );
   }
 }

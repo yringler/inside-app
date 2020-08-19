@@ -26,6 +26,7 @@ class AudioButtonBar extends StatelessWidget {
                 mediaManager.skip(Duration(seconds: -15), id: mediaSource)),
         PlayButton(
           mediaSource: mediaSource,
+          sectionId: null,
           iconSize: 48,
         ),
         IconButton(
@@ -42,7 +43,9 @@ class AudioButtonBar extends StatelessWidget {
   static const speeds = [.75, 1.0, 1.25, 1.5, 2.0];
 
   _speedButton() => StreamBuilder<double>(
-        stream: AudioService.playbackStateStream.map((event) => event?.speed ?? 1.0).where((speed) => speed != 0),
+        stream: AudioService.playbackStateStream
+            .map((event) => event?.speed ?? 1.0)
+            .where((speed) => speed != 0),
         initialData: 1,
         builder: (context, state) {
           double currentSpeed = state.data;
@@ -54,8 +57,7 @@ class AudioButtonBar extends StatelessWidget {
               currentSpeed.toStringAsFixed(2).replaceAll('.00', '');
 
           return MaterialButton(
-              onPressed: () =>
-                  AudioService.setSpeed(nextSpeed),
+              onPressed: () => AudioService.setSpeed(nextSpeed),
               child: Text('$currentDisplaySpeed x'));
         },
       );

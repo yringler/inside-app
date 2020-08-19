@@ -1,6 +1,8 @@
+import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/routes/player-route/widgets/index.dart';
+import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar.dart';
 
 class PlayerRoute extends StatelessWidget {
@@ -18,6 +20,7 @@ class PlayerRoute extends StatelessWidget {
           children: <Widget>[
             ..._title(context, media),
             _description(context),
+            _favoriteButton(),
             ProgressBar(
               media: media,
             ),
@@ -69,4 +72,24 @@ class PlayerRoute extends StatelessWidget {
           ),
         ),
       );
+
+  Widget _favoriteButton() {
+    final chosenService = BlocProvider.getDependency<ChosenClassService>();
+
+    return chosenService.isFavoriteValueListenableBuilder(
+      media.source,
+      builder: (context, isFavorite) => Center(
+        child: IconButton(
+          onPressed: () => chosenService.set(
+              source: media.source,
+              sectionId: media.parentId,
+              isFavorite: !isFavorite),
+          icon: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.red : null,
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -14,6 +14,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:inside_chassidus/blocs/is-player-buttons-showing.dart';
 import 'package:inside_chassidus/routes/primary-section-route.dart';
 import 'package:inside_chassidus/tabs/lesson-tab/lesson-tab.dart';
+import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 import 'package:path_provider/path_provider.dart';
@@ -39,12 +40,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final siteBoxes = await getBoxes();
+  final chosenService = await ChosenClassService.create();
 
   runApp(BlocProvider(
     dependencies: [
       Dependency(
           (i) => PositionManager(positionDataManager: PositionDataManager())),
       Dependency((i) => siteBoxes),
+      Dependency((i) => chosenService)
     ],
     blocs: [Bloc((i) => IsPlayerButtonsShowingBloc())],
     child: MyApp(),
