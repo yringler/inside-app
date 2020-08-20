@@ -24,7 +24,9 @@ class PlayerRoute extends StatelessWidget {
             ProgressBar(
               media: media,
             ),
-            AudioButtonBar(mediaSource: media.source)
+            AudioButtonBar(
+              media: media,
+            )
           ],
         ),
       );
@@ -80,10 +82,8 @@ class PlayerRoute extends StatelessWidget {
       media.source,
       builder: (context, isFavorite) => Center(
         child: IconButton(
-          onPressed: () => chosenService.set(
-              source: media.source,
-              sectionId: media.parentId,
-              isFavorite: !isFavorite),
+          onPressed: () =>
+              chosenService.set(source: media, isFavorite: !isFavorite),
           icon: Icon(
             isFavorite ? Icons.favorite : Icons.favorite_border,
             color: isFavorite ? Colors.red : null,

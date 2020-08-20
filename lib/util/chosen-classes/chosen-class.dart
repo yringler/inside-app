@@ -5,25 +5,22 @@ import 'package:inside_api/models.dart';
 part 'chosen-class.g.dart';
 
 /// A class which has been given attention by the user.
-@HiveType(typeId: 0)
-class ChoosenClass extends HiveObject implements SectionReference {
+@HiveType(typeId: 1)
+class ChoosenClass extends HiveObject {
   @HiveField(0)
-  String url;
+  final Media media;
   @HiveField(1)
   bool isFavorite;
   @HiveField(2)
   bool isRecent;
   @HiveField(3)
   DateTime modifiedDate;
-  @HiveField(4)
-  int sectionId;
 
   Section section;
 
   ChoosenClass(
-      {this.url,
+      {@required this.media,
       this.isFavorite = false,
       this.isRecent = false,
-      this.modifiedDate,
-      @required this.sectionId});
+      this.modifiedDate});
 }

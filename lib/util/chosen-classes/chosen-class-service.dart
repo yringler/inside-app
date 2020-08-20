@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 // ignore: implementation_imports
 import 'package:hive/src/hive_impl.dart';
+import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
 import 'package:inside_chassidus/util/extract-id.dart';
 import 'package:path_provider/path_provider.dart';
@@ -21,11 +22,8 @@ class ChosenClassService {
   ChosenClassService({this.hive, this.classes});
 
   Future<void> set(
-      {@required String source,
-      @required int sectionId,
-      bool isFavorite,
-      bool isRecent}) async {
-    var chosen = classes.get(source.toHiveId());
+      {@required Media source, bool isFavorite, bool isRecent}) async {
+    var chosen = classes.get(source.source.toHiveId());
 
     if (chosen != null) {
       chosen.isFavorite = isFavorite ?? chosen.isFavorite ?? false;
@@ -39,12 +37,11 @@ class ChosenClassService {
       }
     } else if (isFavorite || isRecent) {
       classes.put(
-          source.toHiveId(),
+          source.source.toHiveId(),
           ChoosenClass(
-              url: source,
+              media: source,
               isFavorite: isFavorite ?? false,
               isRecent: isRecent ?? false,
-              sectionId: sectionId,
               modifiedDate: DateTime.now()));
     }
   }
@@ -55,7 +52,7 @@ class ChosenClassService {
   Widget isFavoriteValueListenableBuilder(String source,
       {ValueBuilder<bool> builder}) {
     if (!classes.containsKey(source.toHiveId())) {
-      classes.put(source.toHiveId(), ChoosenClass(sectionId: null));
+      // classes.put(source.toHiveId(), ChoosenClass(media: null));
     }
 
     return ValueListenableBuilder<Box<ChoosenClass>>(
@@ -65,6 +62,15 @@ class ChosenClassService {
     );
   }
 
+  List<ChoosenClass> getSorted({bool recent, bool favorite}) {
+    return classes.values
+        .where((element) =>
+            (recent == null || element.isRecent == recent) &&
+            (favorite == null || element.isFavorite == favorite))
+        .toList()
+          ..sort((a, b) => a.modifiedDate.compareTo(b.modifiedDate));
+  }
+
   static Future<ChosenClassService> create() async {
     final hive = HiveImpl();
     final folder = await getApplicationDocumentsDirectory();
@@ -72,6 +78,7 @@ class ChosenClassService {
 
     if (!hive.isAdapterRegistered(0)) {
       hive.registerAdapter(ChoosenClassAdapter());
+      hive.registerAdapter(MediaAdapter());
     }
 
     final classes = await hive.openBox<ChoosenClass>('classes');

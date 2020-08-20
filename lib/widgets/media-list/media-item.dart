@@ -10,7 +10,9 @@ class MediaItem extends StatelessWidget {
   final int sectionId;
   final String fallbackTitle;
 
-  MediaItem({this.media, this.fallbackTitle, @required this.sectionId});
+  MediaItem({this.media, this.fallbackTitle, @required this.sectionId}) {
+    media.parentId = sectionId;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,7 @@ class MediaItem extends StatelessWidget {
         : null;
 
     final onPressed = () => Navigator.of(context)
-        .pushNamed(PlayerRoute.routeName, arguments: media..parentId = sectionId);
+        .pushNamed(PlayerRoute.routeName, arguments: media);
 
     return GestureDetector(
       onTap: onPressed,
@@ -45,8 +47,7 @@ class MediaItem extends StatelessWidget {
         ),
         subtitle: subtitle,
         trailing: PlayButton(
-          mediaSource: media.source,
-          sectionId: sectionId,
+          media: media,
           onPressed: onPressed,
         ),
       ),

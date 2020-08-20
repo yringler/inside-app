@@ -13,7 +13,10 @@ import 'package:inside_api/site-service.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:inside_chassidus/blocs/is-player-buttons-showing.dart';
 import 'package:inside_chassidus/routes/primary-section-route.dart';
+import 'package:inside_chassidus/tabs/favorites-tab.dart';
 import 'package:inside_chassidus/tabs/lesson-tab/lesson-tab.dart';
+import 'package:inside_chassidus/tabs/now-playing-tab.dart';
+import 'package:inside_chassidus/tabs/recent-tab.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
@@ -94,7 +97,7 @@ class MyAppState extends State<MyApp> {
                       navigatorKey: lessonNavigatorKey,
                       onRouteChange: _onLessonRouteChange),
                 ),
-                if (_currentTabIndex != 0) _getCurrentTab()
+                if (_currentTabIndex != 0) Material(child: _getCurrentTab())
               ],
             )),
             bottomSheet: CurrentMediaButtonBar(),
@@ -107,7 +110,10 @@ class MyAppState extends State<MyApp> {
                 BottomNavigationBarItem(
                     icon: Icon(Icons.queue_music), title: Text('Recent')),
                 BottomNavigationBarItem(
-                    icon: Icon(Icons.favorite), title: Text('Bookmarked'))
+                    icon: Icon(Icons.favorite), title: Text('Bookmarked')),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.play_circle_outline),
+                    title: Text('Now Playing'))
               ],
             ),
           ),
@@ -160,9 +166,11 @@ class MyAppState extends State<MyApp> {
       case 0:
         throw ArgumentError('Can not render home');
       case 1:
-        return Text('Recent');
+        return RecentsTab();
       case 2:
-        return Text('Favorites');
+        return FavoritesTab();
+      case 3:
+        return NowPlayingTab();
       default:
         throw ArgumentError('Invalid tab index');
     }
