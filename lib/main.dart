@@ -102,16 +102,36 @@ class MyAppState extends State<MyApp> {
             )),
             bottomSheet: CurrentMediaButtonBar(),
             bottomNavigationBar: BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
               currentIndex: _currentTabIndex,
               onTap: _onBottomNavigationTap,
-              items: const <BottomNavigationBarItem>[
+              items: <BottomNavigationBarItem>[
                 BottomNavigationBarItem(
-                    icon: Icon(Icons.home), title: Text('Home')),
+                    activeIcon: Icon(
+                      Icons.home,
+                      color: Colors.brown,
+                    ),
+                    icon: Icon(Icons.home),
+                    title: Text('Home')),
                 BottomNavigationBarItem(
-                    icon: Icon(Icons.queue_music), title: Text('Recent')),
+                    activeIcon: Icon(
+                      Icons.queue_music,
+                      color: Colors.blue,
+                    ),
+                    icon: Icon(Icons.queue_music),
+                    title: Text('Recent')),
                 BottomNavigationBarItem(
-                    icon: Icon(Icons.favorite), title: Text('Bookmarked')),
+                    activeIcon: Icon(
+                      Icons.favorite,
+                      color: Colors.red,
+                    ),
+                    icon: Icon(Icons.favorite),
+                    title: Text('Bookmarked')),
                 BottomNavigationBarItem(
+                    activeIcon: Icon(
+                      Icons.play_circle_fill,
+                      color: Colors.black,
+                    ),
                     icon: Icon(Icons.play_circle_outline),
                     title: Text('Now Playing'))
               ],

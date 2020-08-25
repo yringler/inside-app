@@ -8,6 +8,8 @@ class FavoritesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MediaListTab(
+        emptyMessage:
+            'No favorites set. You can set favorites from the player.',
         data: BlocProvider.getDependency<ChosenClassService>()
             .getSorted(favorite: true));
   }

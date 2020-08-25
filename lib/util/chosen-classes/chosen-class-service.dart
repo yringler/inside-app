@@ -13,7 +13,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 typedef ValueBuilder<T> = Widget Function(BuildContext context, T value);
 
 class ChosenClassService {
-  static const maxRecentClasses = 100;
+  static const maxRecentClasses = 1;
   static const deleteRecentClassesAt = maxRecentClasses * 2;
 
   final HiveImpl hive;
@@ -25,24 +25,17 @@ class ChosenClassService {
       {@required Media source, bool isFavorite, bool isRecent}) async {
     var chosen = classes.get(source.source.toHiveId());
 
-    if (chosen != null) {
-      chosen.isFavorite = isFavorite ?? chosen.isFavorite ?? false;
-      chosen.isRecent = isRecent ?? chosen.isRecent ?? false;
+    await classes.put(
+        source.source.toHiveId(),
+        ChoosenClass(
+            media: source,
+            isFavorite: isFavorite ?? chosen?.isFavorite ?? false,
+            isRecent: isRecent ?? chosen?.isRecent ?? false,
+            modifiedDate: DateTime.now()));
 
-      if (chosen.isRecent || chosen.isFavorite) {
-        chosen.modifiedDate = DateTime.now();
-        await chosen.save();
-      } else {
-        await chosen.delete();
-      }
-    } else if (isFavorite || isRecent) {
-      classes.put(
-          source.source.toHiveId(),
-          ChoosenClass(
-              media: source,
-              isFavorite: isFavorite ?? false,
-              isRecent: isRecent ?? false,
-              modifiedDate: DateTime.now()));
+    final newClass = classes.get(source.source.toHiveId());
+    if (!newClass.isRecent && !newClass.isFavorite) {
+      await newClass.delete();
     }
   }
 
@@ -68,7 +61,8 @@ class ChosenClassService {
             (recent == null || element.isRecent == recent) &&
             (favorite == null || element.isFavorite == favorite))
         .toList()
-          ..sort((a, b) => a.modifiedDate.compareTo(b.modifiedDate));
+          // Compare b to a to sort by most recent first.
+          ..sort((a, b) => b.modifiedDate.compareTo(a.modifiedDate));
   }
 
   static Future<ChosenClassService> create() async {
@@ -85,11 +79,8 @@ class ChosenClassService {
 
     // Don't save too many recent classes.
     if (classes.isNotEmpty) {
-      final recent = classes.values
-          .where((element) => element.isRecent && !element.isFavorite)
-          .toList()
-            ..sort((a, b) => a.modifiedDate.millisecondsSinceEpoch
-                .compareTo(b.modifiedDate.millisecondsSinceEpoch));
+      final recent = classes.values.toList()
+        ..sort((a, b) => a.modifiedDate.compareTo(b.modifiedDate));
 
       if (recent.length > deleteRecentClassesAt) {
         final deleting = recent

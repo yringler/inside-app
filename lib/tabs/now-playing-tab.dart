@@ -7,14 +7,16 @@ class NowPlayingTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chosenClassService = BlocProvider.getDependency<ChosenClassService>();
-    final mostRecentlyPlayingList = chosenClassService.getSorted();
+    final mostRecentlyPlayingList = chosenClassService.getSorted(recent: true);
 
     if (mostRecentlyPlayingList.isEmpty) {
       return Center(
-        child: Text('No recent classes. What do you want to learn?'),
+        child: Text('Nothing is playing. What do you want to learn?'),
       );
     }
 
     return PlayerRoute(media: mostRecentlyPlayingList.first.media);
   }
+
+
 }

@@ -8,6 +8,7 @@ class RecentsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MediaListTab(
+      emptyMessage: 'No recent classes. What would you like to learn?',
         data: BlocProvider.getDependency<ChosenClassService>()
             .getSorted(recent: true));
   }

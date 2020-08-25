@@ -7,8 +7,9 @@ import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
 /// A list of media, with navigation to a player.
 class MediaListTab extends StatelessWidget {
   final List<ChoosenClass> data;
+  final String emptyMessage;
 
-  MediaListTab({this.data});
+  MediaListTab({this.data, @required this.emptyMessage});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,10 @@ class MediaListTab extends StatelessWidget {
         Widget route;
 
         if (settings.name == '/') {
-          route = ChosenDataList(data: data);
+          route = ChosenDataList(
+            data: data,
+            emptyMessage: emptyMessage,
+          );
         } else if (settings.name == PlayerRoute.routeName) {
           final Media media = settings.arguments;
           route = PlayerRoute(media: media);
@@ -32,13 +36,19 @@ class MediaListTab extends StatelessWidget {
 /// A list of media.
 class ChosenDataList extends StatelessWidget {
   final List<ChoosenClass> data;
+  final String emptyMessage;
 
-  ChosenDataList({this.data});
+  ChosenDataList({this.data, @required this.emptyMessage});
 
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
-      return Container();
+      return Center(
+        child: Text(
+          emptyMessage,
+          style: Theme.of(context).textTheme.bodyText1,
+        ),
+      );
     }
 
     return ListView.builder(
@@ -48,11 +58,11 @@ class ChosenDataList extends StatelessWidget {
 
           return ListTile(
             title: Text(item.media.title),
-            subtitle: Text(
+            subtitle: item.media.description != null ? Text(
               item.media.description,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-            ),
+            ) : null,
             onTap: () {
               Navigator.of(context)
                   .pushNamed(PlayerRoute.routeName, arguments: item.media);
