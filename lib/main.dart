@@ -75,7 +75,7 @@ class MyAppState extends State<MyApp> {
 
   int _currentTabIndex = 0;
 
-  bool lessonRouteOnRoot = true;
+  bool _lessonRouteOnRoot = true;
 
   @override
   Widget build(BuildContext context) => AudioServiceWidget(
@@ -143,7 +143,7 @@ class MyAppState extends State<MyApp> {
   void _onBottomNavigationTap(value) {
     // If the home button is pressed when already on home section, we show the
     // lesson tab, but go back to root.
-    if (value == 0 && _currentTabIndex == 0 && !lessonRouteOnRoot) {
+    if (value == 0 && _currentTabIndex == 0 && !_lessonRouteOnRoot) {
       lessonNavigatorKey.currentState.pushNamedAndRemoveUntil(
           PrimarySectionsRoute.routeName, (_) => false);
     }
@@ -162,7 +162,7 @@ class MyAppState extends State<MyApp> {
 
   /// Send firebase analytics page view event.
   void _onLessonRouteChange(RouteSettings routeData) {
-    lessonRouteOnRoot = routeData.name == PrimarySectionsRoute.routeName;
+    _lessonRouteOnRoot = routeData.name == PrimarySectionsRoute.routeName;
 
     String screenName = routeData.name;
     SiteDataItem data =
