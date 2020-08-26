@@ -38,10 +38,10 @@ dependencies:
   hive: ^1.4.3
   hive_flutter: ^0.3.1
   inside_api:
-  #  git:
-  #    url: https://github.com/yringler/inside-api.git
-  #    ref: 22bdcbd6f2627be89d23f162699aef5483330052
-    path: ../inside-api
+    git:
+      url: https://github.com/yringler/inside-api.git
+      ref: c2d78110ba241e822f7a2de4f8a41a42097941f7
+  #  path: ../inside-api
   just_audio_service:
     git:
       url: https://github.com/yringler/just_audio_service.git
