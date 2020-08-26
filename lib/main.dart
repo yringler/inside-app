@@ -17,6 +17,7 @@ import 'package:inside_chassidus/tabs/favorites-tab.dart';
 import 'package:inside_chassidus/tabs/lesson-tab/lesson-tab.dart';
 import 'package:inside_chassidus/tabs/now-playing-tab.dart';
 import 'package:inside_chassidus/tabs/recent-tab.dart';
+import 'package:inside_chassidus/util/bread-crumb-service.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
@@ -52,7 +53,10 @@ void main() async {
       Dependency((i) => siteBoxes),
       Dependency((i) => chosenService)
     ],
-    blocs: [Bloc((i) => IsPlayerButtonsShowingBloc())],
+    blocs: [
+      Bloc((i) => IsPlayerButtonsShowingBloc()),
+      Bloc((i) => BreadcrumbService()),
+    ],
     child: MyApp(),
   ));
 

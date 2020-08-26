@@ -37,6 +37,7 @@ dependencies:
   dart_extensions: ^1.0.1
   hive: ^1.4.3
   hive_flutter: ^0.3.1
+  flutter_breadcrumb_menu: ^1.0.0
   inside_api:
     git:
       url: https://github.com/yringler/inside-api.git
@@ -50,6 +51,12 @@ dependencies:
 dev_dependencies:
     hive_generator: ^0.7.1
     build_runner: ^1.10.2
+dependency_overrides:
+  flutter_breadcrumb_menu:
+    git:
+      url: https://github.com/yringler/flutter-breadcrumb-menu
+      ref: 9a6a94d3ea33a3cb83d790ce5ac14722cc1e4907
+  #  path: ../flutter-breadcrumb-menu
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
 

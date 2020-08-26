@@ -1,5 +1,6 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_breadcrumb_menu/flutter_breadcrumb_menu.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/blocs/is-player-buttons-showing.dart';
 import 'package:inside_chassidus/routes/lesson-route/index.dart';
@@ -7,6 +8,7 @@ import 'package:inside_chassidus/routes/player-route/player-route.dart';
 import 'package:inside_chassidus/routes/primary-section-route.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/index.dart';
 import 'package:inside_chassidus/routes/ternary-section-route.dart';
+import 'package:inside_chassidus/util/bread-crumb-service.dart';
 
 typedef RouteChangedCallback = void Function(RouteSettings);
 
@@ -36,7 +38,8 @@ class LessonTab extends StatelessWidget {
               builder = (context) => SecondarySectionRoute(section: data);
               break;
             case LessonRoute.routeName:
-              MediaSection dataSection = settings.arguments;
+              data = settings.arguments;
+              MediaSection dataSection = data;
               // See comment in section-content-list.dart about this. Basically,
               // I set parent ID to section ID over there.
               // Which is it's intended usage... maybe I should rename it.
@@ -58,6 +61,20 @@ class LessonTab extends StatelessWidget {
 
           BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
               .isOtherButtonsShowing(isShowing: isMediaButtonsShowing);
+
+          final breadService = BlocProvider.getBloc<BreadcrumbService>();
+
+          final isRoot = settings.name == '/' ||
+              settings.name == PrimarySectionsRoute.routeName;
+
+          if (isRoot) {
+            breadService.clear();
+          } else {
+            breadService.setCurrentBread(
+                routeName: settings.name,
+                argument: settings.arguments,
+                label: data.title);
+          }
 
           onRouteChange(settings);
 

@@ -1,5 +1,8 @@
+import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_breadcrumb_menu/flutter_breadcrumb_menu.dart';
 import 'package:inside_api/models.dart';
+import 'package:inside_chassidus/util/bread-crumb-service.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import 'package:inside_chassidus/widgets/media-list/index.dart';
 
@@ -18,7 +21,15 @@ class LessonRoute extends StatelessWidget {
         child: MediaList(
           media: lesson.media,
           sectionId: sectionId,
-          leadingWidget: textIfNotEmpty(lesson.description),
+          leadingWidget: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Breadcrumb(
+                  breads: BlocProvider.getBloc<BreadcrumbService>().breads),
+              if (lesson.description?.isNotEmpty ?? false)
+                textIfNotEmpty(lesson.description)
+            ],
+          ),
         ),
       );
 }

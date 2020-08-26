@@ -286,6 +286,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_breadcrumb_menu:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "9a6a94d3ea33a3cb83d790ce5ac14722cc1e4907"
+      resolved-ref: "9a6a94d3ea33a3cb83d790ce5ac14722cc1e4907"
+      url: "https://github.com/yringler/flutter-breadcrumb-menu"
+    source: git
+    version: "1.0.0"
   flutter_cache_manager:
     dependency: transitive
     description:
