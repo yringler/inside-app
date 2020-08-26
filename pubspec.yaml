@@ -50,9 +50,9 @@ dependencies:
     #path: ../just_audio_service
 dev_dependencies:
     hive_generator: ^0.7.1
-    build_runner: ^1.10.2
+    build_runner: 1.10.0
 dependency_overrides:
-  analyzer: 0.39.14
+  analyzer: 0.39.14 # https://stackoverflow.com/a/63315768
   flutter_breadcrumb_menu:
     git:
       url: https://github.com/yringler/flutter-breadcrumb-menu
