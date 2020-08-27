@@ -1,66 +1,42 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter_breadcrumb_menu/flutter_breadcrumb_menu.dart';
-import 'package:rxdart/rxdart.dart';
-
-int _indexOfOccurance(final String string,
-    {final Pattern pattern, final int occurance}) {
-  assert(occurance != null &&
-      occurance > 0 &&
-      string != null &&
-      string.isNotEmpty);
-
-  int index = -1;
-
-  for (var i = 0; i < occurance; i++) {
-    index = string.indexOf(pattern, index + 1);
-  }
-
-  return index;
-}
 
 /// Keep track of what the current bread crumb state is.
 class BreadcrumbService extends BlocBase {
   List<Bread> breads = [];
-  BehaviorSubject<List<Bread>> _breadsStream = BehaviorSubject.seeded([]);
-
-  Stream<List<Bread>> get breadStream => _breadsStream.stream;
 
   void setCurrentBread({String label, String routeName, dynamic argument}) {
     // Sanatize the label and make sure it isn't too big.
 
     label = label.trim().split(' ').take(3).join(' ');
 
-    // final indexOf3rdSpace =
-    //     _indexOfOccurance(label, pattern: ' ', occurance: 3);
-
-    // if (indexOf3rdSpace > -1) {
-    //   label = label.substring(0, indexOf3rdSpace);
-    // }
-
     // Setting a bread which is already in use rewinds us back to that point.
-    if (breads.isNotEmpty) {
-      final i = breads.indexWhere((element) =>
-          element.label == label &&
-          element.arguments == argument &&
-          element.route == routeName);
+    if (!removeUntil(route: routeName, argument: argument)) {
+      // Add it if it wasn't there already.
+      breads.add(Bread(label: label, route: routeName, arguments: argument));
+    }
+  }
 
-      if (i > -1) {
-        breads.length = i;
-      }
+  /// Removes breads until bread with matching route and argument is found, exclusive.
+  /// Returns true if item was found.
+  bool removeUntil({String route, dynamic argument}) {
+    if (breads.isEmpty) {
+      return false;
     }
 
-    breads.add(Bread(label: label, route: routeName, arguments: argument));
-    _breadsStream.add(breads);
+    final i = breads.indexWhere(
+        (element) => element.arguments == argument && element.route == route);
+
+    if (i > -1) {
+      // Eg if exists at first element (index 0), the new length is 1 (index + 1).
+      breads.length = i + 1;
+    }
+
+    // Return true if item was found.
+    return i > -1;
   }
 
   void clear() {
     breads.clear();
-    _breadsStream.add([]);
-  }
-
-  @override
-  void dispose() {
-    _breadsStream.close();
-    super.dispose();
   }
 }

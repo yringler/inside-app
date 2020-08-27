@@ -11,12 +11,13 @@ class NowPlayingTab extends StatelessWidget {
 
     if (mostRecentlyPlayingList.isEmpty) {
       return Center(
-        child: Text('Nothing is playing. What do you want to learn?'),
+        child: Text(
+          'Nothing is playing. What do you want to learn?',
+          style: Theme.of(context).textTheme.bodyText1,
+        ),
       );
     }
 
     return PlayerRoute(media: mostRecentlyPlayingList.first.media);
   }
-
-
 }

@@ -22,6 +22,7 @@ class LessonTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Navigator(
         key: navigatorKey,
+        observers: [BreadcrumbsNavigateUpdater()],
         onGenerateRoute: (settings) {
           WidgetBuilder builder;
           SiteDataItem data;
@@ -79,11 +80,43 @@ class LessonTab extends StatelessWidget {
           onRouteChange(settings);
 
           return MaterialPageRoute(
-            builder: (context) => Material(
-              child: builder(context),
-            ),
-          );
+              builder: (context) => Material(
+                    child: builder(context),
+                  ),
+              settings: settings);
         },
         initialRoute: PrimarySectionsRoute.routeName,
       );
+}
+
+/// Ensures that, if user uses back button to go to parent section, further bread
+/// crumbs are built from the parent point, not appended to previous child section.
+class BreadcrumbsNavigateUpdater extends NavigatorObserver {
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic> previousRoute) {
+    // If this method modifies the data, navigating to main and going to diffirent
+    // section causes error:
+    // 'package:flutter/src/widgets/navigator.dart': Failed assertion: line 4080 pos 12: '!_debugLocked': is not true.
+    // return;
+
+    final service = BlocProvider.getBloc<BreadcrumbService>();
+
+    if (route.settings.arguments != null) {
+      // We don't know wether previous or current route are parent or child.
+      // So remove untill whichever is higher, and than add bread for current screen.
+      service.removeUntil(
+          route: route.settings.name, argument: route.settings.arguments);
+      service.removeUntil(
+          route: previousRoute.settings.name,
+          argument: previousRoute.settings.arguments);
+
+      service.setCurrentBread(
+          routeName: previousRoute.settings.name,
+          argument: previousRoute.settings.arguments,
+          label: (previousRoute.settings.arguments as SiteDataItem).title);
+    } else if (route.settings.name == '/' ||
+        route.settings.name == PrimarySectionsRoute.routeName) {
+      service.clear();
+    }
+  }
 }

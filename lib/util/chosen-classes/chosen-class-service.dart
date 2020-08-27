@@ -13,8 +13,14 @@ import 'package:hive_flutter/hive_flutter.dart';
 typedef ValueBuilder<T> = Widget Function(BuildContext context, T value);
 
 class ChosenClassService {
-  static const maxRecentClasses = 1;
-  static const deleteRecentClassesAt = maxRecentClasses * 2;
+  /// The most recent classes to save.
+  static const int maxRecent = 30;
+
+  /// The most favorites to save.
+  static const int maxFavorite = 200;
+
+  /// How many extra to have before deleting.
+  static const int deleteAtMultiplier = 2;
 
   final HiveImpl hive;
   final Box<ChoosenClass> classes;
@@ -75,23 +81,60 @@ class ChosenClassService {
       hive.registerAdapter(MediaAdapter());
     }
 
-    final classes = await hive.openBox<ChoosenClass>('classes');
+    final classesBox = await hive.openBox<ChoosenClass>('classes');
 
-    // Don't save too many recent classes.
-    if (classes.isNotEmpty) {
-      final recent = classes.values.toList()
-        ..sort((a, b) => a.modifiedDate.compareTo(b.modifiedDate));
+    // Don't save too much.
+    if (classesBox.isNotEmpty) {
+      // Recent classes which aren't favorite.
+      await _deleteTooMany(
+          classBox: classesBox,
+          isRecent: true,
+          isFavorite: false,
+          max: maxRecent);
 
-      if (recent.length > deleteRecentClassesAt) {
-        final deleting = recent
-            .take(recent.length - maxRecentClasses)
-            .map((e) => e.delete())
-            .toList();
+      // Favorite classes which aren't recent.
+      await _deleteTooMany(
+          classBox: classesBox,
+          isFavorite: true,
+          isRecent: false,
+          max: maxFavorite);
 
-        await Future.wait(deleting);
-      }
+      // Favorite classes, recent or not.
+      await _deleteTooMany(
+          classBox: classesBox, isFavorite: true, max: maxFavorite);
     }
 
-    return ChosenClassService(hive: hive, classes: classes);
+    return ChosenClassService(hive: hive, classes: classesBox);
+  }
+
+  static Future<void> _deleteTooMany(
+      {Box<ChoosenClass> classBox,
+      int max,
+      bool isFavorite,
+      bool isRecent}) async {
+    // Don't do anything if there isn't anything to delete.
+    if (classBox.length < max * deleteAtMultiplier) {
+      return;
+    }
+
+    // Get the matching classes.
+    final classes = classBox.values.where((element) {
+      if (isFavorite != null && isFavorite != element.isFavorite) {
+        return false;
+      }
+      if (isRecent != null && isRecent != element.isRecent) {
+        return false;
+      }
+      return true;
+    }).toList();
+
+    // Sort, least recent first.
+    classes.sort((a, b) => a.modifiedDate.compareTo(b.modifiedDate));
+
+    // Delete as many as we need to get back down to size.
+    final deleting =
+        classes.take(classes.length - max).map((e) => e.delete()).toList();
+
+    await Future.wait(deleting);
   }
 }
