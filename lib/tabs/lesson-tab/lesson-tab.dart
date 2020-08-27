@@ -34,6 +34,8 @@ class LessonTab extends StatelessWidget {
 
           bool isMediaButtonsShowing = false;
 
+          final breads = List<Bread>.from(breadService.breads);
+
           switch (settings.name) {
             case '/':
             case PrimarySectionsRoute.routeName:
@@ -41,8 +43,8 @@ class LessonTab extends StatelessWidget {
               break;
             case SecondarySectionRoute.routeName:
               data = settings.arguments;
-              builder = (context) => SecondarySectionRoute(
-                  section: data, breads: List.from(breadService.breads));
+              builder = (context) =>
+                  SecondarySectionRoute(section: data, breads: breads);
               break;
             case LessonRoute.routeName:
               data = settings.arguments;
@@ -53,13 +55,13 @@ class LessonTab extends StatelessWidget {
               builder = (context) => LessonRoute(
                   lesson: dataSection,
                   sectionId: dataSection.parentId,
-                  breads: List.from(breadService.breads));
+                  breads: breads);
               break;
             case TernarySectionRoute.routeName:
               data = settings.arguments;
               builder = (context) => TernarySectionRoute(
                     section: data,
-                    breads: List.from(breadService.breads),
+                    breads: breads,
                   );
               break;
             case PlayerRoute.routeName:
