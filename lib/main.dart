@@ -53,10 +53,7 @@ void main() async {
       Dependency((i) => siteBoxes),
       Dependency((i) => chosenService)
     ],
-    blocs: [
-      Bloc((i) => IsPlayerButtonsShowingBloc()),
-      Bloc((i) => BreadcrumbService()),
-    ],
+    blocs: [Bloc((i) => IsPlayerButtonsShowingBloc())],
     child: MyApp(),
   ));
 
@@ -81,6 +78,8 @@ class MyAppState extends State<MyApp> {
 
   bool _lessonRouteOnRoot = true;
 
+  final BreadcrumbService _breadcrumbService = BreadcrumbService();
+
   @override
   Widget build(BuildContext context) => AudioServiceWidget(
           child: MaterialApp(
@@ -98,8 +97,10 @@ class MyAppState extends State<MyApp> {
                 Offstage(
                   offstage: _currentTabIndex != 0,
                   child: LessonTab(
-                      navigatorKey: lessonNavigatorKey,
-                      onRouteChange: _onLessonRouteChange),
+                    navigatorKey: lessonNavigatorKey,
+                    onRouteChange: _onLessonRouteChange,
+                    breadService: _breadcrumbService,
+                  ),
                 ),
                 if (_currentTabIndex != 0) Material(child: _getCurrentTab())
               ],
@@ -116,28 +117,28 @@ class MyAppState extends State<MyApp> {
                       color: Colors.brown,
                     ),
                     icon: Icon(Icons.home),
-                    title: Text('Home')),
+                    label: 'Home'),
                 BottomNavigationBarItem(
                     activeIcon: Icon(
                       Icons.queue_music,
                       color: Colors.blue,
                     ),
                     icon: Icon(Icons.queue_music),
-                    title: Text('Recent')),
+                    label: 'Recent'),
                 BottomNavigationBarItem(
                     activeIcon: Icon(
                       Icons.favorite,
                       color: Colors.red,
                     ),
                     icon: Icon(Icons.favorite),
-                    title: Text('Bookmarked')),
+                    label: 'Bookmarked'),
                 BottomNavigationBarItem(
                     activeIcon: Icon(
                       Icons.play_circle_fill,
                       color: Colors.black,
                     ),
                     icon: Icon(Icons.play_circle_outline),
-                    title: Text('Now Playing'))
+                    label: 'Now Playing')
               ],
             ),
           ),

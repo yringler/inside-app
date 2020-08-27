@@ -1,9 +1,7 @@
-import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_breadcrumb_menu/flutter_breadcrumb_menu.dart';
 import 'package:inside_api/models.dart';
-import 'package:inside_chassidus/util/bread-crumb-service.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
 import 'package:inside_chassidus/widgets/media-list/media-item.dart';
@@ -12,8 +10,9 @@ import 'package:inside_chassidus/widgets/section-content-list.dart';
 class TernarySectionRoute extends StatelessWidget {
   static const routeName = '/library/ternary-section';
   final Section section;
+  final List<Bread> breads;
 
-  TernarySectionRoute({@required this.section});
+  TernarySectionRoute({@required this.section, @required this.breads});
 
   @override
   Widget build(BuildContext context) => SectionContentList(
@@ -22,7 +21,7 @@ class TernarySectionRoute extends StatelessWidget {
       leadingWidget: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Breadcrumb(breads: BlocProvider.getBloc<BreadcrumbService>().breads),
+          Breadcrumb(breads: breads),
           if (section.description?.isNotEmpty ?? false)
             textIfNotEmpty(section.description)
         ],

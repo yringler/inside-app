@@ -17,12 +17,17 @@ class LessonTab extends StatelessWidget {
 
   final GlobalKey<NavigatorState> navigatorKey;
 
-  LessonTab({this.onRouteChange, @required this.navigatorKey});
+  final BreadcrumbService breadService;
+
+  LessonTab(
+      {this.onRouteChange,
+      @required this.navigatorKey,
+      @required this.breadService});
 
   @override
   Widget build(BuildContext context) => Navigator(
         key: navigatorKey,
-        observers: [BreadcrumbsNavigateUpdater()],
+        observers: [BreadcrumbsNavigateUpdater(service: breadService)],
         onGenerateRoute: (settings) {
           WidgetBuilder builder;
           SiteDataItem data;
@@ -36,7 +41,8 @@ class LessonTab extends StatelessWidget {
               break;
             case SecondarySectionRoute.routeName:
               data = settings.arguments;
-              builder = (context) => SecondarySectionRoute(section: data);
+              builder = (context) => SecondarySectionRoute(
+                  section: data, breads: List.from(breadService.breads));
               break;
             case LessonRoute.routeName:
               data = settings.arguments;
@@ -45,11 +51,16 @@ class LessonTab extends StatelessWidget {
               // I set parent ID to section ID over there.
               // Which is it's intended usage... maybe I should rename it.
               builder = (context) => LessonRoute(
-                  lesson: dataSection, sectionId: dataSection.parentId);
+                  lesson: dataSection,
+                  sectionId: dataSection.parentId,
+                  breads: List.from(breadService.breads));
               break;
             case TernarySectionRoute.routeName:
               data = settings.arguments;
-              builder = (context) => TernarySectionRoute(section: data);
+              builder = (context) => TernarySectionRoute(
+                    section: data,
+                    breads: List.from(breadService.breads),
+                  );
               break;
             case PlayerRoute.routeName:
               isMediaButtonsShowing = true;
@@ -62,8 +73,6 @@ class LessonTab extends StatelessWidget {
 
           BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
               .isOtherButtonsShowing(isShowing: isMediaButtonsShowing);
-
-          final breadService = BlocProvider.getBloc<BreadcrumbService>();
 
           final isRoot = settings.name == '/' ||
               settings.name == PrimarySectionsRoute.routeName;
@@ -92,15 +101,12 @@ class LessonTab extends StatelessWidget {
 /// Ensures that, if user uses back button to go to parent section, further bread
 /// crumbs are built from the parent point, not appended to previous child section.
 class BreadcrumbsNavigateUpdater extends NavigatorObserver {
+  final BreadcrumbService service;
+
+  BreadcrumbsNavigateUpdater({@required this.service});
+
   @override
   void didPop(Route<dynamic> route, Route<dynamic> previousRoute) {
-    // If this method modifies the data, navigating to main and going to diffirent
-    // section causes error:
-    // 'package:flutter/src/widgets/navigator.dart': Failed assertion: line 4080 pos 12: '!_debugLocked': is not true.
-    // return;
-
-    final service = BlocProvider.getBloc<BreadcrumbService>();
-
     if (route.settings.arguments != null) {
       // We don't know wether previous or current route are parent or child.
       // So remove untill whichever is higher, and than add bread for current screen.
