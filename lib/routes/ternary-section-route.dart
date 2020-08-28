@@ -28,7 +28,7 @@ class TernarySectionRoute extends StatelessWidget {
       ),
       sectionBuilder: (context, section) => InsideNavigator(
             data: section,
-            child: _tile(section),
+            child: section.title == breads.last.label ? null : _tile(section),
             routeName: TernarySectionRoute.routeName,
           ),
       lessonBuilder: (context, lesson) => _tile(lesson),

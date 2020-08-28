@@ -9,7 +9,7 @@ class BreadcrumbService extends BlocBase {
   void setCurrentBread({SiteDataItem siteData, String routeName}) {
     // Sanatize the label and make sure it isn't too big.
 
-    final label = siteData.title.trim().split(' ').take(3).join(' ');
+    final label = siteData.title.trim().split(' ').take(5).join(' ');
 
     ensureLastHasId(siteData.parentId);
 
