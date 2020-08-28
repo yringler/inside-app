@@ -112,33 +112,35 @@ class MyAppState extends State<MyApp> {
               onTap: _onBottomNavigationTap,
               items: <BottomNavigationBarItem>[
                 BottomNavigationBarItem(
-                    activeIcon: Icon(
-                      Icons.home,
-                      color: Colors.brown,
-                    ),
-                    icon: Icon(Icons.home),
-                    label: 'Home'),
+                  activeIcon: Icon(
+                    Icons.home,
+                    color: Colors.brown,
+                  ),
+                  icon: Icon(Icons.home),
+                  title: Text('Home'),
+                ),
                 BottomNavigationBarItem(
-                    activeIcon: Icon(
-                      Icons.queue_music,
-                      color: Colors.blue,
-                    ),
-                    icon: Icon(Icons.queue_music),
-                    label: 'Recent'),
+                  activeIcon: Icon(
+                    Icons.queue_music,
+                    color: Colors.blue,
+                  ),
+                  icon: Icon(Icons.queue_music),
+                  title: Text('Recent'),
+                ),
                 BottomNavigationBarItem(
                     activeIcon: Icon(
                       Icons.favorite,
                       color: Colors.red,
                     ),
                     icon: Icon(Icons.favorite),
-                    label: 'Bookmarked'),
+                    title: Text('Bookmarked')),
                 BottomNavigationBarItem(
                     activeIcon: Icon(
-                      Icons.play_circle_fill,
+                      Icons.play_circle_filled,
                       color: Colors.black,
                     ),
                     icon: Icon(Icons.play_circle_outline),
-                    label: 'Now Playing')
+                    title: Text('Now Playing'))
               ],
             ),
           ),
