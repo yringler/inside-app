@@ -41,7 +41,7 @@ dependencies:
   inside_api:
     git:
       url: https://github.com/yringler/inside-api.git
-      ref: f94079dab79822599a17347da666a75aedf5dee1
+      ref: 5bfd314d9ac1aadcf2d546c67a2f1176f67f8688
   #  path: ../inside-api
   just_audio_service:
     git:
@@ -49,8 +49,8 @@ dependencies:
       ref: 4d51aa4fe2c90456f7797cd54db28fdff67830e0
     #path: ../just_audio_service
 dev_dependencies:
-    hive_generator: ^0.7.1
-   # build_runner: 1.10.0 # https://stackoverflow.com/a/63315768
+  hive_generator: ^0.7.1
+  # build_runner: 1.10.0 # https://stackoverflow.com/a/63315768
 dependency_overrides:
   #analyzer: 0.39.14 # https://stackoverflow.com/a/63315768
   flutter_breadcrumb_menu:
@@ -63,7 +63,6 @@ dependency_overrides:
 
 # The following section is specific to Flutter.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
