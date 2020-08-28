@@ -9,18 +9,17 @@ class LessonRoute extends StatelessWidget {
   static const String routeName = "/library/lessons";
 
   final MediaSection lesson;
-  final int sectionId;
 
   final List<Bread> breads;
 
-  LessonRoute({this.lesson, @required this.sectionId, @required this.breads});
+  LessonRoute({this.lesson, @required this.breads});
 
   @override
   Widget build(BuildContext context) => Padding(
         padding: EdgeInsets.symmetric(horizontal: 8).copyWith(top: 8),
         child: MediaList(
           media: lesson.media,
-          sectionId: sectionId,
+          sectionId: lesson.parentId,
           leadingWidget: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

@@ -27,12 +27,21 @@ class LessonTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Navigator(
         key: navigatorKey,
-        observers: [BreadcrumbsNavigateUpdater(service: breadService)],
         onGenerateRoute: (settings) {
           WidgetBuilder builder;
-          SiteDataItem data;
+          SiteDataItem data = settings.arguments;
 
           bool isMediaButtonsShowing = false;
+
+          final isRoot = settings.name == '/' ||
+              settings.name == PrimarySectionsRoute.routeName;
+
+          if (isRoot) {
+            breadService.clear();
+          } else {
+            breadService.setCurrentBread(
+                routeName: settings.name, siteData: data);
+          }
 
           final breads = List<Bread>.from(breadService.breads);
 
@@ -42,23 +51,14 @@ class LessonTab extends StatelessWidget {
               builder = (context) => PrimarySectionsRoute();
               break;
             case SecondarySectionRoute.routeName:
-              data = settings.arguments;
               builder = (context) =>
                   SecondarySectionRoute(section: data, breads: breads);
               break;
             case LessonRoute.routeName:
-              data = settings.arguments;
-              MediaSection dataSection = data;
-              // See comment in section-content-list.dart about this. Basically,
-              // I set parent ID to section ID over there.
-              // Which is it's intended usage... maybe I should rename it.
-              builder = (context) => LessonRoute(
-                  lesson: dataSection,
-                  sectionId: dataSection.parentId,
-                  breads: breads);
+              builder =
+                  (context) => LessonRoute(lesson: data, breads: breads);
               break;
             case TernarySectionRoute.routeName:
-              data = settings.arguments;
               builder = (context) => TernarySectionRoute(
                     section: data,
                     breads: breads,
@@ -66,7 +66,6 @@ class LessonTab extends StatelessWidget {
               break;
             case PlayerRoute.routeName:
               isMediaButtonsShowing = true;
-              data = settings.arguments;
               builder = (context) => PlayerRoute(media: data);
               break;
             default:
@@ -75,18 +74,6 @@ class LessonTab extends StatelessWidget {
 
           BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
               .isOtherButtonsShowing(isShowing: isMediaButtonsShowing);
-
-          final isRoot = settings.name == '/' ||
-              settings.name == PrimarySectionsRoute.routeName;
-
-          if (isRoot) {
-            breadService.clear();
-          } else {
-            breadService.setCurrentBread(
-                routeName: settings.name,
-                argument: settings.arguments,
-                label: data.title);
-          }
 
           onRouteChange(settings);
 
@@ -98,33 +85,4 @@ class LessonTab extends StatelessWidget {
         },
         initialRoute: PrimarySectionsRoute.routeName,
       );
-}
-
-/// Ensures that, if user uses back button to go to parent section, further bread
-/// crumbs are built from the parent point, not appended to previous child section.
-class BreadcrumbsNavigateUpdater extends NavigatorObserver {
-  final BreadcrumbService service;
-
-  BreadcrumbsNavigateUpdater({@required this.service});
-
-  @override
-  void didPop(Route<dynamic> route, Route<dynamic> previousRoute) {
-    if (route.settings.arguments != null) {
-      // We don't know wether previous or current route are parent or child.
-      // So remove untill whichever is higher, and than add bread for current screen.
-      service.removeUntil(
-          route: route.settings.name, argument: route.settings.arguments);
-      service.removeUntil(
-          route: previousRoute.settings.name,
-          argument: previousRoute.settings.arguments);
-
-      service.setCurrentBread(
-          routeName: previousRoute.settings.name,
-          argument: previousRoute.settings.arguments,
-          label: (previousRoute.settings.arguments as SiteDataItem).title);
-    } else if (route.settings.name == '/' ||
-        route.settings.name == PrimarySectionsRoute.routeName) {
-      service.clear();
-    }
-  }
 }

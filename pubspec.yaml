@@ -41,7 +41,7 @@ dependencies:
   inside_api:
     git:
       url: https://github.com/yringler/inside-api.git
-      ref: c2d78110ba241e822f7a2de4f8a41a42097941f7
+      ref: 33912a3273e106ef205ee7c2819e4aff53599601
   #  path: ../inside-api
   just_audio_service:
     git:

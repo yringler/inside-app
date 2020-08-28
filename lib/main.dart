@@ -209,12 +209,23 @@ Future<SiteBoxes> getBoxes() async {
   final servicePath = '${boxPath.path}/siteservice_hive';
   Hive.init('${boxPath.path}/insideapp');
 
-  var hasData = await compute(_ensureDataLoaded, [servicePath]);
+  final box = await Hive.openBox('settings');
+
+  // Be careful not to open up data which is no longer valid.
+
+  final appDataVersion = box.get('version', defaultValue: 0);
+  bool hasData = appDataVersion >= dataVersion;
+
+  if (hasData) {
+    hasData = await compute(_ensureDataLoaded, [servicePath]);
+  }
 
   // Only load the huge json file if we don't already have the data.
   if (!hasData) {
+    // Assume that the data bundled with the app is of the correct version.
     final rawData = await rootBundle.loadString('assets/site.json');
     await compute(_ensureDataLoaded, [servicePath, rawData]);
+    box.put('version', dataVersion);
   }
 
   return await getSiteBoxesWithData(hivePath: servicePath);
