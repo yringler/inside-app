@@ -22,13 +22,16 @@ class TernarySectionRoute extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Breadcrumb(breads: breads),
-          if (section.description?.isNotEmpty ?? false)
+          // Only show the description if we don't already have it in the bread
+          // crumbs.
+          if ((section.description?.isNotEmpty ?? false) &&
+              section.description != breads.last.label)
             textIfNotEmpty(section.description)
         ],
       ),
       sectionBuilder: (context, section) => InsideNavigator(
             data: section,
-            child: section.title == breads.last.label ? null : _tile(section),
+            child: _tile(section),
             routeName: TernarySectionRoute.routeName,
           ),
       lessonBuilder: (context, lesson) => _tile(lesson),
