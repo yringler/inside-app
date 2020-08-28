@@ -28,7 +28,7 @@
 .pub-cache/
 .pub/
 /build/
-*.g.dart
+#*.g.dart For now, must be created in seperate project. IDK.
 
 # Android related
 **/android/**/gradle-wrapper.jar
