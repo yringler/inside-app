@@ -47,7 +47,10 @@ class BreadcrumbService extends BlocBase {
   /// the parent bread of newly added is always the real parent.
   /// Prevents issues when navigation is from hardware back button.
   void ensureLastHasId(int id) {
-    if (id != 0 && id != null) {
+    // If we're at a top level section, clear the breadcrumbs.
+    if (id == 0 || id == null) {
+      clear();
+    } else {
       while (breads.isNotEmpty && breads.last.arguments.id != id) {
         breads.removeLast();
       }
