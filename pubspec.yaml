@@ -56,7 +56,7 @@ dependency_overrides:
   flutter_breadcrumb_menu:
     git:
       url: https://github.com/yringler/flutter-breadcrumb-menu
-      ref: 9a6a94d3ea33a3cb83d790ce5ac14722cc1e4907
+      ref: f407152479029ef0194cd51885a7478ab4a46aef
   #  path: ../flutter-breadcrumb-menu
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
