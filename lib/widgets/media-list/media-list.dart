@@ -5,8 +5,9 @@ import 'package:inside_chassidus/widgets/media-list/media-item.dart';
 class MediaList extends StatelessWidget {
   final Widget leadingWidget;
   final List<Media> media;
+  final int sectionId;
 
-  MediaList({this.media, this.leadingWidget});
+  MediaList({this.media, this.leadingWidget, @required this.sectionId});
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +29,7 @@ class MediaList extends StatelessWidget {
 
           return MediaItem(
             media: this.media[i],
+            sectionId: this.sectionId,
             fallbackTitle: "Lesson ${i + 1}",
           );
         },

@@ -1,35 +1,35 @@
+import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/routes/player-route/widgets/index.dart';
-import 'package:inside_chassidus/widgets/home-button.dart';
+import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar.dart';
 
 class PlayerRoute extends StatelessWidget {
-  static const String routeName = 'playerroute';
+  static const String routeName = '/library/playerroute';
 
   final Media media;
 
   PlayerRoute({this.media});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(
-        actions: <Widget>[HomeButton()],
-      ),
-      body: Container(
+  Widget build(BuildContext context) => Container(
         padding: EdgeInsets.all(8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             ..._title(context, media),
             _description(context),
+            _favoriteButton(),
             ProgressBar(
               media: media,
             ),
-            AudioButtonBar(mediaSource: media.source)
+            AudioButtonBar(
+              media: media,
+            )
           ],
         ),
-      ));
+      );
 
   /// Returns lesson title and media title.
   /// If the media doesn't have a title, just returns lesson title as title.
@@ -74,4 +74,22 @@ class PlayerRoute extends StatelessWidget {
           ),
         ),
       );
+
+  Widget _favoriteButton() {
+    final chosenService = BlocProvider.getDependency<ChosenClassService>();
+
+    return chosenService.isFavoriteValueListenableBuilder(
+      media.source,
+      builder: (context, isFavorite) => Center(
+        child: IconButton(
+          onPressed: () =>
+              chosenService.set(source: media, isFavorite: !isFavorite),
+          icon: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.red : null,
+          ),
+        ),
+      ),
+    );
+  }
 }

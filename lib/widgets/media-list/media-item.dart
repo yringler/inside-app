@@ -7,9 +7,12 @@ import 'package:inside_chassidus/widgets/media-list/play-button.dart';
 
 class MediaItem extends StatelessWidget {
   final Media media;
+  final int sectionId;
   final String fallbackTitle;
 
-  MediaItem({this.media, this.fallbackTitle});
+  MediaItem({this.media, this.fallbackTitle, @required this.sectionId}) {
+    media.parentId = sectionId;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +47,7 @@ class MediaItem extends StatelessWidget {
         ),
         subtitle: subtitle,
         trailing: PlayButton(
-          mediaSource: media.source,
+          media: media,
           onPressed: onPressed,
         ),
       ),
