@@ -1,6 +1,10 @@
 name: inside_chassidus
 description: A new Flutter project.
 
+# The following line prevents the package from being accidentally published to
+# pub.dev using `pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
 # followed by an optional build number separated by a +.
@@ -14,7 +18,7 @@ description: A new Flutter project.
 version: 2.5.0+12
 
 environment:
-  sdk: ">=2.9.1 <3.0.0"
+  sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -31,9 +35,9 @@ dependencies:
   path_provider: ^1.4.0
   font_awesome_flutter: ^8.5.0
   audio_service: ^0.10.0
-  firebase_core: ^0.4.4+2
-  firebase_analytics: ^5.0.11
-  firebase_crashlytics: ^0.1.3
+  firebase_core: ^0.5.0
+  firebase_analytics: ^6.0.0
+  firebase_crashlytics: ^0.2.0-dev.5
   dart_extensions: ^1.0.1
   hive: ^1.4.3
   hive_flutter: ^0.3.1
@@ -58,11 +62,13 @@ dependency_overrides:
       url: https://github.com/yringler/flutter-breadcrumb-menu
       ref: f407152479029ef0194cd51885a7478ab4a46aef
   #  path: ../flutter-breadcrumb-menu
+
 # For information on the generic Dart part of this file, see the
-# following page: https://www.dartlang.org/tools/pub/pubspec
+# following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter.
 flutter:
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -70,3 +76,29 @@ flutter:
 
   assets:
     - assets/
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/assets-and-images/#resolution-aware.
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/assets-and-images/#from-packages
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
+  #   - family: Trajan Pro
+  #     fonts:
+  #       - asset: fonts/TrajanPro.ttf
+  #       - asset: fonts/TrajanPro_Bold.ttf
+  #         weight: 700
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/custom-fonts/#from-packages
