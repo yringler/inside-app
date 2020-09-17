@@ -34,7 +34,7 @@ dependencies:
   bloc_pattern: ^2.5.1
   path_provider: ^1.4.0
   font_awesome_flutter: ^8.5.0
-  audio_service: ^0.10.0
+  audio_service: ^0.15.0
   firebase_core: ^0.5.0
   firebase_analytics: ^6.0.0
   firebase_crashlytics: ^0.2.0-dev.5
@@ -50,7 +50,7 @@ dependencies:
   just_audio_service:
     git:
       url: https://github.com/yringler/just_audio_service.git
-      ref: 4d51aa4fe2c90456f7797cd54db28fdff67830e0
+      ref: 78fb4bb27ee771a409310ca993b2e9c23c43971c
     #path: ../just_audio_service
 dev_dependencies:
   hive_generator: ^0.7.1

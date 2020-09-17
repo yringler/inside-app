@@ -35,7 +35,14 @@ packages:
       name: audio_service
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.0"
+    version: "0.15.0"
+  audio_session:
+    dependency: transitive
+    description:
+      name: audio_session
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.7"
   bloc_pattern:
     dependency: "direct main"
     description:
@@ -373,13 +380,13 @@ packages:
       name: just_audio
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.0"
+    version: "0.4.4"
   just_audio_service:
     dependency: "direct main"
     description:
       path: "."
-      ref: "4d51aa4fe2c90456f7797cd54db28fdff67830e0"
-      resolved-ref: "4d51aa4fe2c90456f7797cd54db28fdff67830e0"
+      ref: "78fb4bb27ee771a409310ca993b2e9c23c43971c"
+      resolved-ref: "78fb4bb27ee771a409310ca993b2e9c23c43971c"
       url: "https://github.com/yringler/just_audio_service.git"
     source: git
     version: "0.0.1"

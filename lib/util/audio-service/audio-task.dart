@@ -13,8 +13,8 @@ class LoggingAudioTask extends AudioTaskDecorater {
   Future<void> onStart(Map<String, dynamic> params) async {
     // Log an analytics event when a lesson is finished.
     // Note that if someone listens to the same class 3 times in a row, it is only logged once.
-    final logCompletedSubscription = context.mediaPlayer.playbackStateStream
-        .where((state) => state == AudioPlaybackState.completed)
+    final logCompletedSubscription = context.mediaPlayer.playerStateStream
+        .where((state) => state.processingState == ProcessingState.completed)
         .map((state) => context.mediaItem.id)
         .distinct()
         .listen((id) => analytics.logEvent(
