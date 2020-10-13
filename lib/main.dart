@@ -118,7 +118,7 @@ class MyAppState extends State<MyApp> {
                     color: Colors.brown,
                   ),
                   icon: Icon(Icons.home),
-                  title: Text('Home'),
+                  label: 'Home',
                 ),
                 BottomNavigationBarItem(
                   activeIcon: Icon(
@@ -126,7 +126,7 @@ class MyAppState extends State<MyApp> {
                     color: Colors.blue,
                   ),
                   icon: Icon(Icons.queue_music),
-                  title: Text('Recent'),
+                  label: 'Recent',
                 ),
                 BottomNavigationBarItem(
                     activeIcon: Icon(
@@ -134,14 +134,14 @@ class MyAppState extends State<MyApp> {
                       color: Colors.red,
                     ),
                     icon: Icon(Icons.favorite),
-                    title: Text('Bookmarked')),
+                    label: 'Bookmarked'),
                 BottomNavigationBarItem(
                     activeIcon: Icon(
                       Icons.play_circle_filled,
                       color: Colors.black,
                     ),
                     icon: Icon(Icons.play_circle_outline),
-                    title: Text('Now Playing'))
+                    label: 'Now Playing')
               ],
             ),
           ),
