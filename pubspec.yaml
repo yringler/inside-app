@@ -26,9 +26,9 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^0.1.2
+  cupertino_icons: ^1.0.0
   json_annotation: ^3.0.1
-  expandable: ^3.0.0
+  expandable: ^4.1.4
   cached_network_image: ^2.0.0-rc.1
   rxdart: ^0.24.0
   bloc_pattern: ^2.5.1
@@ -50,10 +50,10 @@ dependencies:
   just_audio_service:
     git:
       url: https://github.com/yringler/just_audio_service.git
-      ref: 78fb4bb27ee771a409310ca993b2e9c23c43971c
+      ref: 70de2c6582a710317c4e976192dfaf4f6ab0c836
     #path: ../just_audio_service
 dev_dependencies:
-  hive_generator: ^0.7.1
+  hive_generator: ^0.8.1
   # build_runner: 1.10.0 # https://stackoverflow.com/a/63315768
 dependency_overrides:
   #analyzer: 0.39.14 # https://stackoverflow.com/a/63315768
