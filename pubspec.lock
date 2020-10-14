@@ -398,11 +398,9 @@ packages:
   just_audio_service:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "70de2c6582a710317c4e976192dfaf4f6ab0c836"
-      resolved-ref: "70de2c6582a710317c4e976192dfaf4f6ab0c836"
-      url: "https://github.com/yringler/just_audio_service.git"
-    source: git
+      path: "../just_audio_service"
+      relative: true
+    source: path
     version: "0.0.1"
   logging:
     dependency: transitive

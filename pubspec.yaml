@@ -48,10 +48,10 @@ dependencies:
       ref: 5bfd314d9ac1aadcf2d546c67a2f1176f67f8688
   #  path: ../inside-api
   just_audio_service:
-    git:
-      url: https://github.com/yringler/just_audio_service.git
-      ref: 70de2c6582a710317c4e976192dfaf4f6ab0c836
-    #path: ../just_audio_service
+    #git:
+    #  url: https://github.com/yringler/just_audio_service.git
+    #  ref: 70de2c6582a710317c4e976192dfaf4f6ab0c836
+    path: ../just_audio_service
 dev_dependencies:
   hive_generator: ^0.8.1
   # build_runner: 1.10.0 # https://stackoverflow.com/a/63315768
