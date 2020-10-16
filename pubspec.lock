@@ -175,7 +175,7 @@ packages:
       name: firebase
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "7.3.1"
+    version: "7.3.2"
   firebase_analytics:
     dependency: "direct main"
     description:
@@ -466,7 +466,7 @@ packages:
       name: path_provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.6.18"
+    version: "1.6.21"
   path_provider_linux:
     dependency: transitive
     description:
