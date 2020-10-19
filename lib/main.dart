@@ -4,10 +4,10 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:dart_extensions/dart_extensions.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive/hive.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_api/site-service.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -26,20 +26,21 @@ import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart'
 import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
 
 void main() async {
-  // Set `enableInDevMode` to true to see reports while in debug mode
-  // This is only to be used for confirming that reports are being
-  // submitted as expected. It is not intended to be used for everyday
-  // development.
-  Crashlytics.instance.enableInDevMode = false;
-
-  // Pass all uncaught errors from the framework to Crashlytics.
-
-  FlutterError.onError = Crashlytics.instance.recordFlutterError;
-
   runApp(MaterialApp(
       home: Scaffold(
     body: Center(child: CircularProgressIndicator()),
   )));
+
+  await Firebase.initializeApp();
+
+  // Set `enableInDevMode` to true to see reports while in debug mode
+  // This is only to be used for confirming that reports are being
+  // submitted as expected. It is not intended to be used for everyday
+  // development.
+  FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+
+  // Pass all uncaught errors from the framework to Crashlytics.
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
 
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -81,71 +82,72 @@ class MyAppState extends State<MyApp> {
   final BreadcrumbService _breadcrumbService = BreadcrumbService();
 
   @override
-  Widget build(BuildContext context) => AudioServiceWidget(
-          child: MaterialApp(
+  Widget build(BuildContext context) => MaterialApp(
         debugShowCheckedModeBanner: false,
         title: appTitle,
         theme: ThemeData(primarySwatch: Colors.grey),
-        home: WillPopScope(
-          onWillPop: () async =>
-              !await lessonNavigatorKey.currentState.maybePop(),
-          child: Scaffold(
-            appBar: AppBar(title: Text('Inside Chassidus')),
-            body: AudioButtonbarAwareBody(
-                body: Stack(
-              children: [
-                Offstage(
-                  offstage: _currentTabIndex != 0,
-                  child: LessonTab(
-                    navigatorKey: lessonNavigatorKey,
-                    onRouteChange: _onLessonRouteChange,
-                    breadService: _breadcrumbService,
-                  ),
-                ),
-                if (_currentTabIndex != 0) Material(child: _getCurrentTab())
-              ],
-            )),
-            bottomSheet: CurrentMediaButtonBar(),
-            bottomNavigationBar: BottomNavigationBar(
-              type: BottomNavigationBarType.fixed,
-              currentIndex: _currentTabIndex,
-              onTap: _onBottomNavigationTap,
-              items: <BottomNavigationBarItem>[
-                BottomNavigationBarItem(
-                  activeIcon: Icon(
-                    Icons.home,
-                    color: Colors.brown,
-                  ),
-                  icon: Icon(Icons.home),
-                  title: Text('Home'),
-                ),
-                BottomNavigationBarItem(
-                  activeIcon: Icon(
-                    Icons.queue_music,
-                    color: Colors.blue,
-                  ),
-                  icon: Icon(Icons.queue_music),
-                  title: Text('Recent'),
-                ),
-                BottomNavigationBarItem(
-                    activeIcon: Icon(
-                      Icons.favorite,
-                      color: Colors.red,
+        home: AudioServiceWidget(
+          child: WillPopScope(
+            onWillPop: () async =>
+                !await lessonNavigatorKey.currentState.maybePop(),
+            child: Scaffold(
+              appBar: AppBar(title: Text('Inside Chassidus')),
+              body: AudioButtonbarAwareBody(
+                  body: Stack(
+                children: [
+                  Offstage(
+                    offstage: _currentTabIndex != 0,
+                    child: LessonTab(
+                      navigatorKey: lessonNavigatorKey,
+                      onRouteChange: _onLessonRouteChange,
+                      breadService: _breadcrumbService,
                     ),
-                    icon: Icon(Icons.favorite),
-                    title: Text('Bookmarked')),
-                BottomNavigationBarItem(
+                  ),
+                  if (_currentTabIndex != 0) Material(child: _getCurrentTab())
+                ],
+              )),
+              bottomSheet: CurrentMediaButtonBar(),
+              bottomNavigationBar: BottomNavigationBar(
+                type: BottomNavigationBarType.fixed,
+                currentIndex: _currentTabIndex,
+                onTap: _onBottomNavigationTap,
+                items: <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(
                     activeIcon: Icon(
-                      Icons.play_circle_filled,
-                      color: Colors.black,
+                      Icons.home,
+                      color: Colors.brown,
                     ),
-                    icon: Icon(Icons.play_circle_outline),
-                    title: Text('Now Playing'))
-              ],
+                    icon: Icon(Icons.home),
+                    label: 'Home',
+                  ),
+                  BottomNavigationBarItem(
+                    activeIcon: Icon(
+                      Icons.queue_music,
+                      color: Colors.blue,
+                    ),
+                    icon: Icon(Icons.queue_music),
+                    label: 'Recent',
+                  ),
+                  BottomNavigationBarItem(
+                      activeIcon: Icon(
+                        Icons.favorite,
+                        color: Colors.red,
+                      ),
+                      icon: Icon(Icons.favorite),
+                      label: 'Bookmarked'),
+                  BottomNavigationBarItem(
+                      activeIcon: Icon(
+                        Icons.play_circle_filled,
+                        color: Colors.black,
+                      ),
+                      icon: Icon(Icons.play_circle_outline),
+                      label: 'Now Playing')
+                ],
+              ),
             ),
           ),
         ),
-      ));
+      );
 
   void _onBottomNavigationTap(value) {
     // If the home button is pressed when already on home section, we show the
