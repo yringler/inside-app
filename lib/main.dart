@@ -21,6 +21,7 @@ import 'package:inside_chassidus/util/bread-crumb-service.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
+import 'package:just_audio_service/download-manager/download-manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart';
 import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
@@ -46,13 +47,16 @@ void main() async {
 
   final siteBoxes = await getBoxes();
   final chosenService = await ChosenClassService.create();
+  final downloadManager = ForgroundDownloadManager();
+  await downloadManager.init();
 
   runApp(BlocProvider(
     dependencies: [
       Dependency(
           (i) => PositionManager(positionDataManager: PositionDataManager())),
       Dependency((i) => siteBoxes),
-      Dependency((i) => chosenService)
+      Dependency((i) => chosenService),
+      Dependency((i) => downloadManager)
     ],
     blocs: [Bloc((i) => IsPlayerButtonsShowingBloc())],
     child: MyApp(),

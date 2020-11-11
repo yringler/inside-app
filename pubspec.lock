@@ -260,6 +260,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.4.2"
+  flutter_downloader:
+    dependency: transitive
+    description:
+      name: flutter_downloader
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.5.2"
   flutter_isolate:
     dependency: transitive
     description:
@@ -399,8 +406,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: b74232bb5b4ad96c8a9f8cf42960cb9f25756c2e
-      resolved-ref: b74232bb5b4ad96c8a9f8cf42960cb9f25756c2e
+      ref: fc98dc7127c580603012568acf8d4ba623b6770d
+      resolved-ref: fc98dc7127c580603012568acf8d4ba623b6770d
       url: "https://github.com/yringler/just_audio_service.git"
     source: git
     version: "0.0.1"
@@ -556,6 +563,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  slugify:
+    dependency: transitive
+    description:
+      name: slugify
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   source_gen:
     dependency: transitive
     description:
