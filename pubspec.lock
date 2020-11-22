@@ -406,8 +406,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: fc98dc7127c580603012568acf8d4ba623b6770d
-      resolved-ref: fc98dc7127c580603012568acf8d4ba623b6770d
+      ref: "9d20121c01a1b4b6b3db57c0aa94f5dd0d910a45"
+      resolved-ref: "9d20121c01a1b4b6b3db57c0aa94f5dd0d910a45"
       url: "https://github.com/yringler/just_audio_service.git"
     source: git
     version: "0.0.1"

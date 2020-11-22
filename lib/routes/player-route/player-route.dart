@@ -4,6 +4,8 @@ import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/routes/player-route/widgets/index.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar.dart';
+import 'package:just_audio_service/download-manager/download-manager.dart';
+import 'package:just_audio_service/widgets/download-button.dart';
 
 class PlayerRoute extends StatelessWidget {
   static const String routeName = '/library/playerroute';
@@ -20,7 +22,22 @@ class PlayerRoute extends StatelessWidget {
           children: <Widget>[
             ..._title(context, media),
             _description(context),
-            _favoriteButton(),
+            Theme(
+              data: Theme.of(context).copyWith(
+                iconTheme: IconThemeData(size: 30),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _favoriteButton(context),
+                  DownloadButton(
+                    audioUrl: media.source,
+                    downloadManager:
+                        BlocProvider.getDependency<ForgroundDownloadManager>(),
+                  )
+                ],
+              ),
+            ),
             ProgressBar(
               media: media,
             ),
@@ -75,13 +92,14 @@ class PlayerRoute extends StatelessWidget {
         ),
       );
 
-  Widget _favoriteButton() {
+  Widget _favoriteButton(BuildContext context) {
     final chosenService = BlocProvider.getDependency<ChosenClassService>();
 
     return chosenService.isFavoriteValueListenableBuilder(
       media.source,
       builder: (context, isFavorite) => Center(
         child: IconButton(
+          iconSize: Theme.of(context).iconTheme.size,
           onPressed: () =>
               chosenService.set(source: media, isFavorite: !isFavorite),
           icon: Icon(

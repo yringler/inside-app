@@ -47,7 +47,7 @@ void main() async {
 
   final siteBoxes = await getBoxes();
   final chosenService = await ChosenClassService.create();
-  final downloadManager = ForgroundDownloadManager();
+  final downloadManager = ForgroundDownloadManager(maxDownloads: 10);
   await downloadManager.init();
 
   runApp(BlocProvider(
