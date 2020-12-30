@@ -19,6 +19,7 @@ import 'package:inside_chassidus/tabs/now-playing-tab.dart';
 import 'package:inside_chassidus/tabs/recent-tab.dart';
 import 'package:inside_chassidus/util/bread-crumb-service.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
+import 'package:inside_chassidus/util/library-navigator.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 import 'package:just_audio_service/download-manager/download-manager.dart';
@@ -48,6 +49,7 @@ void main() async {
   final siteBoxes = await getBoxes();
   final chosenService = await ChosenClassService.create();
   final downloadManager = ForgroundDownloadManager(maxDownloads: 10);
+  final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
   await downloadManager.init();
 
   runApp(BlocProvider(
@@ -56,7 +58,8 @@ void main() async {
           (i) => PositionManager(positionDataManager: PositionDataManager())),
       Dependency((i) => siteBoxes),
       Dependency((i) => chosenService),
-      Dependency((i) => downloadManager)
+      Dependency((i) => downloadManager),
+      Dependency((i) => libraryPositionService)
     ],
     blocs: [Bloc((i) => IsPlayerButtonsShowingBloc())],
     child: MyApp(),
