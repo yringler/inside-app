@@ -1,4 +1,3 @@
-import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_api/site-service.dart';
@@ -35,6 +34,16 @@ class LibraryPositionService extends ChangeNotifier {
 
     notifyListeners();
     return sections;
+  }
+
+  bool removeLast() {
+    if (sections.isNotEmpty) {
+      sections.removeLast();
+      notifyListeners();
+      return true;
+    }
+
+    return false;
   }
 
   /// Clear the saved list, and reset to the given item and all of its parents.

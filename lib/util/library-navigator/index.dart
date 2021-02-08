@@ -22,6 +22,13 @@ class LibraryNavigator extends RouterDelegate
   @override
   Widget build(BuildContext context) => Navigator(
         key: navigatorKey,
+        onPopPage: (route, result) {
+          if (!route.didPop(result)) {
+            return false;
+          }
+
+          return appState.removeLast();
+        },
         pages: [
           for (final book
               in appState.sections.where((section) => section.wasNavigatedTo))

@@ -17,9 +17,8 @@ import 'package:inside_chassidus/tabs/favorites-tab.dart';
 import 'package:inside_chassidus/tabs/lesson-tab/lesson-tab.dart';
 import 'package:inside_chassidus/tabs/now-playing-tab.dart';
 import 'package:inside_chassidus/tabs/recent-tab.dart';
-import 'package:inside_chassidus/util/bread-crumb-service.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
-import 'package:inside_chassidus/util/library-navigator.dart';
+import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 import 'package:just_audio_service/download-manager/download-manager.dart';
@@ -86,7 +85,26 @@ class MyAppState extends State<MyApp> {
 
   bool _lessonRouteOnRoot = true;
 
-  final BreadcrumbService _breadcrumbService = BreadcrumbService();
+  final positionService = BlocProvider.getDependency<LibraryPositionService>();
+
+  MyAppState() {
+    positionService.addListener(onLibraryPositionChange);
+  }
+
+  /// Hide the global media controls if on media player route.
+  onLibraryPositionChange() {
+    final last = positionService.sections.lastOrNull;
+    final isMediaButtonsShowing = last != null && last is Media;
+
+    BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
+        .isOtherButtonsShowing(isShowing: isMediaButtonsShowing);
+  }
+
+  @override
+  void dispose() {
+    positionService.removeListener(onLibraryPositionChange);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -106,8 +124,7 @@ class MyAppState extends State<MyApp> {
                     offstage: _currentTabIndex != 0,
                     child: LessonTab(
                       navigatorKey: lessonNavigatorKey,
-                      onRouteChange: _onLessonRouteChange,
-                      breadService: _breadcrumbService,
+                      isActive: _currentTabIndex == 0,
                     ),
                   ),
                   if (_currentTabIndex != 0) Material(child: _getCurrentTab())
@@ -174,27 +191,6 @@ class MyAppState extends State<MyApp> {
     setState(() {
       _currentTabIndex = value;
     });
-  }
-
-  /// Send firebase analytics page view event.
-  void _onLessonRouteChange(RouteSettings routeData) {
-    _lessonRouteOnRoot = routeData.name == PrimarySectionsRoute.routeName;
-
-    String screenName = routeData.name;
-    SiteDataItem data =
-        routeData.arguments == null ? null : routeData.arguments;
-
-    if (data != null) {
-      screenName += "/" + data.title;
-
-      if (data is Media) {
-        final Media media = data;
-        screenName += "/" + media.title ?? media.source;
-      }
-    }
-
-    MyApp.analytics
-        .setCurrentScreen(screenName: screenName.limitFromStart(100));
   }
 
   Widget _getCurrentTab() {
