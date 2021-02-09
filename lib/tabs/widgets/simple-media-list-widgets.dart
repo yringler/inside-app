@@ -13,9 +13,13 @@ class MediaListTabRoute extends ChangeNotifier {
   }
 
   clear() {
-    final hadMedia = media != null;
+    final hadMedia = hasMedia();
     media = null;
-    notifyListeners();
+
+    if (hadMedia) {
+      notifyListeners();
+    }
+
     return hadMedia;
   }
 
