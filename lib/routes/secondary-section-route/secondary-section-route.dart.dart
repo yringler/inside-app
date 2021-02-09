@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/widgets/index.dart';
-import 'package:inside_chassidus/routes/ternary-section-route.dart';
 import 'package:inside_chassidus/widgets/inside-breadcrumbs.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
 import 'package:inside_chassidus/widgets/media-list/media-item.dart';

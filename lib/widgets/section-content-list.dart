@@ -2,7 +2,6 @@ import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_api/site-service.dart';
-import 'package:inside_chassidus/routes/lesson-route/lesson-route.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
 
 typedef Widget InsideDataBuilder<T extends SiteDataItem>(
