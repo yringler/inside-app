@@ -20,9 +20,7 @@ class SecondarySectionRoute extends StatelessWidget {
         leadingWidget: InsideBreadcrumbs(),
         section: section,
         sectionBuilder: (context, section) => InsideNavigator(
-            routeName: TernarySectionRoute.routeName,
-            data: section,
-            child: InsideDataCard(insideData: section)),
+            data: section, child: InsideDataCard(insideData: section)),
         lessonBuilder: (context, lesson) => InsideDataCard(insideData: lesson),
         mediaBuilder: (context, media) => MediaItem(
           media: media,

@@ -84,7 +84,6 @@ class SectionContentList extends StatelessWidget {
 
     return InsideNavigator(
       child: lessonBuilder(context, lesson),
-      routeName: LessonRoute.routeName,
       data: lesson,
     );
   }

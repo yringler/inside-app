@@ -23,8 +23,7 @@ class TernarySectionRoute extends StatelessWidget {
       ),
       sectionBuilder: (context, section) => InsideNavigator(
             data: section,
-            child: _tile(section),
-            routeName: TernarySectionRoute.routeName,
+            child: _tile(section)
           ),
       lessonBuilder: (context, lesson) => _tile(lesson),
       mediaBuilder: (context, media) => MediaItem(
