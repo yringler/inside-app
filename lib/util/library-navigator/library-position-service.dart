@@ -2,11 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_api/site-service.dart';
 
+/// A class which hold route data, and allows it to be set.
+/// This is useful when a widget can be a part of a couple diffirent routes, and
+/// needs a generic way to set the route data for the route it's a part of currently.
+///
+/// For example, the media player classes.
+abstract class IRoutDataService {
+  void setActiveItem(SiteDataItem data);
+}
+
 /// Supports setting a new active section.
 /// Stores a list of parents and current item (keeping note if parents weren't
 /// navigated to, e.g. because user navigated from previously played to its section)
 /// a thin abstraction around the page stack for the router
-class LibraryPositionService extends ChangeNotifier {
+class LibraryPositionService extends ChangeNotifier
+    implements IRoutDataService {
   final SiteBoxes siteBoxes;
   List<SitePosition> sections = [];
 
@@ -44,6 +54,13 @@ class LibraryPositionService extends ChangeNotifier {
     }
 
     return false;
+  }
+
+  clear() {
+    if (sections.isNotEmpty) {
+      sections.clear();
+      notifyListeners();
+    }
   }
 
   /// Clear the saved list, and reset to the given item and all of its parents.

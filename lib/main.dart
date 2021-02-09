@@ -177,8 +177,7 @@ class MyAppState extends State<MyApp> {
     // If the home button is pressed when already on home section, we show the
     // lesson tab, but go back to root.
     if (value == 0 && _currentTabIndex == 0 && !_lessonRouteOnRoot) {
-      lessonNavigatorKey.currentState.pushNamedAndRemoveUntil(
-          PrimarySectionsRoute.routeName, (_) => false);
+      positionService.clear();
     }
 
     if (value == _currentTabIndex) {

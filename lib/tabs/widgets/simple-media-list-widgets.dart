@@ -1,13 +1,17 @@
+import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/routes/player-route/index.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
+import 'package:inside_chassidus/util/library-navigator/index.dart';
 
-class MediaListTabRoute extends ChangeNotifier {
+class MediaListTabRoute extends ChangeNotifier implements IRoutDataService {
   Media media;
 
-  setMedia(Media media) {
+  @override
+  setActiveItem(SiteDataItem data) {
+    assert(data is Media);
     this.media = media;
     notifyListeners();
   }
@@ -75,19 +79,24 @@ class MediaListTab extends StatefulWidget {
 
 class MediaListTabState extends State<MediaListTab> {
   @override
-  Widget build(BuildContext context) => Router(
-        backButtonDispatcher: Router.of(context)
-            .backButtonDispatcher
-            .createChildBackButtonDispatcher()
-              ..takePriority(),
-        routerDelegate: MediaListTabNavigator(
-            navigatorKey: widget.navigatorKey,
-            state: widget.mediaTabRoute,
-            chosenDataList: ChosenDataList(
-              data: widget.data,
-              emptyMessage: widget.emptyMessage,
-            )),
-      );
+  Widget build(BuildContext context) => BlocProvider(
+          dependencies: [
+            Dependency<MediaListTabRoute>((i) => widget.mediaTabRoute),
+            Dependency<IRoutDataService>((i) => widget.mediaTabRoute)
+          ],
+          child: Router(
+            backButtonDispatcher: Router.of(context)
+                .backButtonDispatcher
+                .createChildBackButtonDispatcher()
+                  ..takePriority(),
+            routerDelegate: MediaListTabNavigator(
+                navigatorKey: widget.navigatorKey,
+                state: widget.mediaTabRoute,
+                chosenDataList: ChosenDataList(
+                  data: widget.data,
+                  emptyMessage: widget.emptyMessage,
+                )),
+          ));
 }
 
 /// A list of media.
@@ -123,8 +132,8 @@ class ChosenDataList extends StatelessWidget {
                   )
                 : null,
             onTap: () {
-              Navigator.of(context)
-                  .pushNamed(PlayerRoute.routeName, arguments: item.media);
+              BlocProvider.getDependency<MediaListTabRoute>()
+                  .setMedia(item.media);
             },
           );
         });
