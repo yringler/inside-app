@@ -80,23 +80,20 @@ class MediaListTab extends StatefulWidget {
 class MediaListTabState extends State<MediaListTab> {
   @override
   Widget build(BuildContext context) => BlocProvider(
-          dependencies: [
-            Dependency<MediaListTabRoute>((i) => widget.mediaTabRoute),
-            Dependency<IRoutDataService>((i) => widget.mediaTabRoute)
-          ],
-          child: Router(
-            backButtonDispatcher: Router.of(context)
-                .backButtonDispatcher
-                .createChildBackButtonDispatcher()
-                  ..takePriority(),
-            routerDelegate: MediaListTabNavigator(
-                navigatorKey: widget.navigatorKey,
-                state: widget.mediaTabRoute,
-                chosenDataList: ChosenDataList(
-                  data: widget.data,
-                  emptyMessage: widget.emptyMessage,
-                )),
-          ));
+      dependencies: [Dependency<IRoutDataService>((i) => widget.mediaTabRoute)],
+      child: Router(
+        backButtonDispatcher: Router.of(context)
+            .backButtonDispatcher
+            .createChildBackButtonDispatcher()
+              ..takePriority(),
+        routerDelegate: MediaListTabNavigator(
+            navigatorKey: widget.navigatorKey,
+            state: widget.mediaTabRoute,
+            chosenDataList: ChosenDataList(
+              data: widget.data,
+              emptyMessage: widget.emptyMessage,
+            )),
+      ));
 }
 
 /// A list of media.
@@ -132,8 +129,8 @@ class ChosenDataList extends StatelessWidget {
                   )
                 : null,
             onTap: () {
-              BlocProvider.getDependency<MediaListTabRoute>()
-                  .setMedia(item.media);
+              BlocProvider.getDependency<IRoutDataService>()
+                  .setActiveItem(item.media);
             },
           );
         });
