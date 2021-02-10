@@ -67,15 +67,17 @@ void main() async {
 
 /// Wraps the app in a root router.
 class AppRouterWidget extends StatelessWidget {
-  final routerKey = GlobalKey();
+  final routerKey = GlobalKey<NavigatorState>();
 
   @override
-  Widget build(BuildContext context) => MaterialApp.router(
-        routerDelegate: AppRouterDelegate(navigatorKey: routerKey),
-        routeInformationParser: null,
+  Widget build(BuildContext context) => MaterialApp(
         debugShowCheckedModeBanner: false,
         title: appTitle,
         theme: ThemeData(primarySwatch: Colors.grey),
+        home: Router(
+          routerDelegate: AppRouterDelegate(navigatorKey: routerKey),
+          backButtonDispatcher: RootBackButtonDispatcher(),
+        ),
       );
 }
 

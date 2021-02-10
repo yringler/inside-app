@@ -30,6 +30,9 @@ class LibraryNavigator extends RouterDelegate
           return appState.removeLast();
         },
         pages: [
+          MaterialPage(
+              key: ValueKey("PrimarySectionsRoute"),
+              child: PrimarySectionsRoute()),
           for (final book
               in appState.sections.where((section) => section.wasNavigatedTo))
             MaterialPage(
@@ -42,17 +45,10 @@ class LibraryNavigator extends RouterDelegate
   Future<void> setNewRoutePath(configuration) async {}
 
   Widget getChild(SitePosition book) {
-    if (book.data is Media) {
-      return PlayerRoute(media: book.data);
-    }
-
-    switch (book.level) {
-      case 0:
-        return PrimarySectionsRoute();
-      case 1:
-        return SecondarySectionRoute(
-          section: book.data,
-        );
+    if (book.level == 0) {
+      return SecondarySectionRoute(
+        section: book.data,
+      );
     }
 
     switch (book.data.runtimeType) {
@@ -64,6 +60,8 @@ class LibraryNavigator extends RouterDelegate
         return LessonRoute(
           lesson: book.data,
         );
+      case Media:
+        return PlayerRoute(media: book.data);
     }
 
     throw new ArgumentError.value(book, 'Could not create widget for value');

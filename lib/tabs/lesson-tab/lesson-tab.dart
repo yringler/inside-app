@@ -6,9 +6,7 @@ class LessonTab extends StatelessWidget {
 
   final bool isActive;
 
-  LessonTab(
-      {@required this.navigatorKey,
-      @required this.isActive});
+  LessonTab({@required this.navigatorKey, @required this.isActive});
 
   @override
   Widget build(BuildContext context) {
