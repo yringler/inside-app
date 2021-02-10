@@ -144,9 +144,11 @@ class MyAppState extends State<MyApp> {
             children: [
               Offstage(
                 offstage: _currentTabIndex != 0,
-                child: LessonTab(
-                  navigatorKey: widget.lessonNavigatorKey,
-                  isActive: _currentTabIndex == 0,
+                child: Material(
+                  child: LessonTab(
+                    navigatorKey: widget.lessonNavigatorKey,
+                    isActive: _currentTabIndex == 0,
+                  ),
                 ),
               ),
               if (_currentTabIndex != 0) Material(child: _getCurrentTab())
