@@ -27,7 +27,7 @@ class LibraryPositionService extends ChangeNotifier
   /// Make note that they were never navigated to (and so shouldn't show up
   /// e.g. when user hits back button)
   Future<List<SitePosition>> setActiveItem(SiteDataItem item) async {
-    if (sections.last.data == item) {
+    if (sections.isNotEmpty && sections.last.data == item) {
       return sections;
     }
 
@@ -79,7 +79,7 @@ class LibraryPositionService extends ChangeNotifier
       // This is the case for media which is in a MediaSection. The parentId is set
       // to the MediaSection, and the closestSectionId is the section the MediaSection
       // is in.
-      if (lastItemAdded.closestSectionId != lastItemAdded.parentId) {
+      if (lastItemAdded.parentId != 0 && lastItemAdded.closestSectionId != lastItemAdded.parentId) {
         assert(lastItemAdded is Media);
         final mediaSectionId = lastItemAdded.parentId;
         final parentMediaSection = parentSection.content
