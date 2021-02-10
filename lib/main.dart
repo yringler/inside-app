@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -50,26 +49,60 @@ void main() async {
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
   await downloadManager.init();
 
-  runApp(BlocProvider(
-    dependencies: [
-      Dependency(
-          (i) => PositionManager(positionDataManager: PositionDataManager())),
-      Dependency((i) => siteBoxes),
-      Dependency((i) => chosenService),
-      Dependency((i) => downloadManager),
-      Dependency((i) => libraryPositionService)
-    ],
-    blocs: [Bloc((i) => IsPlayerButtonsShowingBloc())],
-    child: MyApp(),
-  ));
+  runApp(BlocProvider(dependencies: [
+    Dependency(
+        (i) => PositionManager(positionDataManager: PositionDataManager())),
+    Dependency((i) => siteBoxes),
+    Dependency((i) => chosenService),
+    Dependency((i) => downloadManager),
+    Dependency((i) => libraryPositionService)
+  ], blocs: [
+    Bloc((i) => IsPlayerButtonsShowingBloc())
+  ], child: AppRouterWidget()));
 
   await siteBoxes.tryPrepareUpdate();
 
   MyApp.analytics.logAppOpen();
 }
 
+/// Wraps the app in a root router.
+class AppRouterWidget extends StatelessWidget {
+  final routerKey = GlobalKey();
+
+  @override
+  Widget build(BuildContext context) => MaterialApp.router(
+        routerDelegate: AppRouterDelegate(navigatorKey: routerKey),
+        routeInformationParser: null,
+        debugShowCheckedModeBanner: false,
+        title: appTitle,
+        theme: ThemeData(primarySwatch: Colors.grey),
+      );
+}
+
+/// A simple router delegate which just creates the root of the app - the entire app.
+class AppRouterDelegate extends RouterDelegate
+    with ChangeNotifier, PopNavigatorRouterDelegateMixin {
+  AppRouterDelegate({this.navigatorKey});
+
+  @override
+  Widget build(BuildContext context) => Navigator(
+        key: navigatorKey,
+        pages: [MaterialPage(key: ValueKey("apphomepage"), child: MyApp())],
+        onPopPage: (route, data) => route.didPop(data),
+      );
+
+  @override
+  final GlobalKey<NavigatorState> navigatorKey;
+
+  @override
+  Future<void> setNewRoutePath(configuration) async {}
+}
+
+/// The app.
 class MyApp extends StatefulWidget {
   static final FirebaseAnalytics analytics = FirebaseAnalytics();
+
+  final GlobalKey<NavigatorState> lessonNavigatorKey = GlobalKey();
 
   @override
   State<StatefulWidget> createState() => MyAppState();
@@ -77,12 +110,9 @@ class MyApp extends StatefulWidget {
 
 const String appTitle = 'Inside Chassidus';
 
+/// The app state.
 class MyAppState extends State<MyApp> {
-  GlobalKey<NavigatorState> lessonNavigatorKey = GlobalKey();
-
   int _currentTabIndex = 0;
-
-  bool _lessonRouteOnRoot = true;
 
   final positionService = BlocProvider.getDependency<LibraryPositionService>();
 
@@ -106,68 +136,59 @@ class MyAppState extends State<MyApp> {
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: appTitle,
-        theme: ThemeData(primarySwatch: Colors.grey),
-        home: AudioServiceWidget(
-          child: WillPopScope(
-            onWillPop: () async =>
-                !await lessonNavigatorKey.currentState.maybePop(),
-            child: Scaffold(
-              appBar: AppBar(title: Text('Inside Chassidus')),
-              body: AudioButtonbarAwareBody(
-                  body: Stack(
-                children: [
-                  Offstage(
-                    offstage: _currentTabIndex != 0,
-                    child: LessonTab(
-                      navigatorKey: lessonNavigatorKey,
-                      isActive: _currentTabIndex == 0,
-                    ),
-                  ),
-                  if (_currentTabIndex != 0) Material(child: _getCurrentTab())
-                ],
-              )),
-              bottomSheet: CurrentMediaButtonBar(),
-              bottomNavigationBar: BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                currentIndex: _currentTabIndex,
-                onTap: _onBottomNavigationTap,
-                items: <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
-                    activeIcon: Icon(
-                      Icons.home,
-                      color: Colors.brown,
-                    ),
-                    icon: Icon(Icons.home),
-                    label: 'Home',
-                  ),
-                  BottomNavigationBarItem(
-                    activeIcon: Icon(
-                      Icons.queue_music,
-                      color: Colors.blue,
-                    ),
-                    icon: Icon(Icons.queue_music),
-                    label: 'Recent',
-                  ),
-                  BottomNavigationBarItem(
-                      activeIcon: Icon(
-                        Icons.favorite,
-                        color: Colors.red,
-                      ),
-                      icon: Icon(Icons.favorite),
-                      label: 'Bookmarked'),
-                  BottomNavigationBarItem(
-                      activeIcon: Icon(
-                        Icons.play_circle_filled,
-                        color: Colors.black,
-                      ),
-                      icon: Icon(Icons.play_circle_outline),
-                      label: 'Now Playing')
-                ],
+  Widget build(BuildContext context) => AudioServiceWidget(
+        child: Scaffold(
+          appBar: AppBar(title: Text('Inside Chassidus')),
+          body: AudioButtonbarAwareBody(
+              body: Stack(
+            children: [
+              Offstage(
+                offstage: _currentTabIndex != 0,
+                child: LessonTab(
+                  navigatorKey: widget.lessonNavigatorKey,
+                  isActive: _currentTabIndex == 0,
+                ),
               ),
-            ),
+              if (_currentTabIndex != 0) Material(child: _getCurrentTab())
+            ],
+          )),
+          bottomSheet: CurrentMediaButtonBar(),
+          bottomNavigationBar: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            currentIndex: _currentTabIndex,
+            onTap: _onBottomNavigationTap,
+            items: <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                activeIcon: Icon(
+                  Icons.home,
+                  color: Colors.brown,
+                ),
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                activeIcon: Icon(
+                  Icons.queue_music,
+                  color: Colors.blue,
+                ),
+                icon: Icon(Icons.queue_music),
+                label: 'Recent',
+              ),
+              BottomNavigationBarItem(
+                  activeIcon: Icon(
+                    Icons.favorite,
+                    color: Colors.red,
+                  ),
+                  icon: Icon(Icons.favorite),
+                  label: 'Bookmarked'),
+              BottomNavigationBarItem(
+                  activeIcon: Icon(
+                    Icons.play_circle_filled,
+                    color: Colors.black,
+                  ),
+                  icon: Icon(Icons.play_circle_outline),
+                  label: 'Now Playing')
+            ],
           ),
         ),
       );
@@ -175,7 +196,9 @@ class MyAppState extends State<MyApp> {
   void _onBottomNavigationTap(value) {
     // If the home button is pressed when already on home section, we show the
     // lesson tab, but go back to root.
-    if (value == 0 && _currentTabIndex == 0 && !_lessonRouteOnRoot) {
+    if (value == 0 &&
+        _currentTabIndex == 0 &&
+        positionService.sections.isNotEmpty) {
       positionService.clear();
     }
 
