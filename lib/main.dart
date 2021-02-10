@@ -138,7 +138,7 @@ class MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) => AudioServiceWidget(
         child: Scaffold(
-          appBar: AppBar(title: Text('Inside Chassidus')),
+          appBar: AppBar(title: Text(appTitle)),
           body: AudioButtonbarAwareBody(
               body: Stack(
             children: [
@@ -155,45 +155,49 @@ class MyAppState extends State<MyApp> {
             ],
           )),
           bottomSheet: CurrentMediaButtonBar(),
-          bottomNavigationBar: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            currentIndex: _currentTabIndex,
-            onTap: _onBottomNavigationTap,
-            items: <BottomNavigationBarItem>[
-              BottomNavigationBarItem(
-                activeIcon: Icon(
-                  Icons.home,
-                  color: Colors.brown,
-                ),
-                icon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                activeIcon: Icon(
-                  Icons.queue_music,
-                  color: Colors.blue,
-                ),
-                icon: Icon(Icons.queue_music),
-                label: 'Recent',
-              ),
-              BottomNavigationBarItem(
-                  activeIcon: Icon(
-                    Icons.favorite,
-                    color: Colors.red,
-                  ),
-                  icon: Icon(Icons.favorite),
-                  label: 'Bookmarked'),
-              BottomNavigationBarItem(
-                  activeIcon: Icon(
-                    Icons.play_circle_filled,
-                    color: Colors.black,
-                  ),
-                  icon: Icon(Icons.play_circle_outline),
-                  label: 'Now Playing')
-            ],
-          ),
+          bottomNavigationBar: bottomNavigationBar(),
         ),
       );
+
+  BottomNavigationBar bottomNavigationBar() {
+    return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      currentIndex: _currentTabIndex,
+      onTap: _onBottomNavigationTap,
+      items: <BottomNavigationBarItem>[
+        BottomNavigationBarItem(
+          activeIcon: Icon(
+            Icons.home,
+            color: Colors.brown,
+          ),
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          activeIcon: Icon(
+            Icons.queue_music,
+            color: Colors.blue,
+          ),
+          icon: Icon(Icons.queue_music),
+          label: 'Recent',
+        ),
+        BottomNavigationBarItem(
+            activeIcon: Icon(
+              Icons.favorite,
+              color: Colors.red,
+            ),
+            icon: Icon(Icons.favorite),
+            label: 'Bookmarked'),
+        BottomNavigationBarItem(
+            activeIcon: Icon(
+              Icons.play_circle_filled,
+              color: Colors.black,
+            ),
+            icon: Icon(Icons.play_circle_outline),
+            label: 'Now Playing')
+      ],
+    );
+  }
 
   void _onBottomNavigationTap(value) {
     // If the home button is pressed when already on home section, we show the
