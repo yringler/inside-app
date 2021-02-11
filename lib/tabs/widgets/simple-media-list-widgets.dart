@@ -11,7 +11,7 @@ class MediaListTabRoute extends ChangeNotifier implements IRoutDataService {
   @override
   setActiveItem(SiteDataItem data) {
     assert(data is Media);
-    this.media = media;
+    this.media = data;
     notifyListeners();
   }
 
