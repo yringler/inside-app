@@ -105,7 +105,11 @@ class MyApp extends StatefulWidget {
   static final FirebaseAnalytics analytics = FirebaseAnalytics();
 
   final GlobalKey<NavigatorState> lessonNavigatorKey =
-      GlobalKey<NavigatorState>();
+      GlobalKey<NavigatorState>(debugLabel: 'library');
+  final GlobalKey<NavigatorState> favoritesKey =
+      GlobalKey<NavigatorState>(debugLabel: 'favorites');
+  final GlobalKey<NavigatorState> recentsKey =
+      GlobalKey<NavigatorState>(debugLabel: 'recents');
 
   @override
   State<StatefulWidget> createState() => MyAppState();
@@ -143,17 +147,8 @@ class MyAppState extends State<MyApp> {
         child: Scaffold(
           appBar: AppBar(title: Text(appTitle)),
           body: AudioButtonbarAwareBody(
-              body: Stack(
-            children: [
-              if (_currentTabIndex == 0)
-                Material(
-                  child: LessonTab(
-                    navigatorKey: widget.lessonNavigatorKey,
-                    isActive: _currentTabIndex == 0,
-                  ),
-                ),
-              if (_currentTabIndex != 0) Material(child: _getCurrentTab())
-            ],
+              body: Material(
+            child: _getCurrentTab(),
           )),
           bottomSheet: CurrentMediaButtonBar(),
           bottomNavigationBar: bottomNavigationBar(),
@@ -224,11 +219,17 @@ class MyAppState extends State<MyApp> {
   Widget _getCurrentTab() {
     switch (_currentTabIndex) {
       case 0:
-        throw ArgumentError('Can not render home');
+        return LessonTab(
+          navigatorKey: widget.lessonNavigatorKey,
+        );
       case 1:
-        return RecentsTab();
+        return RecentsTab(
+          navigatorKey: widget.recentsKey,
+        );
       case 2:
-        return FavoritesTab();
+        return FavoritesTab(
+          navigatorKey: widget.favoritesKey,
+        );
       case 3:
         return NowPlayingTab();
       default:
