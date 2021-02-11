@@ -18,7 +18,7 @@ class LessonTab extends StatelessWidget {
       backButtonDispatcher.takePriority();
     }
 
-    return Router(
+    return Router<void>(
         routerDelegate: LibraryNavigator(navigatorKey: navigatorKey),
         backButtonDispatcher: backButtonDispatcher);
   }

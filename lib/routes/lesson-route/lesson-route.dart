@@ -1,5 +1,7 @@
+import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
+import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import 'package:inside_chassidus/widgets/inside-breadcrumbs.dart';
 import 'package:inside_chassidus/widgets/media-list/index.dart';
@@ -16,6 +18,8 @@ class LessonRoute extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: EdgeInsets.symmetric(horizontal: 8).copyWith(top: 8),
         child: MediaList(
+          routeDataService:
+              BlocProvider.getDependency<LibraryPositionService>(),
           media: lesson.media,
           sectionId: lesson.parentId,
           leadingWidget: Column(

@@ -1,5 +1,4 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
@@ -10,8 +9,13 @@ class MediaItem extends StatelessWidget {
   final Media media;
   final int sectionId;
   final String fallbackTitle;
+  final IRoutDataService routeDataService;
 
-  MediaItem({this.media, this.fallbackTitle, @required this.sectionId}) {
+  MediaItem(
+      {this.media,
+      this.fallbackTitle,
+      @required this.sectionId,
+      @required this.routeDataService}) {
     media.parentId = sectionId;
   }
 
@@ -33,8 +37,7 @@ class MediaItem extends StatelessWidget {
             .copyWith(fontWeight: FontWeight.bold)
         : null;
 
-    final onPressed = () => BlocProvider.getDependency<IRoutDataService>()
-        .setActiveItem(media);
+    final onPressed = () => routeDataService.setActiveItem(media);
 
     return GestureDetector(
       onTap: onPressed,

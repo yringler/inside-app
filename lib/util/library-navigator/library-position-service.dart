@@ -36,10 +36,10 @@ class LibraryPositionService extends ChangeNotifier
         sections.indexWhere((section) => section.data.id == item.parentId);
 
     if (parentIndex != -1) {
-      sections = sections.sublist(parentIndex);
+      sections = sections.sublist(0, parentIndex + 1);
       sections.add(SitePosition(data: item, level: sections.length));
     } else {
-      _clearTo(item);
+      await _clearTo(item);
     }
 
     notifyListeners();
@@ -64,9 +64,9 @@ class LibraryPositionService extends ChangeNotifier
   }
 
   /// Clear the saved list, and reset to the given item and all of its parents.
-  _clearTo(SiteDataItem item) async {
+  Future<void> _clearTo(SiteDataItem item) async {
     sections.clear();
-    sections.add(SitePosition(data: item));
+    sections.add(SitePosition(data: item, level: 0));
 
     // Add all the parents to the list. These aren't used for some navigation (the
     // back button won't get you there), but they are used for explicit navigation
@@ -76,20 +76,21 @@ class LibraryPositionService extends ChangeNotifier
       final parentSection =
           await this.siteBoxes.sections.get(lastItemAdded.closestSectionId);
 
-      // This is the case for media which is in a MediaSection. The parentId is set
-      // to the MediaSection, and the closestSectionId is the section the MediaSection
-      // is in.
-      if (lastItemAdded.parentId != 0 && lastItemAdded.closestSectionId != lastItemAdded.parentId) {
-        assert(lastItemAdded is Media);
+      if (lastItemAdded is Media) {
         final mediaSectionId = lastItemAdded.parentId;
         final parentMediaSection = parentSection.content
             .firstWhere((content) => content.mediaSection?.id == mediaSectionId)
             .mediaSection;
         sections.insert(
-            0, SitePosition(data: parentMediaSection, wasNavigatedTo: false));
+            0,
+            SitePosition(
+                data: parentMediaSection,
+                wasNavigatedTo: false,
+                level: sections.length));
       }
 
-      sections.insert(0, SitePosition(data: parentSection));
+      sections.insert(
+          0, SitePosition(data: parentSection, level: sections.length));
       lastItemAdded = parentSection;
     }
 
@@ -106,5 +107,5 @@ class SitePosition {
   // would be level 0. A child would be level 1, etc.
   int level;
 
-  SitePosition({this.data, this.wasNavigatedTo = true, this.level});
+  SitePosition({this.data, this.wasNavigatedTo = true, @required this.level});
 }

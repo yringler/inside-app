@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
+import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/widgets/media-list/media-item.dart';
 
 class MediaList extends StatelessWidget {
   final Widget leadingWidget;
   final List<Media> media;
   final int sectionId;
+  final IRoutDataService routeDataService;
 
-  MediaList({this.media, this.leadingWidget, @required this.sectionId});
+  MediaList(
+      {this.media,
+      this.leadingWidget,
+      @required this.sectionId,
+      @required this.routeDataService});
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +37,7 @@ class MediaList extends StatelessWidget {
             media: this.media[i],
             sectionId: this.sectionId,
             fallbackTitle: "Lesson ${i + 1}",
+            routeDataService: routeDataService,
           );
         },
         separatorBuilder: (context, i) => Divider());

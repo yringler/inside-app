@@ -104,7 +104,8 @@ class AppRouterDelegate extends RouterDelegate
 class MyApp extends StatefulWidget {
   static final FirebaseAnalytics analytics = FirebaseAnalytics();
 
-  final GlobalKey<NavigatorState> lessonNavigatorKey = GlobalKey();
+  final GlobalKey<NavigatorState> lessonNavigatorKey =
+      GlobalKey<NavigatorState>();
 
   @override
   State<StatefulWidget> createState() => MyAppState();
@@ -125,7 +126,7 @@ class MyAppState extends State<MyApp> {
   /// Hide the global media controls if on media player route.
   onLibraryPositionChange() {
     final last = positionService.sections.lastOrNull;
-    final isMediaButtonsShowing = last != null && last is Media;
+    final isMediaButtonsShowing = last?.data != null && last.data is Media;
 
     BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
         .isOtherButtonsShowing(isShowing: isMediaButtonsShowing);
@@ -144,15 +145,13 @@ class MyAppState extends State<MyApp> {
           body: AudioButtonbarAwareBody(
               body: Stack(
             children: [
-              Offstage(
-                offstage: _currentTabIndex != 0,
-                child: Material(
+              if (_currentTabIndex == 0)
+                Material(
                   child: LessonTab(
                     navigatorKey: widget.lessonNavigatorKey,
                     isActive: _currentTabIndex == 0,
                   ),
                 ),
-              ),
               if (_currentTabIndex != 0) Material(child: _getCurrentTab())
             ],
           )),

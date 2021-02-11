@@ -1,4 +1,3 @@
-import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
@@ -69,7 +68,7 @@ class MediaListTab extends StatefulWidget {
   final List<ChoosenClass> data;
   final String emptyMessage;
   final MediaListTabRoute mediaTabRoute = MediaListTabRoute();
-  final navigatorKey = GlobalKey();
+  final navigatorKey = GlobalKey<NavigatorState>();
 
   MediaListTab({this.data, @required this.emptyMessage});
 
@@ -79,29 +78,34 @@ class MediaListTab extends StatefulWidget {
 
 class MediaListTabState extends State<MediaListTab> {
   @override
-  Widget build(BuildContext context) => BlocProvider(
-      dependencies: [Dependency<IRoutDataService>((i) => widget.mediaTabRoute)],
-      child: Router(
-        backButtonDispatcher: Router.of(context)
-            .backButtonDispatcher
-            .createChildBackButtonDispatcher()
-              ..takePriority(),
-        routerDelegate: MediaListTabNavigator(
-            navigatorKey: widget.navigatorKey,
-            state: widget.mediaTabRoute,
-            chosenDataList: ChosenDataList(
-              data: widget.data,
-              emptyMessage: widget.emptyMessage,
-            )),
-      ));
+  Widget build(BuildContext context) {
+    return Router(
+      backButtonDispatcher: Router.of(context)
+          .backButtonDispatcher
+          .createChildBackButtonDispatcher()
+            ..takePriority(),
+      routerDelegate: MediaListTabNavigator(
+          navigatorKey: widget.navigatorKey,
+          state: widget.mediaTabRoute,
+          chosenDataList: ChosenDataList(
+            data: widget.data,
+            emptyMessage: widget.emptyMessage,
+            routeDataService: widget.mediaTabRoute,
+          )),
+    );
+  }
 }
 
 /// A list of media.
 class ChosenDataList extends StatelessWidget {
   final List<ChoosenClass> data;
   final String emptyMessage;
+  final IRoutDataService routeDataService;
 
-  ChosenDataList({this.data, @required this.emptyMessage});
+  ChosenDataList(
+      {this.data,
+      @required this.emptyMessage,
+      @required this.routeDataService});
 
   @override
   Widget build(BuildContext context) {
@@ -129,8 +133,7 @@ class ChosenDataList extends StatelessWidget {
                   )
                 : null,
             onTap: () {
-              BlocProvider.getDependency<IRoutDataService>()
-                  .setActiveItem(item.media);
+              routeDataService.setActiveItem(item.media);
             },
           );
         });
