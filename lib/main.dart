@@ -138,12 +138,21 @@ class MyAppState extends State<MyApp> {
   }
 
   /// Hide the global media controls if on media player route.
+  /// If the position is changed and we're not on the player route, return to library
+  /// in order to see the position. (This currently only happens on view parent button
+  /// in player route.)
   void onLibraryPositionChange() {
     final last = positionService.sections.lastOrNull;
-    final isMediaButtonsShowing = last?.data != null && last.data is Media;
+    final isOnPlayer = last?.data != null && last.data is Media;
 
     BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
-        .isOtherButtonsShowing(isShowing: isMediaButtonsShowing);
+        .isOtherButtonsShowing(isShowing: isOnPlayer);
+
+    if (!(_currentTabIndex == 0 || isOnPlayer)) {
+      setState(() {
+        _currentTabIndex = 0;
+      });
+    }
   }
 
   @override
