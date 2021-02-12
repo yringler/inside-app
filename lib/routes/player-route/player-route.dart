@@ -1,8 +1,11 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:inside_api/models.dart';
+import 'package:inside_api/site-service.dart';
 import 'package:inside_chassidus/routes/player-route/widgets/index.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
+import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar.dart';
 import 'package:just_audio_service/download-manager/download-manager.dart';
 import 'package:just_audio_service/widgets/download-button.dart';
@@ -12,6 +15,11 @@ class PlayerRoute extends StatelessWidget {
 
   final Media media;
 
+  final SiteBoxes _siteBoxes = BlocProvider.getDependency<SiteBoxes>();
+
+  final libraryPositionService =
+      BlocProvider.getDependency<LibraryPositionService>();
+
   PlayerRoute({this.media});
 
   @override
@@ -20,7 +28,31 @@ class PlayerRoute extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            ..._title(context, media),
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+              FutureBuilder<SiteDataItem>(
+                future: _getParent(),
+                builder: (context, snapshot) => snapshot.data != null
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          IconButton(
+                              onPressed: () {
+                                libraryPositionService
+                                    .setActiveItem(media)
+                                    .then((_) =>
+                                        libraryPositionService.removeLast());
+                              },
+                              icon: Icon(FontAwesomeIcons.chevronDown))
+                        ],
+                      )
+                    : Container(),
+              ),
+              Expanded(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: _title(context, media),
+              )),
+            ]),
             _description(context),
             Theme(
               data: Theme.of(context).copyWith(
@@ -47,6 +79,15 @@ class PlayerRoute extends StatelessWidget {
           ],
         ),
       );
+
+  Future<SiteDataItem> _getParent() {
+    if (media.closestSectionId == null) {
+      return null;
+    }
+
+    final parent = _siteBoxes.sections.get(media.closestSectionId);
+    return parent;
+  }
 
   /// Returns lesson title and media title.
   /// If the media doesn't have a title, just returns lesson title as title.

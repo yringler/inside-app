@@ -27,6 +27,7 @@ class LibraryPositionService extends ChangeNotifier
   /// Make note that they were never navigated to (and so shouldn't show up
   /// e.g. when user hits back button)
   Future<List<SitePosition>> setActiveItem(SiteDataItem item) async {
+    clear();
     if (sections.isNotEmpty && sections.last.data == item) {
       return sections;
     }
@@ -76,7 +77,8 @@ class LibraryPositionService extends ChangeNotifier
       final parentSection =
           await this.siteBoxes.sections.get(lastItemAdded.closestSectionId);
 
-      if (lastItemAdded is Media) {
+      if (lastItemAdded is Media &&
+          lastItemAdded.closestSectionId != lastItemAdded.parentId) {
         final mediaSectionId = lastItemAdded.parentId;
         final parentMediaSection = parentSection.content
             .firstWhere((content) => content.mediaSection?.id == mediaSectionId)
