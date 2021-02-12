@@ -267,7 +267,8 @@ class MyAppState extends State<MyApp> {
       case 1:
       case 2:
         return widget.recentState.hasMedia();
-      case 3: return false;
+      case 3:
+        return false;
       default:
         throw ArgumentError('Called with invalid index');
     }
