@@ -29,7 +29,7 @@ class PlayerRoute extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-              FutureBuilder<SiteDataItem>(
+              FutureBuilder<Section>(
                 future: _getParent(),
                 builder: (context, snapshot) => snapshot.data != null
                     ? Row(
@@ -37,10 +37,13 @@ class PlayerRoute extends StatelessWidget {
                         children: [
                           IconButton(
                               onPressed: () {
-                                libraryPositionService
-                                    .setActiveItem(media)
-                                    .then((_) =>
-                                        libraryPositionService.removeLast());
+                                // Set library position to parent section (or mediasection)
+                                libraryPositionService.setActiveItem(media
+                                            .closestSectionId ==
+                                        media.parentId
+                                    ? snapshot.data
+                                    : snapshot.data.content.firstWhere((c) =>
+                                        c.mediaSection?.id == media.parentId));
                               },
                               icon: Icon(FontAwesomeIcons.chevronDown))
                         ],

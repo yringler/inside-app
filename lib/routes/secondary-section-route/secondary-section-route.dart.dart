@@ -26,7 +26,7 @@ class SecondarySectionRoute extends StatelessWidget {
         mediaBuilder: (context, media) => MediaItem(
           media: media,
           sectionId: section.id,
-          routeDataService: BlocProvider.getBloc<LibraryPositionService>(),
+          routeDataService: BlocProvider.getDependency<LibraryPositionService>(),
         ),
       );
 }

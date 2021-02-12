@@ -27,7 +27,6 @@ class LibraryPositionService extends ChangeNotifier
   /// Make note that they were never navigated to (and so shouldn't show up
   /// e.g. when user hits back button)
   Future<List<SitePosition>> setActiveItem(SiteDataItem item) async {
-    clear();
     if (sections.isNotEmpty && sections.last.data == item) {
       return sections;
     }
@@ -98,6 +97,10 @@ class LibraryPositionService extends ChangeNotifier
 
     for (int i = 0; i < sections.length; i++) {
       sections[i].level = i;
+
+      if (sections[i].data is Section ) {
+        await siteBoxes.resolve(sections[i].data);
+      }
     }
   }
 }

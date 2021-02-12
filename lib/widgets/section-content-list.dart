@@ -38,14 +38,14 @@ class SectionContentList extends StatelessWidget {
             if (isSeperated) {
               return ListView.separated(
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                itemCount: section.content.length + indexOffset,
-                itemBuilder: _sectionContent(),
+                itemCount: snapShot.data.content.length + indexOffset,
+                itemBuilder: _sectionContent(snapShot.data),
                 separatorBuilder: (context, i) => Divider(),
               );
             } else {
               return ListView.builder(
-                itemCount: section.content.length + indexOffset,
-                itemBuilder: _sectionContent(),
+                itemCount: snapShot.data.content.length + indexOffset,
+                itemBuilder: _sectionContent(snapShot.data),
               );
             }
           } else if (snapShot.hasError) {
@@ -56,7 +56,7 @@ class SectionContentList extends StatelessWidget {
         },
       );
 
-  IndexedWidgetBuilder _sectionContent() => (BuildContext context, int i) {
+  IndexedWidgetBuilder _sectionContent(Section section) => (BuildContext context, int i) {
         if (i == 0 && leadingWidget != null) {
           return leadingWidget;
         }

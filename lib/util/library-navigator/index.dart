@@ -45,7 +45,10 @@ class LibraryNavigator extends RouterDelegate
   Future<void> setNewRoutePath(configuration) async {}
 
   Widget getChild(SitePosition book) {
-    if (book.level == 0) {
+    // (The only time it won't be section is if it's set to media on back to
+    // library button in player route. This is a bit clumsy - really, it shouldn't
+    // fire untill it's all set up.)
+    if (book.level == 0 && book.data is Section) {
       return SecondarySectionRoute(
         section: book.data,
       );
