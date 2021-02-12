@@ -37,7 +37,7 @@ class LibraryNavigator extends RouterDelegate
               in appState.sections.where((section) => section.wasNavigatedTo))
             MaterialPage(
                 key: ValueKey('${book.level}_${book.data.id}'),
-                child: getChild(book))
+                child: Material(child: getChild(book)))
         ],
       );
 

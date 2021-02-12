@@ -15,6 +15,7 @@ import 'package:inside_chassidus/tabs/favorites-tab.dart';
 import 'package:inside_chassidus/tabs/lesson-tab/lesson-tab.dart';
 import 'package:inside_chassidus/tabs/now-playing-tab.dart';
 import 'package:inside_chassidus/tabs/recent-tab.dart';
+import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
@@ -111,6 +112,9 @@ class MyApp extends StatefulWidget {
   final GlobalKey<NavigatorState> recentsKey =
       GlobalKey<NavigatorState>(debugLabel: 'recents');
 
+  final recentState = MediaListTabRoute();
+  final favoritesState = MediaListTabRoute();
+
   @override
   State<StatefulWidget> createState() => MyAppState();
 }
@@ -123,12 +127,18 @@ class MyAppState extends State<MyApp> {
 
   final positionService = BlocProvider.getDependency<LibraryPositionService>();
 
-  MyAppState() {
+  @override
+  void initState() {
+    super.initState();
+
     positionService.addListener(onLibraryPositionChange);
+    positionService.addListener(rebuildForCanPop);
+    widget.recentState.addListener(rebuildForCanPop);
+    widget.favoritesState.addListener(rebuildForCanPop);
   }
 
   /// Hide the global media controls if on media player route.
-  onLibraryPositionChange() {
+  void onLibraryPositionChange() {
     final last = positionService.sections.lastOrNull;
     final isMediaButtonsShowing = last?.data != null && last.data is Media;
 
@@ -145,7 +155,14 @@ class MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) => AudioServiceWidget(
         child: Scaffold(
-          appBar: AppBar(title: Text(appTitle)),
+          appBar: AppBar(
+              title: Text(appTitle),
+              leading: _getCanPop()
+                  ? BackButton(
+                      onPressed: () =>
+                          _getCurrentRouterKey().currentState.maybePop(),
+                    )
+                  : null),
           body: AudioButtonbarAwareBody(
               body: Material(
             child: _getCurrentTab(),
@@ -195,6 +212,10 @@ class MyAppState extends State<MyApp> {
     );
   }
 
+  void rebuildForCanPop() {
+    setState(() {});
+  }
+
   void _onBottomNavigationTap(value) {
     // If the home button is pressed when already on home section, we show the
     // lesson tab, but go back to root.
@@ -225,15 +246,43 @@ class MyAppState extends State<MyApp> {
       case 1:
         return RecentsTab(
           navigatorKey: widget.recentsKey,
+          routeState: widget.recentState,
         );
       case 2:
         return FavoritesTab(
           navigatorKey: widget.favoritesKey,
+          routeState: widget.favoritesState,
         );
       case 3:
         return NowPlayingTab();
       default:
         throw ArgumentError('Invalid tab index');
+    }
+  }
+
+  bool _getCanPop() {
+    switch (_currentTabIndex) {
+      case 0:
+        return positionService.sections.isNotEmpty;
+      case 1:
+      case 2:
+        return widget.recentState.hasMedia();
+      case 3: return false;
+      default:
+        throw ArgumentError('Called with invalid index');
+    }
+  }
+
+  GlobalKey<NavigatorState> _getCurrentRouterKey() {
+    switch (_currentTabIndex) {
+      case 0:
+        return widget.lessonNavigatorKey;
+      case 1:
+        return widget.recentsKey;
+      case 2:
+        return widget.favoritesKey;
+      default:
+        throw ArgumentError('Called with invalid index');
     }
   }
 }

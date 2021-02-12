@@ -67,11 +67,14 @@ class MediaListTabNavigator extends RouterDelegate
 class MediaListTab extends StatefulWidget {
   final List<ChoosenClass> data;
   final String emptyMessage;
-  final MediaListTabRoute mediaTabRoute = MediaListTabRoute();
+  final MediaListTabRoute mediaTabRoute;
   final GlobalKey<NavigatorState> navigatorKey;
 
   MediaListTab(
-      {this.data, @required this.emptyMessage, @required this.navigatorKey});
+      {this.data,
+      @required this.mediaTabRoute,
+      @required this.emptyMessage,
+      @required this.navigatorKey});
 
   @override
   State<StatefulWidget> createState() => MediaListTabState();

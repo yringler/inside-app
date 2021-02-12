@@ -6,13 +6,15 @@ import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 
 class FavoritesTab extends StatelessWidget {
   final GlobalKey<NavigatorState> navigatorKey;
+  final MediaListTabRoute routeState;
 
-  FavoritesTab({@required this.navigatorKey});
+  FavoritesTab({@required this.navigatorKey, @required this.routeState});
 
   @override
   Widget build(BuildContext context) {
     return MediaListTab(
         navigatorKey: navigatorKey,
+        mediaTabRoute: routeState,
         emptyMessage:
             'No favorites set. You can set favorites from the player.',
         data: BlocProvider.getDependency<ChosenClassService>()
