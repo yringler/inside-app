@@ -274,8 +274,9 @@ class MyAppState extends State<MyApp> {
       case 0:
         return positionService.sections.isNotEmpty;
       case 1:
-      case 2:
         return widget.recentState.hasMedia();
+      case 2:
+        return widget.favoritesState.hasMedia();
       case 3:
         return false;
       default:
