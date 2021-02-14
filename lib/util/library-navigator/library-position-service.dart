@@ -31,16 +31,7 @@ class LibraryPositionService extends ChangeNotifier
       return sections;
     }
 
-    // Check if new item can be added to current list (if its parent is there).
-    final parentIndex =
-        sections.indexWhere((section) => section.data.id == item.parentId);
-
-    if (parentIndex != -1) {
-      sections = sections.sublist(0, parentIndex + 1);
-      sections.add(SitePosition(data: item, level: sections.length));
-    } else {
-      await _clearTo(item);
-    }
+    await _clearTo(item);
 
     notifyListeners();
     return sections;
@@ -98,7 +89,7 @@ class LibraryPositionService extends ChangeNotifier
     for (int i = 0; i < sections.length; i++) {
       sections[i].level = i;
 
-      if (sections[i].data is Section ) {
+      if (sections[i].data is Section) {
         await siteBoxes.resolve(sections[i].data);
       }
     }

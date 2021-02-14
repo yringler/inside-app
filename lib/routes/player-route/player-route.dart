@@ -28,31 +28,12 @@ class PlayerRoute extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-              FutureBuilder<Section>(
-                future: _getParent(),
-                builder: (context, snapshot) => snapshot.data != null
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          IconButton(
-                              onPressed: () {
-                                // Set library position to parent section (or mediasection)
-                                libraryPositionService.setActiveItem(media
-                                            .closestSectionId ==
-                                        media.parentId
-                                    ? snapshot.data
-                                    : snapshot.data.content.firstWhere((c) =>
-                                        c.mediaSection?.id == media.parentId));
-                              },
-                              icon: Icon(FontAwesomeIcons.chevronDown))
-                        ],
-                      )
-                    : Container(),
-              ),
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              _navigateToLibraryButton(),
               Expanded(
                   child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: _title(context, media),
               )),
             ]),
@@ -83,13 +64,40 @@ class PlayerRoute extends StatelessWidget {
         ),
       );
 
-  Future<SiteDataItem> _getParent() {
+  FutureBuilder<SiteDataItem> _navigateToLibraryButton() =>
+      FutureBuilder<SiteDataItem>(
+        future: _getParent(),
+        builder: (context, snapshot) => snapshot.data != null
+            ? IconButton(
+              padding: EdgeInsets.zero,
+              alignment: Alignment.topCenter,
+                onPressed: () {
+                  libraryPositionService.setActiveItem(snapshot.data);
+                },
+                icon: Icon(FontAwesomeIcons.chevronDown))
+            : Container(),
+      );
+
+  Future<SiteDataItem> _getParent() async {
     if (media.closestSectionId == null) {
       return null;
     }
 
-    final parent = _siteBoxes.sections.get(media.closestSectionId);
-    return parent;
+    final parentSection = await _siteBoxes.sections.get(media.closestSectionId);
+
+    if (parentSection == null) {
+      return null;
+    }
+
+    if (media.closestSectionId == parentSection.id) {
+      return parentSection;
+    }
+
+    // If the media is inside a media section
+
+    return parentSection.content
+        .firstWhere((content) => content.mediaSection?.id == media.parentId)
+        .mediaSection;
   }
 
   /// Returns lesson title and media title.
@@ -104,6 +112,7 @@ class PlayerRoute extends StatelessWidget {
           child: Text(
             lesson.title,
             style: Theme.of(context).textTheme.subtitle2,
+            textAlign: TextAlign.center,
           ),
         ),
         Text(
