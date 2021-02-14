@@ -69,8 +69,8 @@ class PlayerRoute extends StatelessWidget {
         future: _getParent(),
         builder: (context, snapshot) => snapshot.data != null
             ? IconButton(
-              padding: EdgeInsets.zero,
-              alignment: Alignment.topCenter,
+                padding: EdgeInsets.zero,
+                alignment: Alignment.topLeft,
                 onPressed: () {
                   libraryPositionService.setActiveItem(snapshot.data);
                 },
@@ -85,7 +85,13 @@ class PlayerRoute extends StatelessWidget {
 
     final parentSection = await _siteBoxes.sections.get(media.closestSectionId);
 
-    if (parentSection == null) {
+    // Make sure that the parent exists, and that it really has the data.
+    // This is done in case IDs change etc - we don't want to navigate to library,
+    // to some random place.
+    if (parentSection == null ||
+        !parentSection.content.any((c) =>
+            c?.media == media ||
+            (c.mediaSection?.media?.contains(media) ?? false))) {
       return null;
     }
 
