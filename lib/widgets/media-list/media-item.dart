@@ -1,7 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
-import 'package:inside_chassidus/routes/player-route/index.dart';
+import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import 'package:inside_chassidus/widgets/media-list/play-button.dart';
 
@@ -9,8 +9,13 @@ class MediaItem extends StatelessWidget {
   final Media media;
   final int sectionId;
   final String fallbackTitle;
+  final IRoutDataService routeDataService;
 
-  MediaItem({this.media, this.fallbackTitle, @required this.sectionId}) {
+  MediaItem(
+      {this.media,
+      this.fallbackTitle,
+      @required this.sectionId,
+      @required this.routeDataService}) {
     media.parentId = sectionId;
   }
 
@@ -32,8 +37,7 @@ class MediaItem extends StatelessWidget {
             .copyWith(fontWeight: FontWeight.bold)
         : null;
 
-    final onPressed = () => Navigator.of(context)
-        .pushNamed(PlayerRoute.routeName, arguments: media);
+    final onPressed = () => routeDataService.setActiveItem(media);
 
     return GestureDetector(
       onTap: onPressed,

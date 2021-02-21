@@ -2,7 +2,6 @@ import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_api/site-service.dart';
-import 'package:inside_chassidus/routes/lesson-route/lesson-route.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
 
 typedef Widget InsideDataBuilder<T extends SiteDataItem>(
@@ -39,14 +38,14 @@ class SectionContentList extends StatelessWidget {
             if (isSeperated) {
               return ListView.separated(
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                itemCount: section.content.length + indexOffset,
-                itemBuilder: _sectionContent(),
+                itemCount: snapShot.data.content.length + indexOffset,
+                itemBuilder: _sectionContent(snapShot.data),
                 separatorBuilder: (context, i) => Divider(),
               );
             } else {
               return ListView.builder(
-                itemCount: section.content.length + indexOffset,
-                itemBuilder: _sectionContent(),
+                itemCount: snapShot.data.content.length + indexOffset,
+                itemBuilder: _sectionContent(snapShot.data),
               );
             }
           } else if (snapShot.hasError) {
@@ -57,7 +56,7 @@ class SectionContentList extends StatelessWidget {
         },
       );
 
-  IndexedWidgetBuilder _sectionContent() => (BuildContext context, int i) {
+  IndexedWidgetBuilder _sectionContent(Section section) => (BuildContext context, int i) {
         if (i == 0 && leadingWidget != null) {
           return leadingWidget;
         }
@@ -84,7 +83,6 @@ class SectionContentList extends StatelessWidget {
 
     return InsideNavigator(
       child: lessonBuilder(context, lesson),
-      routeName: LessonRoute.routeName,
       data: lesson,
     );
   }
