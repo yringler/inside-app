@@ -63,27 +63,22 @@ class LibraryPositionService extends ChangeNotifier
     // back button won't get you there), but they are used for explicit navigation
     // (e.g. clicking a parent section button), and to provide context to a class.
     var lastItemAdded = item;
-    while ((lastItemAdded.closestSectionId ?? 0) != 0) {
-      final parentSection =
-          await this.siteBoxes.sections.get(lastItemAdded.closestSectionId);
+    while ((lastItemAdded.sectionId ?? 0) != 0) {
+      await this.siteBoxes.resolveParent(lastItemAdded);
 
       if (lastItemAdded is Media &&
-          lastItemAdded.closestSectionId != lastItemAdded.parentId) {
-        final mediaSectionId = lastItemAdded.parentId;
-        final parentMediaSection = parentSection.content
-            .firstWhere((content) => content.mediaSection?.id == mediaSectionId)
-            .mediaSection;
+          lastItemAdded.sectionId != lastItemAdded.parentId) {
         sections.insert(
             0,
             SitePosition(
-                data: parentMediaSection,
+                data: lastItemAdded.parent,
                 wasNavigatedTo: false,
                 level: sections.length));
       }
 
       sections.insert(
-          0, SitePosition(data: parentSection, level: sections.length));
-      lastItemAdded = parentSection;
+          0, SitePosition(data: lastItemAdded.section, level: sections.length));
+      lastItemAdded = lastItemAdded.section;
     }
 
     for (int i = 0; i < sections.length; i++) {

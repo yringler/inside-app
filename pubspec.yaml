@@ -43,10 +43,10 @@ dependencies:
   hive_flutter: ^0.3.1
   flutter_breadcrumb_menu: ^1.0.0
   inside_api:
-      git:
-        url: https://github.com/yringler/inside-api.git
-        ref: 84f1a54226d01d81feedd67ac7b69cafbdd4c5a7
-    #path: ../inside-api
+   #   git:
+   #     url: https://github.com/yringler/inside-api.git
+   #     ref: 84f1a54226d01d81feedd67ac7b69cafbdd4c5a7
+    path: ../inside-api
   just_audio_service:
     git:
       url: https://github.com/yringler/just_audio_service.git

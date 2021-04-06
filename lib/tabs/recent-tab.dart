@@ -11,12 +11,10 @@ class RecentsTab extends StatelessWidget {
   RecentsTab({@required this.navigatorKey, @required this.routeState});
 
   @override
-  Widget build(BuildContext context) {
-    return MediaListTab(
-        navigatorKey: navigatorKey,
-        mediaTabRoute: routeState,
-        emptyMessage: 'No recent classes. What would you like to learn?',
-        data: BlocProvider.getDependency<ChosenClassService>()
-            .getSorted(recent: true));
-  }
+  Widget build(BuildContext context) => MediaListTab(
+      navigatorKey: navigatorKey,
+      mediaTabRoute: routeState,
+      emptyMessage: 'No recent classes. What would you like to learn?',
+      data: BlocProvider.getDependency<ChosenClassService>()
+          .getSorted(recent: true));
 }

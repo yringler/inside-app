@@ -6,7 +6,7 @@ part 'chosen-class.g.dart';
 
 /// A class which has been given attention by the user.
 @HiveType(typeId: 1)
-class ChoosenClass extends HiveObject {
+class ChoosenClass extends HiveObject implements SectionReference {
   @HiveField(0)
   final Media media;
   @HiveField(1)
@@ -16,7 +16,14 @@ class ChoosenClass extends HiveObject {
   @HiveField(3)
   DateTime modifiedDate;
 
+  @override
+  SiteDataItem parent;
+  @override
   Section section;
+  @override
+  int get parentId => media?.parentId;
+  @override
+  int get sectionId => media?.sectionId;
 
   ChoosenClass(
       {@required this.media,

@@ -79,11 +79,11 @@ class PlayerRoute extends StatelessWidget {
       );
 
   Future<SiteDataItem> _getParent() async {
-    if (media.closestSectionId == null) {
+    if (media.sectionId == null) {
       return null;
     }
 
-    final parentSection = await _siteBoxes.sections.get(media.closestSectionId);
+    final parentSection = await _siteBoxes.sections.get(media.sectionId);
 
     // Make sure that the parent exists, and that it really has the data.
     // This is done in case IDs change etc - we don't want to navigate to library,
@@ -95,7 +95,7 @@ class PlayerRoute extends StatelessWidget {
       return null;
     }
 
-    if (media.closestSectionId == parentSection.id) {
+    if (media.sectionId == parentSection.id) {
       return parentSection;
     }
 

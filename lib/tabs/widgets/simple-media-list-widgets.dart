@@ -1,6 +1,8 @@
+import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
+import 'package:inside_api/site-service.dart';
 import 'package:inside_chassidus/routes/player-route/index.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
@@ -69,6 +71,7 @@ class MediaListTab extends StatefulWidget {
   final String emptyMessage;
   final MediaListTabRoute mediaTabRoute;
   final GlobalKey<NavigatorState> navigatorKey;
+  final SiteBoxes siteBoxes = BlocProvider.getDependency<SiteBoxes>();
 
   MediaListTab(
       {this.data,
@@ -81,22 +84,32 @@ class MediaListTab extends StatefulWidget {
 }
 
 class MediaListTabState extends State<MediaListTab> {
+  Future<List<ChoosenClass>> _resolvedChosen;
+
+  MediaListTabState() {
+    _resolvedChosen = widget.siteBoxes.resolveIterable(widget.data);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Router(
-      backButtonDispatcher: Router.of(context)
-          .backButtonDispatcher
-          .createChildBackButtonDispatcher()
-            ..takePriority(),
-      routerDelegate: MediaListTabNavigator(
-          navigatorKey: widget.navigatorKey,
-          state: widget.mediaTabRoute,
-          chosenDataList: ChosenDataList(
-            data: widget.data,
-            emptyMessage: widget.emptyMessage,
-            routeDataService: widget.mediaTabRoute,
-          )),
-    );
+    return FutureBuilder<List<ChoosenClass>>(
+        future: _resolvedChosen,
+        builder: (context, snapshot) => snapshot.hasData
+            ? Router(
+                backButtonDispatcher: Router.of(context)
+                    .backButtonDispatcher
+                    .createChildBackButtonDispatcher()
+                      ..takePriority(),
+                routerDelegate: MediaListTabNavigator(
+                    navigatorKey: widget.navigatorKey,
+                    state: widget.mediaTabRoute,
+                    chosenDataList: ChosenDataList(
+                      data: snapshot.data,
+                      emptyMessage: widget.emptyMessage,
+                      routeDataService: widget.mediaTabRoute,
+                    )),
+              )
+            : Container());
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 // ignore: implementation_imports
 import 'package:hive/src/hive_impl.dart';
 import 'package:inside_api/models.dart';
+import 'package:inside_api/site-service.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
 import 'package:inside_chassidus/util/extract-id.dart';
 import 'package:path_provider/path_provider.dart';
@@ -23,9 +24,10 @@ class ChosenClassService {
   static const int deleteAtMultiplier = 2;
 
   final HiveImpl hive;
+  final SiteBoxes siteBoxes;
   final Box<ChoosenClass> classes;
 
-  ChosenClassService({this.hive, this.classes});
+  ChosenClassService({this.hive, this.classes, this.siteBoxes});
 
   Future<void> set(
       {@required Media source, bool isFavorite, bool isRecent}) async {
@@ -70,6 +72,9 @@ class ChosenClassService {
           // Compare b to a to sort by most recent first.
           ..sort((a, b) => b.modifiedDate.compareTo(a.modifiedDate));
   }
+
+  Future<List<ChoosenClass>> getWithParents(List<ChoosenClass> classes) =>
+      siteBoxes.resolveIterable(classes);
 
   static Future<ChosenClassService> create() async {
     final hive = HiveImpl();
