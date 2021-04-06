@@ -21,7 +21,7 @@ class ChoosenClass extends HiveObject implements SectionReference {
   @override
   Section section;
   @override
-  int get parentId => media?.parentId;
+  int get parentId => media?.parentId ?? sectionId;
   @override
   int get sectionId => media?.sectionId;
 

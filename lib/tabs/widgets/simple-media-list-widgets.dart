@@ -84,16 +84,10 @@ class MediaListTab extends StatefulWidget {
 }
 
 class MediaListTabState extends State<MediaListTab> {
-  Future<List<ChoosenClass>> _resolvedChosen;
-
-  MediaListTabState() {
-    _resolvedChosen = widget.siteBoxes.resolveIterable(widget.data);
-  }
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<ChoosenClass>>(
-        future: _resolvedChosen,
+        future: widget.siteBoxes.resolveIterable(widget.data),
         builder: (context, snapshot) => snapshot.hasData
             ? Router(
                 backButtonDispatcher: Router.of(context)
@@ -140,11 +134,17 @@ class ChosenDataList extends StatelessWidget {
         itemBuilder: (context, index) {
           final item = data[index];
 
+          var subtitle = item?.media?.description;
+
+          if (subtitle == null || subtitle.isEmpty) {
+            subtitle = item?.parent?.title;
+          }
+
           return ListTile(
             title: Text(item.media.title),
-            subtitle: item.media.description != null
+            subtitle: subtitle != null
                 ? Text(
-                    item.media.description,
+                    subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   )
