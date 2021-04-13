@@ -36,7 +36,7 @@ dependencies:
   font_awesome_flutter: ^9.0.0
   audio_service: ^0.17.0
   firebase_core: ^1.0.3
-  firebase_analytics: ^7.1.1
+  firebase_analytics: ^8.0.0-dev.2
   firebase_crashlytics: ^2.0.0
   dart_extensions:
     git:
