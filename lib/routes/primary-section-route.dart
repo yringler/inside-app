@@ -27,7 +27,7 @@ class PrimarySectionsRoute extends StatelessWidget {
       NavigateToSection(
         section: primaryInside.section,
         child: Stack(
-          overflow: Overflow.clip,
+          clipBehavior: Clip.hardEdge,
           alignment: Alignment.bottomLeft,
           children: <Widget>[
             CachedNetworkImage(
