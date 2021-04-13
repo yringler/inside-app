@@ -6,9 +6,9 @@ import 'package:inside_chassidus/util/library-navigator/index.dart';
 /// Simplify navigation to a route which depends on inside chassidus data.
 class InsideNavigator extends StatelessWidget {
   final Widget child;
-  final SiteDataItem data;
+  final SiteDataItem? data;
 
-  InsideNavigator({@required this.child, @required this.data});
+  InsideNavigator({required this.child, required this.data});
 
   @override
   Widget build(BuildContext context) =>

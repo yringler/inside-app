@@ -8,7 +8,7 @@ class FavoritesTab extends StatelessWidget {
   final GlobalKey<NavigatorState> navigatorKey;
   final MediaListTabRoute routeState;
 
-  FavoritesTab({@required this.navigatorKey, @required this.routeState});
+  FavoritesTab({required this.navigatorKey, required this.routeState});
 
   @override
   Widget build(BuildContext context) {

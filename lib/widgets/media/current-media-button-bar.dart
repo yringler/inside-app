@@ -10,13 +10,13 @@ class CurrentMediaButtonBar extends StatelessWidget {
   /// Given the context and wether media is currently playing, returns how much size
   /// the rest of the app has.
   static double heightOfMediaBar(BuildContext context,
-          {@required bool isPlaying}) =>
+          {required bool isPlaying}) =>
       isPlaying ? _barHeight : 0;
 
   @override
   Widget build(BuildContext context) {
     return IsGlobalMediaButtonsShowingWatcher(
-        builder: (context, {isGlobalButtonsShowing, mediaSource}) =>
+        builder: (context, {required isGlobalButtonsShowing, mediaSource}) =>
             isGlobalButtonsShowing
                 ? Container(
                     child: AudioButtonBar(

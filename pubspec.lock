@@ -364,8 +364,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "4a593de1fedc117376555ceee8aa6d3c6f31e8ad"
-      resolved-ref: "4a593de1fedc117376555ceee8aa6d3c6f31e8ad"
+      ref: "8ae40ac9202fbd7213aa2a7841bce17758f4cb92"
+      resolved-ref: "8ae40ac9202fbd7213aa2a7841bce17758f4cb92"
       url: "https://github.com/yringler/inside-api.git"
     source: git
     version: "0.0.0"

@@ -44,7 +44,7 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  final siteBoxes = await getBoxes();
+  final siteBoxes = await (getBoxes() as FutureOr<SiteBoxes>);
   final chosenService = await ChosenClassService.create();
   final downloadManager = ForgroundDownloadManager(maxDownloads: 10);
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
@@ -95,7 +95,7 @@ class AppRouterDelegate extends RouterDelegate
       );
 
   @override
-  final GlobalKey<NavigatorState> navigatorKey;
+  final GlobalKey<NavigatorState>? navigatorKey;
 
   @override
   Future<void> setNewRoutePath(configuration) async {}
@@ -143,7 +143,7 @@ class MyAppState extends State<MyApp> {
   /// in player route.)
   void onLibraryPositionChange() {
     final last = positionService.sections.lastOrNull;
-    final isOnPlayer = last?.data != null && last.data is Media;
+    final isOnPlayer = last?.data != null && last!.data is Media;
 
     BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
         .isOtherButtonsShowing(isShowing: isOnPlayer);
@@ -169,7 +169,7 @@ class MyAppState extends State<MyApp> {
               leading: _getCanPop()
                   ? BackButton(
                       onPressed: () =>
-                          _getCurrentRouterKey().currentState.maybePop(),
+                          _getCurrentRouterKey().currentState!.maybePop(),
                     )
                   : null),
           body: AudioButtonbarAwareBody(
@@ -300,7 +300,7 @@ class MyAppState extends State<MyApp> {
 
 /// Ensure that any source JSON is parsed and loaded in to hive, return
 /// open boxes.
-Future<SiteBoxes> getBoxes() async {
+Future<SiteBoxes?> getBoxes() async {
   final boxPath = await getApplicationDocumentsDirectory();
   final servicePath = '${boxPath.path}/siteservice_hive';
 
@@ -326,6 +326,6 @@ Future<bool> _ensureDataLoaded(List<dynamic> args) async {
     return false;
   }
 
-  await boxes.hive.close();
+  await boxes.hive!.close();
   return true;
 }

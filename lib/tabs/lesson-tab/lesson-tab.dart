@@ -4,12 +4,12 @@ import 'package:inside_chassidus/util/library-navigator/index.dart';
 class LessonTab extends StatelessWidget {
   final GlobalKey<NavigatorState> navigatorKey;
 
-  LessonTab({@required this.navigatorKey});
+  LessonTab({required this.navigatorKey});
 
   @override
   Widget build(BuildContext context) {
     final backButtonDispatcher = Router.of(context)
-        .backButtonDispatcher
+        .backButtonDispatcher!
         .createChildBackButtonDispatcher();
 
     backButtonDispatcher.takePriority();

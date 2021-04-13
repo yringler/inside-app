@@ -17,10 +17,10 @@ class ChoosenClassAdapter extends TypeAdapter<ChoosenClass> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return ChoosenClass(
-      media: fields[0] as Media,
-      isFavorite: fields[1] as bool,
-      isRecent: fields[2] as bool,
-      modifiedDate: fields[3] as DateTime,
+      media: fields[0] as Media?,
+      isFavorite: fields[1] as bool?,
+      isRecent: fields[2] as bool?,
+      modifiedDate: fields[3] as DateTime?,
     );
   }
 

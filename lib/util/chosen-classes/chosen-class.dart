@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:inside_api/models.dart';
 
@@ -8,18 +7,18 @@ part 'chosen-class.g.dart';
 @HiveType(typeId: 1)
 class ChoosenClass extends HiveObject {
   @HiveField(0)
-  final Media media;
+  final Media? media;
   @HiveField(1)
-  bool isFavorite;
+  bool? isFavorite;
   @HiveField(2)
-  bool isRecent;
+  bool? isRecent;
   @HiveField(3)
-  DateTime modifiedDate;
+  DateTime? modifiedDate;
 
-  Section section;
+  Section? section;
 
   ChoosenClass(
-      {@required this.media,
+      {required this.media,
       this.isFavorite = false,
       this.isRecent = false,
       this.modifiedDate});

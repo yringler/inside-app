@@ -6,12 +6,12 @@ import 'package:just_audio_service/position-manager/position-manager.dart';
 import 'package:rxdart/rxdart.dart';
 
 typedef Widget GlobalMediaButtonsAwareBuilder(BuildContext context,
-    {bool isGlobalButtonsShowing, String mediaSource});
+    {required bool isGlobalButtonsShowing, String? mediaSource});
 
 class IsGlobalMediaButtonsShowingWatcher extends StatelessWidget {
   final GlobalMediaButtonsAwareBuilder builder;
 
-  IsGlobalMediaButtonsShowingWatcher({@required this.builder});
+  IsGlobalMediaButtonsShowingWatcher({required this.builder});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class IsGlobalMediaButtonsShowingWatcher extends StatelessWidget {
   }
 
   /// If the given state can have a global player shown.
-  bool _showState(PlaybackState state) {
+  bool _showState(PlaybackState? state) {
     if (state == null) {
       return false;
     }
@@ -46,10 +46,10 @@ class IsGlobalMediaButtonsShowingWatcher extends StatelessWidget {
 }
 
 class StateAndShowing {
-  final PositionState positionState;
+  final PositionState? positionState;
 
   /// If global play buttons are showing.
-  final bool isGlobalShowing;
+  final bool? isGlobalShowing;
 
   StateAndShowing({this.positionState, this.isGlobalShowing});
 }

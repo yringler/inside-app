@@ -9,18 +9,18 @@ import 'package:just_audio_service/position-manager/position-manager.dart';
 import 'package:just_audio_service/download-manager/download-audio-task.dart';
 
 class PlayButton extends StatelessWidget {
-  final Media media;
+  final Media? media;
 
   /// If [media] can't be provided, it's enough to pass in [mediaSource].
   /// In such a case, play will not cause to be added to recently played.
-  final String mediaSource;
+  final String? mediaSource;
   final double iconSize;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
-  String get _mediaSource => media?.source ?? mediaSource;
+  String? get _mediaSource => media?.source ?? mediaSource;
 
   PlayButton(
-      {@required this.media,
+      {required this.media,
       this.mediaSource,
       this.onPressed,
       this.iconSize = 24});
@@ -41,27 +41,27 @@ class PlayButton extends StatelessWidget {
                     androidStopForegroundOnPause: true,
                     params: DownloadAudioTask.createStartParams(
                         BlocProvider.getDependency<ForgroundDownloadManager>()))
-                .then((_) => AudioService.playFromMediaId(_mediaSource));
+                .then((_) => AudioService.playFromMediaId(_mediaSource!));
           } else {
-            AudioService.playFromMediaId(_mediaSource);
+            AudioService.playFromMediaId(_mediaSource!);
           }
 
           if (media != null) {
             BlocProvider.getDependency<ChosenClassService>()
-                .set(source: media, isRecent: true);
+                .set(source: media!, isRecent: true);
           }
         };
         var icon = Icons.play_circle_filled;
 
         if (snapshot.hasData &&
-            snapshot.data.position?.id == _mediaSource &&
-            snapshot.data.state != null) {
-          if (snapshot.data.state.processingState ==
+            snapshot.data!.position?.id == _mediaSource &&
+            snapshot.data!.state != null) {
+          if (snapshot.data!.state!.processingState ==
               AudioProcessingState.connecting) {
             return CircularProgressIndicator();
           }
 
-          if (snapshot.data.state.playing) {
+          if (snapshot.data!.state!.playing) {
             icon = Icons.pause_circle_filled;
             onPressed = () => AudioService.pause();
           }
@@ -71,7 +71,7 @@ class PlayButton extends StatelessWidget {
           onPressed: () {
             onPressed();
             if (this.onPressed != null) {
-              this.onPressed();
+              this.onPressed!();
             }
           },
           icon: Icon(icon),

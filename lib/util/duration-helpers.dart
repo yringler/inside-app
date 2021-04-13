@@ -1,5 +1,5 @@
 /// Converts duration into string with minutes and seconds components.
-String toDurationString(Duration duration) {
+String toDurationString(Duration? duration) {
   if (duration == null) {
     return "--:--";
   }

@@ -12,9 +12,9 @@ import 'package:inside_chassidus/widgets/section-content-list.dart';
 class SecondarySectionRoute extends StatelessWidget {
   static const String routeName = "/library/sections";
 
-  final Section section;
+  final Section? section;
 
-  SecondarySectionRoute({@required this.section});
+  SecondarySectionRoute({required this.section});
 
   @override
   Widget build(BuildContext context) => SectionContentList(
@@ -25,7 +25,7 @@ class SecondarySectionRoute extends StatelessWidget {
         lessonBuilder: (context, lesson) => InsideDataCard(insideData: lesson),
         mediaBuilder: (context, media) => MediaItem(
           media: media,
-          sectionId: section.id,
+          sectionId: section!.id,
           routeDataService: BlocProvider.getDependency<LibraryPositionService>(),
         ),
       );

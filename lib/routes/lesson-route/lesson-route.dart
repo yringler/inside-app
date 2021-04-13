@@ -12,7 +12,7 @@ class LessonRoute extends StatelessWidget {
 
   final MediaSection lesson;
 
-  LessonRoute({this.lesson});
+  LessonRoute({required this.lesson});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -27,7 +27,7 @@ class LessonRoute extends StatelessWidget {
             children: [
               InsideBreadcrumbs(),
               if (lesson.description?.isNotEmpty ?? false)
-                textIfNotEmpty(lesson.description)
+                textIfNotEmpty(lesson.description)!
             ],
           ),
         ),

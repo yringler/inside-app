@@ -15,7 +15,7 @@ class LibraryNavigator extends RouterDelegate
       BlocProvider.getDependency<LibraryPositionService>(); // Get from DI
   final GlobalKey<NavigatorState> navigatorKey;
 
-  LibraryNavigator({@required this.navigatorKey}) {
+  LibraryNavigator({required this.navigatorKey}) {
     appState.addListener(notifyListeners);
   }
 
@@ -36,7 +36,7 @@ class LibraryNavigator extends RouterDelegate
           for (final book
               in appState.sections.where((section) => section.wasNavigatedTo))
             MaterialPage(
-                key: ValueKey('${book.level}_${book.data.id}'),
+                key: ValueKey('${book.level}_${book.data!.id}'),
                 child: Material(child: getChild(book)))
         ],
       );
@@ -50,21 +50,21 @@ class LibraryNavigator extends RouterDelegate
     // fire untill it's all set up.)
     if (book.level == 0 && book.data is Section) {
       return SecondarySectionRoute(
-        section: book.data,
+        section: book.data as Section?,
       );
     }
 
     switch (book.data.runtimeType) {
       case Section:
         return TernarySectionRoute(
-          section: book.data,
+          section: book.data as Section?,
         );
       case MediaSection:
         return LessonRoute(
-          lesson: book.data,
+          lesson: book.data as MediaSection,
         );
       case Media:
-        return PlayerRoute(media: book.data);
+        return PlayerRoute(media: book.data as Media);
     }
 
     throw new ArgumentError.value(book, 'Could not create widget for value');

@@ -13,9 +13,9 @@ class IsPlayerButtonsShowingBloc extends BlocBase {
   BehaviorSubject<bool> _isOtherButtonsShowing = BehaviorSubject.seeded(false);
   BehaviorSubject<bool> _canGlobalShow = BehaviorSubject.seeded(true);
 
-  void isOtherButtonsShowing({bool isShowing}) {
+  void isOtherButtonsShowing({bool? isShowing}) {
     if (isShowing != _isOtherButtonsShowing.value) {
-      _isOtherButtonsShowing.add(isShowing);
+      _isOtherButtonsShowing.add(isShowing!);
     }
   }
 
