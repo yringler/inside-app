@@ -26,41 +26,43 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.0
-  json_annotation: ^3.0.1
-  expandable: ^4.1.4
-  cached_network_image: ^2.0.0-rc.1
-  rxdart: ^0.24.0
-  bloc_pattern: ^2.5.1
-  path_provider: ^1.4.0
-  font_awesome_flutter: ^8.5.0
-  audio_service: ^0.15.0
-  firebase_core: ^0.5.0
-  firebase_analytics: ^6.0.0
-  firebase_crashlytics: ^0.2.0-dev.5
-  dart_extensions: ^1.0.1
-  hive: ^1.4.3
-  hive_flutter: ^0.3.1
-  flutter_breadcrumb_menu: ^1.0.0
+  cupertino_icons: ^1.0.2
+  json_annotation: ^4.0.1
+  expandable: ^5.0.1
+  cached_network_image: ^3.0.0
+  rxdart: ^0.26.0
+  bloc_pattern: ^3.0.0
+  path_provider: ^2.0.1
+  font_awesome_flutter: ^9.0.0
+  audio_service: ^0.17.0
+  firebase_core: ^1.0.3
+  firebase_analytics: ^7.1.1
+  firebase_crashlytics: ^2.0.0
+  dart_extensions:
+    git:
+      url: https://github.com/yringler/dart_extensions
+      ref: 5914d63888d80d6d93e0ba44d35d6b14346d8341
+  hive: ^2.0.2
+  hive_flutter: ^1.0.0
+  flutter_breadcrumb_menu:
+      git:
+        url: https://github.com/yringler/flutter-breadcrumb-menu
+        ref: 7b4b9c98d3b8877eb3e6b5f8edf4850d79faf55b
   inside_api:
       git:
         url: https://github.com/yringler/inside-api.git
-        ref: 84f1a54226d01d81feedd67ac7b69cafbdd4c5a7
+        ref: 4a593de1fedc117376555ceee8aa6d3c6f31e8ad
     #path: ../inside-api
   just_audio_service:
     git:
       url: https://github.com/yringler/just_audio_service.git
-      ref: a01864427c128b6e83a305983128b4396e841021
+      ref: aab9a0873e6e4c9192825f2a44180a66b2dd1d09
   # path: ../just_audio_service
 dev_dependencies:
-  hive_generator: ^0.8.1
+  hive_generator: ^1.0.1
   # build_runner: 1.10.0 # https://stackoverflow.com/a/63315768
-dependency_overrides:
+#dependency_overrides:
   #analyzer: 0.39.14 # https://stackoverflow.com/a/63315768
-  flutter_breadcrumb_menu:
-    git:
-      url: https://github.com/yringler/flutter-breadcrumb-menu
-      ref: f407152479029ef0194cd51885a7478ab4a46aef
   #  path: ../flutter-breadcrumb-menu
 
 # For information on the generic Dart part of this file, see the
