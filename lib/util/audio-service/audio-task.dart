@@ -21,7 +21,7 @@ class LoggingAudioTask extends AudioTaskDecorater {
     // Note that if someone listens to the same class 3 times in a row, it is only logged once.
     _logCompletedSubscription = context.mediaPlayer.playerStateStream
         .where((state) => state.processingState == ProcessingState.completed)
-        .map((state) => context.mediaItem.id)
+        .map((state) => context.mediaItem!.id)
         .distinct()
         .listen((id) {
       analytics.logEvent(

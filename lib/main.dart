@@ -44,7 +44,7 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  final siteBoxes = await (getBoxes() as FutureOr<SiteBoxes>);
+  final siteBoxes = await (getBoxes());
   final chosenService = await ChosenClassService.create();
   final downloadManager = ForgroundDownloadManager(maxDownloads: 10);
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
@@ -300,7 +300,7 @@ class MyAppState extends State<MyApp> {
 
 /// Ensure that any source JSON is parsed and loaded in to hive, return
 /// open boxes.
-Future<SiteBoxes?> getBoxes() async {
+Future<SiteBoxes> getBoxes() async {
   final boxPath = await getApplicationDocumentsDirectory();
   final servicePath = '${boxPath.path}/siteservice_hive';
 
@@ -313,7 +313,7 @@ Future<SiteBoxes?> getBoxes() async {
     await compute(_ensureDataLoaded, [servicePath, rawData]);
   }
 
-  return await getSiteBoxesWithData(hivePath: servicePath);
+  return (await getSiteBoxesWithData(hivePath: servicePath))!;
 }
 
 /// Make sure that there is data loaded in to hive. Return true if there is data.
