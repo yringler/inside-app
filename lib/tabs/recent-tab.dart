@@ -8,7 +8,7 @@ class RecentsTab extends StatelessWidget {
   final GlobalKey<NavigatorState> navigatorKey;
   final MediaListTabRoute routeState;
 
-  RecentsTab({@required this.navigatorKey, @required this.routeState});
+  RecentsTab({required this.navigatorKey, required this.routeState});
 
   @override
   Widget build(BuildContext context) {

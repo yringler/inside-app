@@ -11,74 +11,72 @@ typedef Widget InsideDataBuilder<T extends SiteDataItem>(
 /// and lessons.
 class SectionContentList extends StatelessWidget {
   final bool isSeperated;
-  final Section section;
+  final Section? section;
   final InsideDataBuilder<Section> sectionBuilder;
   final InsideDataBuilder<MediaSection> lessonBuilder;
-  final InsideDataBuilder<Media> mediaBuilder;
+  final InsideDataBuilder<Media>? mediaBuilder;
 
   /// A widget to go before other items in the list.
-  final Widget leadingWidget;
+  final Widget? leadingWidget;
 
   /// If there is a leading widget, index is 1 too many.
   int get indexOffset => leadingWidget == null ? 0 : 1;
 
   SectionContentList(
-      {@required this.section,
-      @required this.sectionBuilder,
-      @required this.lessonBuilder,
-      this.mediaBuilder,
+      {required this.section,
+      required this.sectionBuilder,
+      required this.lessonBuilder,
+      required this.mediaBuilder,
       this.isSeperated = false,
       this.leadingWidget});
 
   @override
-  Widget build(BuildContext context) => FutureBuilder(
-        future: BlocProvider.getDependency<SiteBoxes>().resolve(section),
+  Widget build(BuildContext context) => FutureBuilder<Section>(
+        future: BlocProvider.getDependency<SiteBoxes>().resolve(section!),
         builder: (context, snapShot) {
-          if (snapShot.hasData) {
+          if (snapShot.hasData && snapShot.data != null) {
             if (isSeperated) {
               return ListView.separated(
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                itemCount: snapShot.data.content.length + indexOffset,
+                itemCount: snapShot.data!.content.length + indexOffset,
                 itemBuilder: _sectionContent(snapShot.data),
                 separatorBuilder: (context, i) => Divider(),
               );
             } else {
               return ListView.builder(
-                itemCount: snapShot.data.content.length + indexOffset,
+                itemCount: snapShot.data!.content.length + indexOffset,
                 itemBuilder: _sectionContent(snapShot.data),
               );
             }
           } else if (snapShot.hasError) {
-            return ErrorWidget(snapShot.error);
+            return ErrorWidget(snapShot.error!);
           } else {
             return Center(child: CircularProgressIndicator());
           }
         },
       );
 
-  IndexedWidgetBuilder _sectionContent(Section section) => (BuildContext context, int i) {
+  IndexedWidgetBuilder _sectionContent(Section? section) => (BuildContext context, int i) {
         if (i == 0 && leadingWidget != null) {
-          return leadingWidget;
+          return leadingWidget!;
         }
 
         i -= indexOffset;
 
-        final dataItem = section.content[i];
+        final dataItem = section!.content[i];
         if (dataItem.section != null) {
-          return sectionBuilder(context, dataItem.section);
+          return sectionBuilder(context, dataItem.section!);
         } else if (dataItem.mediaSection != null) {
-          return _lessonNavigator(context, dataItem.mediaSection);
-        } else if (dataItem.media != null) {
-          if (mediaBuilder != null) {
-            return mediaBuilder(context, dataItem.media);
-          }
+          return _lessonNavigator(context, dataItem.mediaSection!);
+        } else if (dataItem.media != null && mediaBuilder != null) {
+            return mediaBuilder!(context, dataItem.media!);
         }
         throw 'Error: item contained no data';
       };
 
   _lessonNavigator(BuildContext context, MediaSection lesson) {
     if (lesson.audioCount == 1 && mediaBuilder != null) {
-      return mediaBuilder(context, lesson.media[0]);
+      return mediaBuilder!(context, lesson.media![0]);
     }
 
     return InsideNavigator(

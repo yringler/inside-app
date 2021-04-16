@@ -20,7 +20,7 @@ class PlayerRoute extends StatelessWidget {
   final libraryPositionService =
       BlocProvider.getDependency<LibraryPositionService>();
 
-  PlayerRoute({this.media});
+  PlayerRoute({required this.media});
 
   @override
   Widget build(BuildContext context) => Container(
@@ -47,7 +47,7 @@ class PlayerRoute extends StatelessWidget {
                 children: [
                   _favoriteButton(context),
                   DownloadButton(
-                    audioUrl: media.source,
+                    audioUrl: media.source!,
                     downloadManager:
                         BlocProvider.getDependency<ForgroundDownloadManager>(),
                   )
@@ -64,8 +64,8 @@ class PlayerRoute extends StatelessWidget {
         ),
       );
 
-  FutureBuilder<SiteDataItem> _navigateToLibraryButton() =>
-      FutureBuilder<SiteDataItem>(
+  FutureBuilder<SiteDataItem?> _navigateToLibraryButton() =>
+      FutureBuilder<SiteDataItem?>(
         future: _getParent(),
         builder: (context, snapshot) => snapshot.data != null
             ? IconButton(
@@ -78,19 +78,19 @@ class PlayerRoute extends StatelessWidget {
             : Container(),
       );
 
-  Future<SiteDataItem> _getParent() async {
+  Future<SiteDataItem?> _getParent() async {
     if (media.closestSectionId == null) {
       return null;
     }
 
-    final parentSection = await _siteBoxes.sections.get(media.closestSectionId);
+    final parentSection = await _siteBoxes.sections!.get(media.closestSectionId);
 
     // Make sure that the parent exists, and that it really has the data.
     // This is done in case IDs change etc - we don't want to navigate to library,
     // to some random place.
     if (parentSection == null ||
         !parentSection.content.any((c) =>
-            c?.media == media ||
+            c.media == media ||
             (c.mediaSection?.media?.contains(media) ?? false))) {
       return null;
     }
@@ -110,19 +110,19 @@ class PlayerRoute extends StatelessWidget {
   /// If the media doesn't have a title, just returns lesson title as title.
   List<Widget> _title(BuildContext context, SiteDataItem lesson) {
     if ((media.title?.isNotEmpty ?? false) &&
-        (lesson?.title?.isNotEmpty ?? false) &&
+        (lesson.title?.isNotEmpty ?? false) &&
         media.title != lesson.title) {
       return [
         Container(
           margin: EdgeInsets.only(bottom: 8),
           child: Text(
-            lesson.title,
+            lesson.title!,
             style: Theme.of(context).textTheme.subtitle2,
             textAlign: TextAlign.center,
           ),
         ),
         Text(
-          media.title,
+          media.title!,
           style: Theme.of(context).textTheme.headline1,
         )
       ];
@@ -130,7 +130,7 @@ class PlayerRoute extends StatelessWidget {
 
     return [
       Text(
-        media.title?.isNotEmpty ?? false ? media.title : lesson.title,
+        media.title?.isNotEmpty ?? false ? media.title! : lesson.title!,
         style: Theme.of(context).textTheme.headline6,
       )
     ];
@@ -155,10 +155,10 @@ class PlayerRoute extends StatelessWidget {
     final chosenService = BlocProvider.getDependency<ChosenClassService>();
 
     return chosenService.isFavoriteValueListenableBuilder(
-      media.source,
+      media.source!,
       builder: (context, isFavorite) => Center(
         child: IconButton(
-          iconSize: Theme.of(context).iconTheme.size,
+          iconSize: Theme.of(context).iconTheme.size!,
           onPressed: () =>
               chosenService.set(source: media, isFavorite: !isFavorite),
           icon: Icon(

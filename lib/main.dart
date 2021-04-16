@@ -44,7 +44,7 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  final siteBoxes = await getBoxes();
+  final siteBoxes = await (getBoxes());
   final chosenService = await ChosenClassService.create();
   final downloadManager = ForgroundDownloadManager(maxDownloads: 10);
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
@@ -95,7 +95,7 @@ class AppRouterDelegate extends RouterDelegate
       );
 
   @override
-  final GlobalKey<NavigatorState> navigatorKey;
+  final GlobalKey<NavigatorState>? navigatorKey;
 
   @override
   Future<void> setNewRoutePath(configuration) async {}
@@ -143,7 +143,7 @@ class MyAppState extends State<MyApp> {
   /// in player route.)
   void onLibraryPositionChange() {
     final last = positionService.sections.lastOrNull;
-    final isOnPlayer = last?.data != null && last.data is Media;
+    final isOnPlayer = last?.data != null && last!.data is Media;
 
     BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
         .isOtherButtonsShowing(isShowing: isOnPlayer);
@@ -169,7 +169,7 @@ class MyAppState extends State<MyApp> {
               leading: _getCanPop()
                   ? BackButton(
                       onPressed: () =>
-                          _getCurrentRouterKey().currentState.maybePop(),
+                          _getCurrentRouterKey().currentState!.maybePop(),
                     )
                   : null),
           body: AudioButtonbarAwareBody(
@@ -313,7 +313,7 @@ Future<SiteBoxes> getBoxes() async {
     await compute(_ensureDataLoaded, [servicePath, rawData]);
   }
 
-  return await getSiteBoxesWithData(hivePath: servicePath);
+  return (await getSiteBoxesWithData(hivePath: servicePath))!;
 }
 
 /// Make sure that there is data loaded in to hive. Return true if there is data.
@@ -326,6 +326,6 @@ Future<bool> _ensureDataLoaded(List<dynamic> args) async {
     return false;
   }
 
-  await boxes.hive.close();
+  await boxes.hive!.close();
   return true;
 }

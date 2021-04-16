@@ -8,7 +8,7 @@ import 'package:inside_api/site-service.dart';
 ///
 /// For example, the media player classes.
 abstract class IRoutDataService {
-  void setActiveItem(SiteDataItem data);
+  void setActiveItem(SiteDataItem? data);
 }
 
 /// Supports setting a new active section.
@@ -20,18 +20,18 @@ class LibraryPositionService extends ChangeNotifier
   final SiteBoxes siteBoxes;
   List<SitePosition> sections = [];
 
-  LibraryPositionService({@required this.siteBoxes});
+  LibraryPositionService({required this.siteBoxes});
 
   /// Ensure that next to last item is parent of new item, or clear the list.
   /// If new parent isn't in list, replace the list with it and its ancestors.
   /// Make note that they were never navigated to (and so shouldn't show up
   /// e.g. when user hits back button)
-  Future<List<SitePosition>> setActiveItem(SiteDataItem item) async {
+  Future<List<SitePosition>> setActiveItem(SiteDataItem? item) async {
     if (sections.isNotEmpty && sections.last.data == item) {
       return sections;
     }
 
-    await _clearTo(item);
+    await _clearTo(item!);
 
     notifyListeners();
     return sections;
@@ -65,7 +65,12 @@ class LibraryPositionService extends ChangeNotifier
     var lastItemAdded = item;
     while ((lastItemAdded.closestSectionId ?? 0) != 0) {
       final parentSection =
-          await this.siteBoxes.sections.get(lastItemAdded.closestSectionId);
+          await (this.siteBoxes.sections!.get(lastItemAdded.closestSectionId));
+
+      if (parentSection == null) {
+        print('parent is null');
+        break;
+      }
 
       if (lastItemAdded is Media &&
           lastItemAdded.closestSectionId != lastItemAdded.parentId) {
@@ -90,18 +95,18 @@ class LibraryPositionService extends ChangeNotifier
       sections[i].level = i;
 
       if (sections[i].data is Section) {
-        await siteBoxes.resolve(sections[i].data);
+        await siteBoxes.resolve(sections[i].data as Section);
       }
     }
   }
 }
 
 class SitePosition {
-  final SiteDataItem data;
+  final SiteDataItem? data;
   final bool wasNavigatedTo;
   // For example, the top level section (which would be on the home screen)
   // would be level 0. A child would be level 1, etc.
   int level;
 
-  SitePosition({this.data, this.wasNavigatedTo = true, @required this.level});
+  SitePosition({this.data, this.wasNavigatedTo = true, required this.level});
 }

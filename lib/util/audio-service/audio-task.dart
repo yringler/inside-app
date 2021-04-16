@@ -8,7 +8,7 @@ import 'package:just_audio_service/download-manager/download-audio-task.dart';
 
 class LoggingAudioTask extends AudioTaskDecorater {
   final FirebaseAnalytics analytics = FirebaseAnalytics();
-  StreamSubscription<String> _logCompletedSubscription;
+  StreamSubscription<String>? _logCompletedSubscription;
 
   LoggingAudioTask()
       : super(
@@ -16,17 +16,17 @@ class LoggingAudioTask extends AudioTaskDecorater {
                 DownloadAudioTask(audioTask: PositionedAudioTask.standard()));
 
   @override
-  Future<void> onStart(Map<String, dynamic> params) async {
+  Future<void> onStart(Map<String, dynamic>? params) async {
     // Log an analytics event when a lesson is finished.
     // Note that if someone listens to the same class 3 times in a row, it is only logged once.
     _logCompletedSubscription = context.mediaPlayer.playerStateStream
         .where((state) => state.processingState == ProcessingState.completed)
-        .map((state) => context.mediaItem.id)
+        .map((state) => context.mediaItem!.id)
         .distinct()
         .listen((id) {
       analytics.logEvent(
           name: "completed_class",
-          parameters: {"class_source": id?.limitFromEnd(100) ?? ""});
+          parameters: {"class_source": id.limitFromEnd(100) ?? ""});
     });
 
     await super.onStart(params);

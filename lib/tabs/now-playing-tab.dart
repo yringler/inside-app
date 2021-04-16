@@ -18,6 +18,6 @@ class NowPlayingTab extends StatelessWidget {
       );
     }
 
-    return PlayerRoute(media: mostRecentlyPlayingList.first.media);
+    return PlayerRoute(media: mostRecentlyPlayingList.first.media!);
   }
 }

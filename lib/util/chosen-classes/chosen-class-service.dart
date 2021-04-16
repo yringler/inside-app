@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 // ignore: implementation_imports
 import 'package:hive/src/hive_impl.dart';
@@ -22,53 +21,53 @@ class ChosenClassService {
   /// How many extra to have before deleting.
   static const int deleteAtMultiplier = 2;
 
-  final HiveImpl hive;
-  final Box<ChoosenClass> classes;
+  final HiveImpl? hive;
+  final Box<ChoosenClass>? classes;
 
   ChosenClassService({this.hive, this.classes});
 
   Future<void> set(
-      {@required Media source, bool isFavorite, bool isRecent}) async {
-    var chosen = classes.get(source.source.toHiveId());
+      {required Media source, bool? isFavorite, bool? isRecent}) async {
+    var chosen = classes!.get(source.source!.toHiveId());
 
-    await classes.put(
-        source.source.toHiveId(),
+    await classes!.put(
+        source.source!.toHiveId(),
         ChoosenClass(
             media: source,
             isFavorite: isFavorite ?? chosen?.isFavorite ?? false,
             isRecent: isRecent ?? chosen?.isRecent ?? false,
             modifiedDate: DateTime.now()));
 
-    final newClass = classes.get(source.source.toHiveId());
-    if (!newClass.isRecent && !newClass.isFavorite) {
+    final newClass = classes!.get(source.source!.toHiveId())!;
+    if (!newClass.isRecent! && !newClass.isFavorite!) {
       await newClass.delete();
     }
   }
 
   bool isFavorite(String source) =>
-      classes.get(source.toHiveId())?.isFavorite ?? false;
+      classes!.get(source.toHiveId())?.isFavorite ?? false;
 
   Widget isFavoriteValueListenableBuilder(String source,
-      {ValueBuilder<bool> builder}) {
-    if (!classes.containsKey(source.toHiveId())) {
+      {ValueBuilder<bool>? builder}) {
+    if (!classes!.containsKey(source.toHiveId())) {
       // classes.put(source.toHiveId(), ChoosenClass(media: null));
     }
 
     return ValueListenableBuilder<Box<ChoosenClass>>(
-      valueListenable: classes.listenable(keys: [source.toHiveId()]),
+      valueListenable: classes!.listenable(keys: [source.toHiveId()]),
       builder: (context, value, child) =>
-          builder(context, value.get(source.toHiveId())?.isFavorite ?? false),
+          builder!(context, value.get(source.toHiveId())?.isFavorite ?? false),
     );
   }
 
-  List<ChoosenClass> getSorted({bool recent, bool favorite}) {
-    return classes.values
+  List<ChoosenClass> getSorted({bool? recent, bool? favorite}) {
+    return classes!.values
         .where((element) =>
             (recent == null || element.isRecent == recent) &&
             (favorite == null || element.isFavorite == favorite))
         .toList()
           // Compare b to a to sort by most recent first.
-          ..sort((a, b) => b.modifiedDate.compareTo(a.modifiedDate));
+          ..sort((a, b) => b.modifiedDate!.compareTo(a.modifiedDate!));
   }
 
   static Future<ChosenClassService> create() async {
@@ -108,10 +107,10 @@ class ChosenClassService {
   }
 
   static Future<void> _deleteTooMany(
-      {Box<ChoosenClass> classBox,
-      int max,
-      bool isFavorite,
-      bool isRecent}) async {
+      {required Box<ChoosenClass> classBox,
+      required int max,
+      bool? isFavorite,
+      bool? isRecent}) async {
     // Don't do anything if there isn't anything to delete.
     if (classBox.length < max * deleteAtMultiplier) {
       return;
@@ -129,7 +128,7 @@ class ChosenClassService {
     }).toList();
 
     // Sort, least recent first.
-    classes.sort((a, b) => a.modifiedDate.compareTo(b.modifiedDate));
+    classes.sort((a, b) => a.modifiedDate!.compareTo(b.modifiedDate!));
 
     // Delete as many as we need to get back down to size.
     final deleting =

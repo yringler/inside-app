@@ -6,12 +6,12 @@ import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
 
 class MediaListTabRoute extends ChangeNotifier implements IRoutDataService {
-  Media media;
+  Media? media;
 
   @override
-  setActiveItem(SiteDataItem data) {
+  setActiveItem(SiteDataItem? data) {
     assert(data is Media);
-    this.media = data;
+    this.media = data as Media?;
     notifyListeners();
   }
 
@@ -36,9 +36,9 @@ class MediaListTabNavigator extends RouterDelegate
   final ChosenDataList chosenDataList;
 
   MediaListTabNavigator(
-      {@required this.navigatorKey,
-      @required this.state,
-      @required this.chosenDataList}) {
+      {required this.navigatorKey,
+      required this.state,
+      required this.chosenDataList}) {
     this.state.addListener(notifyListeners);
   }
 
@@ -55,7 +55,7 @@ class MediaListTabNavigator extends RouterDelegate
         pages: [
           MaterialPage(child: chosenDataList),
           if (state.hasMedia())
-            MaterialPage(child: PlayerRoute(media: state.media))
+            MaterialPage(child: PlayerRoute(media: state.media!))
         ],
       );
 
@@ -65,16 +65,16 @@ class MediaListTabNavigator extends RouterDelegate
 
 /// A list of media, with navigation to a player.
 class MediaListTab extends StatefulWidget {
-  final List<ChoosenClass> data;
+  final List<ChoosenClass>? data;
   final String emptyMessage;
   final MediaListTabRoute mediaTabRoute;
   final GlobalKey<NavigatorState> navigatorKey;
 
   MediaListTab(
       {this.data,
-      @required this.mediaTabRoute,
-      @required this.emptyMessage,
-      @required this.navigatorKey});
+      required this.mediaTabRoute,
+      required this.emptyMessage,
+      required this.navigatorKey});
 
   @override
   State<StatefulWidget> createState() => MediaListTabState();
@@ -85,7 +85,7 @@ class MediaListTabState extends State<MediaListTab> {
   Widget build(BuildContext context) {
     return Router(
       backButtonDispatcher: Router.of(context)
-          .backButtonDispatcher
+          .backButtonDispatcher!
           .createChildBackButtonDispatcher()
             ..takePriority(),
       routerDelegate: MediaListTabNavigator(
@@ -102,18 +102,18 @@ class MediaListTabState extends State<MediaListTab> {
 
 /// A list of media.
 class ChosenDataList extends StatelessWidget {
-  final List<ChoosenClass> data;
+  final List<ChoosenClass>? data;
   final String emptyMessage;
   final IRoutDataService routeDataService;
 
   ChosenDataList(
       {this.data,
-      @required this.emptyMessage,
-      @required this.routeDataService});
+      required this.emptyMessage,
+      required this.routeDataService});
 
   @override
   Widget build(BuildContext context) {
-    if (data.isEmpty) {
+    if (data!.isEmpty) {
       return Center(
         child: Text(
           emptyMessage,
@@ -123,15 +123,15 @@ class ChosenDataList extends StatelessWidget {
     }
 
     return ListView.builder(
-        itemCount: data.length,
+        itemCount: data!.length,
         itemBuilder: (context, index) {
-          final item = data[index];
+          final item = data![index];
 
           return ListTile(
-            title: Text(item.media.title),
-            subtitle: item.media.description != null
+            title: Text(item.media!.title!),
+            subtitle: item.media!.description != null
                 ? Text(
-                    item.media.description,
+                    item.media!.description!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   )

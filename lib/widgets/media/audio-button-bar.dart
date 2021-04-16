@@ -7,14 +7,14 @@ import 'package:inside_chassidus/widgets/media-list/play-button.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 
 class AudioButtonBar extends StatelessWidget {
-  final Media media;
+  final Media? media;
 
   /// Set [_mediaSource] if [media] isn't available.
-  final String mediaSource;
+  final String? mediaSource;
 
-  String get _mediaSource => media?.source ?? mediaSource;
+  String? get _mediaSource => media?.source ?? mediaSource;
 
-  AudioButtonBar({@required this.media, this.mediaSource});
+  AudioButtonBar({required this.media, this.mediaSource});
 
   @override
   Widget build(BuildContext context) {
@@ -50,11 +50,11 @@ class AudioButtonBar extends StatelessWidget {
 
   _speedButton() => StreamBuilder<double>(
         stream: AudioService.playbackStateStream
-            .map((event) => event?.speed ?? 1.0)
+            .map((event) => event.speed)
             .where((speed) => speed != 0),
         initialData: 1,
         builder: (context, state) {
-          double currentSpeed = state.data;
+          double currentSpeed = state.data!;
 
           final nextSpeedIndex = speeds.indexOf(currentSpeed) + 1;
           final nextSpeed =

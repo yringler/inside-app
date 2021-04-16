@@ -10,7 +10,7 @@ class PrimarySectionsRoute extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _sections(context,
-      BlocProvider.getDependency<SiteBoxes>().topItems.values.toList());
+      BlocProvider.getDependency<SiteBoxes>().topItems!.values.toList());
 
   Widget _sections(
           BuildContext context, List<TopItem> topLevel) =>
@@ -27,11 +27,11 @@ class PrimarySectionsRoute extends StatelessWidget {
       NavigateToSection(
         section: primaryInside.section,
         child: Stack(
-          overflow: Overflow.clip,
+          clipBehavior: Clip.hardEdge,
           alignment: Alignment.bottomLeft,
           children: <Widget>[
             CachedNetworkImage(
-                imageUrl: primaryInside.image,
+                imageUrl: primaryInside.image!,
                 repeat: ImageRepeat.noRepeat,
                 fit: BoxFit.cover,
                 height: 500,
@@ -40,11 +40,11 @@ class PrimarySectionsRoute extends StatelessWidget {
                 colorBlendMode: BlendMode.darken),
             Container(
                 padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
-                child: Text(primaryInside.section.title.toUpperCase(),
+                child: Text(primaryInside.section!.title!.toUpperCase(),
                     style: TextStyle(
                         color: Colors.white,
                         fontSize:
-                            Theme.of(context).textTheme.headline6.fontSize,
+                            Theme.of(context).textTheme.headline6!.fontSize,
                         fontWeight: FontWeight.w600),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 3)),

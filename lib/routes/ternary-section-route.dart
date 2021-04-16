@@ -11,9 +11,9 @@ import 'package:inside_chassidus/widgets/section-content-list.dart';
 
 class TernarySectionRoute extends StatelessWidget {
   static const routeName = '/library/ternary-section';
-  final Section section;
+  final Section? section;
 
-  TernarySectionRoute({@required this.section});
+  TernarySectionRoute({required this.section});
 
   @override
   Widget build(BuildContext context) => SectionContentList(
@@ -30,12 +30,12 @@ class TernarySectionRoute extends StatelessWidget {
       lessonBuilder: (context, lesson) => _tile(lesson),
       mediaBuilder: (context, media) => MediaItem(
             media: media,
-            sectionId: section.id,
+            sectionId: section!.id,
             routeDataService: BlocProvider.getDependency<LibraryPositionService>(),
           ));
 
   static Widget _tile(CountableSiteDataItem data) {
-    var itemWord = data.audioCount > 1 ? 'classes' : 'class';
+    var itemWord = data.audioCount! > 1 ? 'classes' : 'class';
 
     return ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 4),

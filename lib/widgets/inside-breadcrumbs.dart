@@ -16,11 +16,11 @@ class InsideBreadcrumbs extends StatelessWidget {
     return Breadcrumb<SiteDataItem>(
       breads: [
         for (var position in service.sections)
-          Bread(label: getLabel(position.data), route: position.data)
+          Bread(label: getLabel(position.data!), route: position.data)
       ],
       onValueChanged: (value) => service.setActiveItem(value),
     );
   }
 
-  getLabel(SiteDataItem data) => data.title.trim().split(' ').take(5).join(' ');
+  getLabel(SiteDataItem data) => data.title!.trim().split(' ').take(5).join(' ');
 }

@@ -4,13 +4,13 @@ import 'package:inside_chassidus/widgets/media/is-global-buttons-showing-watcher
 
 /// A widget which sizes its child based on how much size it has left over from the [CurrentMediaButtonBar].
 class AudioButtonbarAwareBody extends StatelessWidget {
-  final Widget body;
+  final Widget? body;
 
   AudioButtonbarAwareBody({this.body});
 
   @override
   Widget build(BuildContext context) => IsGlobalMediaButtonsShowingWatcher(
-      builder: (context, {isGlobalButtonsShowing, mediaSource}) => Padding(
+      builder: (context, {required isGlobalButtonsShowing, mediaSource}) => Padding(
             child: body,
             padding: EdgeInsets.only(
                 bottom: CurrentMediaButtonBar.heightOfMediaBar(context,

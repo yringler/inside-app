@@ -6,7 +6,7 @@ class InformativeTextPainter extends CustomPainter {
   final TextPainter _painter;
 
   InformativeTextPainter(text,
-      {@required TextStyle style, @required double maxWidth, int maxLines})
+      {required TextStyle? style, required double maxWidth, int? maxLines})
       : _painter = TextPainter(
             text: TextSpan(text: text, style: style),
             textDirection: TextDirection.ltr,

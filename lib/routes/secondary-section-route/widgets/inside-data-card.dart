@@ -6,7 +6,7 @@ import 'package:inside_chassidus/routes/secondary-section-route/widgets/informat
 class InsideDataCard extends StatefulWidget {
   final CountableSiteDataItem insideData;
 
-  InsideDataCard({this.insideData});
+  InsideDataCard({required this.insideData});
 
   @override
   State<StatefulWidget> createState() => _InsideDataCardData();
@@ -24,7 +24,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _title(context),
-                  if (widget.insideData.description?.trim()?.isNotEmpty ??
+                  if (widget.insideData.description?.trim().isNotEmpty ??
                       false)
                     _description()
                 ],
@@ -36,10 +36,12 @@ class _InsideDataCardData extends State<InsideDataCard> {
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(
           "${widget.insideData.audioCount} classes",
-          style:
-              Theme.of(context).textTheme.bodyText2.merge(TextStyle(fontSize: 12)),
+          style: Theme.of(context)
+              .textTheme
+              .bodyText2!
+              .merge(TextStyle(fontSize: 12)),
         ),
-        Text(widget.insideData.title?.trim(),
+        Text(widget.insideData.title?.trim() ?? '',
             style: Theme.of(context).textTheme.headline6)
       ]);
 
@@ -77,7 +79,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
               expanded: Container(
                 margin: EdgeInsets.only(top: 7),
                 child: Text(
-                  widget.insideData.description?.trim(),
+                  widget.insideData.description?.trim() ?? '',
                 ),
               ))),
     );
