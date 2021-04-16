@@ -34,7 +34,11 @@ dependencies:
   bloc_pattern: ^3.0.0
   path_provider: ^2.0.1
   font_awesome_flutter: ^9.0.0
-  audio_service: ^0.17.0
+  audio_service:
+    git: 
+      url: https://github.com/ryanheise/audio_service.git
+      ref: one-isolate
+      path: audio_service
   firebase_core: ^1.0.3
   firebase_analytics: ^8.0.0-dev.2
   firebase_crashlytics: ^2.0.0
