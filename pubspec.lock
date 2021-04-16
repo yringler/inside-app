@@ -320,8 +320,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "7b4b9c98d3b8877eb3e6b5f8edf4850d79faf55b"
-      resolved-ref: "7b4b9c98d3b8877eb3e6b5f8edf4850d79faf55b"
+      ref: "524b010b16d72513515668fb0587e7a7be23ad43"
+      resolved-ref: "524b010b16d72513515668fb0587e7a7be23ad43"
       url: "https://github.com/yringler/flutter-breadcrumb-menu"
     source: git
     version: "1.0.0"
