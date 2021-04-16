@@ -332,13 +332,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
-  flutter_downloader:
-    dependency: transitive
-    description:
-      name: flutter_downloader
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.6.0"
   flutter_isolate:
     dependency: transitive
     description:
@@ -447,9 +440,11 @@ packages:
   inside_api:
     dependency: "direct main"
     description:
-      path: "../inside-api"
-      relative: true
-    source: path
+      path: "."
+      ref: b078fb98be7b19e55d51345daccae4f1fed9927c
+      resolved-ref: b078fb98be7b19e55d51345daccae4f1fed9927c
+      url: "https://github.com/yringler/inside-api.git"
+    source: git
     version: "0.0.0"
   intl:
     dependency: transitive
@@ -479,34 +474,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.1"
-  just_audio:
-    dependency: transitive
-    description:
-      name: just_audio
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.7.4"
-  just_audio_platform_interface:
-    dependency: transitive
-    description:
-      name: just_audio_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.0"
-  just_audio_service:
-    dependency: "direct main"
-    description:
-      path: "../just_audio_service"
-      relative: true
-    source: path
-    version: "0.0.1"
-  just_audio_web:
-    dependency: transitive
-    description:
-      name: just_audio_web
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.1"
   logging:
     dependency: transitive
     description:
@@ -687,13 +654,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
-  slugify:
-    dependency: transitive
-    description:
-      name: slugify
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   source_gen:
     dependency: transitive
     description:

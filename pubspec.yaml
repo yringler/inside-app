@@ -49,15 +49,10 @@ dependencies:
         url: https://github.com/yringler/flutter-breadcrumb-menu
         ref: 524b010b16d72513515668fb0587e7a7be23ad43
   inside_api:
-   #   git:
-   #     url: https://github.com/yringler/inside-api.git
-   #     ref: 8ae40ac9202fbd7213aa2a7841bce17758f4cb92
-    path: ../inside-api
-  just_audio_service:
-    #git:
-    #  url: https://github.com/yringler/just_audio_service.git
-    #  ref: aab9a0873e6e4c9192825f2a44180a66b2dd1d09
-    path: ../just_audio_service
+      git:
+        url: https://github.com/yringler/inside-api.git
+        ref: b078fb98be7b19e55d51345daccae4f1fed9927c
+   # path: ../inside-api
 dev_dependencies:
   build_runner: ^1.12.2
   hive_generator: ^1.0.1
