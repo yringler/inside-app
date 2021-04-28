@@ -22,6 +22,10 @@ dependencies:
   flutter_downloader: ^1.6.0
   slugify: ^2.0.0
   path: ^1.8.0
+  dart_extensions:
+    git:
+      url: https://github.com/yringler/dart_extensions
+      ref: 5914d63888d80d6d93e0ba44d35d6b14346d8341
 
 dev_dependencies:
   flutter_test:
