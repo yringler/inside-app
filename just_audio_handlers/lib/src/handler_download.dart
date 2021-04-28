@@ -76,6 +76,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
     _port.listen(_onDownloadStatus);
   }
 
+  /// One time static init. ALso inits flutter_download.
   static Future<void> init() async {
     WidgetsFlutterBinding.ensureInitialized();
     await FlutterDownloader.initialize(debug: true);
