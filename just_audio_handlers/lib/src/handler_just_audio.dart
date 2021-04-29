@@ -1,5 +1,12 @@
 import 'package:audio_service/audio_service.dart';
 
+setStartTime(Map<String, dynamic> extras, Duration start) {
+  extras['playback-start'] = start;
+}
+
+Duration getStartTime(Map<String, dynamic> extras) =>
+    extras['playback-start'] ?? Duration.zero;
+
 /// Uses just_audio to handle playback.
 class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
   @override

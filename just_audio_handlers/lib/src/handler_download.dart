@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:slugify/slugify.dart';
 import 'package:dart_extensions/dart_extensions.dart';
@@ -16,20 +17,48 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
   final AudioDownloader downloader;
 
   AudioHandlerDownloader(AudioHandler inner, {required this.downloader})
-      : super(inner);
+      : super(inner) {
+    // If we finish downloading something which is currently playing, start playing
+    // from downloaded file.
+    downloader.completedStream.listen((uri) {
+      if (mediaItem.valueWrapper?.value?.id == uri.toString()) {
+        Map<String, dynamic> extras = {};
+        final start = playbackState.valueWrapper?.value.position;
+
+        if (start != null) {
+          setStartTime(extras, start);
+        }
+
+        playFromMediaId(mediaItem.valueWrapper!.value!.id, extras);
+      }
+    });
+  }
 
   @override
   Future<void> prepareFromMediaId(String mediaId,
-      [Map<String, dynamic>? extras]);
+      [Map<String, dynamic>? extras]) async {
+    final finalUri = await downloader.getPlaybackUriFromUri(Uri.parse(mediaId));
+    await super.prepareFromMediaId(finalUri.toString(), extras);
+  }
 
   @override
-  Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]);
+  Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
+    final finalUri = await downloader.getPlaybackUriFromUri(uri);
+    await super.prepareFromUri(finalUri, extras);
+  }
 
   @override
-  Future<void> playFromMediaId(String mediaId, [Map<String, dynamic>? extras]);
+  Future<void> playFromMediaId(String mediaId,
+      [Map<String, dynamic>? extras]) async {
+    final finalUri = await downloader.getPlaybackUriFromUri(Uri.parse(mediaId));
+    await super.playFromMediaId(finalUri.toString(), extras);
+  }
 
   @override
-  Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]);
+  Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
+    final finalUri = await downloader.getPlaybackUriFromUri(uri);
+    super.playFromUri(finalUri, extras);
+  }
 }
 
 /// A progressing download.
@@ -60,23 +89,48 @@ abstract class AudioDownloader {
   Future<BehaviorSubject<double>> getProgressFromUri(Uri uri);
 
   Future<CreatedDownload> downloadFromUri(Uri uri);
+
+  /// Called when the given (web) uri has completed downloading.
+  Stream<Uri> get completedStream;
+
+  void destory();
 }
 
 class FlutterDownloaderAudioDownloader extends AudioDownloader {
   /// Port to recieve all the progress updates from flutter_downloader.
-  ReceivePort _port = ReceivePort();
+  final ReceivePort _progressPort = ReceivePort();
+  final ReceivePort _completedPort = ReceivePort();
+  final StreamController<Uri> _downloadCompletedController =
+      StreamController.broadcast();
 
   Map<String, CreatedDownload> _progressMap = {};
+  Map<String, String> _idToUrlMap = {};
 
   FlutterDownloaderAudioDownloader() {
     IsolateNameServer.removePortNameMapping(fullProgressPortName);
     IsolateNameServer.registerPortWithName(
-        _port.sendPort, fullProgressPortName);
+        _progressPort.sendPort, fullProgressPortName);
 
-    _port.listen(_onDownloadStatus);
+    _progressPort.listen(_onDownloadStatus);
+
+    IsolateNameServer.removePortNameMapping(completedDownloadPortName);
+    IsolateNameServer.registerPortWithName(
+        _completedPort.sendPort, completedDownloadPortName);
+
+    // Notify client that a download was finished.
+    _progressPort.listen((arg) {
+      String id = arg;
+      assert(_idToUrlMap.containsKey(id));
+      _downloadCompletedController.add(Uri.parse(_idToUrlMap[id]!));
+    });
   }
 
-  /// One time static init. ALso inits flutter_download.
+  @override
+  destory() {
+    _downloadCompletedController.close();
+  }
+
+  /// One time static init. Aso inits flutter_download.
   static Future<void> init() async {
     WidgetsFlutterBinding.ensureInitialized();
     await FlutterDownloader.initialize(debug: true);
@@ -84,20 +138,29 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
   }
 
   @override
+  Stream<Uri> get completedStream => _downloadCompletedController.stream;
+
+  @override
   Future<CreatedDownload> downloadFromUri(Uri uri) async {
     final downloadTask = await _getStatus(uri);
     final status = downloadTask.status;
 
+    String? id;
+
     if (status == DownloadTaskStatus.canceled ||
         status == DownloadTaskStatus.failed ||
         status == DownloadTaskStatus.undefined) {
-      FlutterDownloader.enqueue(
+      id = await FlutterDownloader.enqueue(
           url: uri.toString(),
           savedDir: await getDownloadFolder(),
           fileName: getFileName(uri: uri),
           openFileFromNotification: false);
     } else if (status == DownloadTaskStatus.paused) {
-      FlutterDownloader.resume(taskId: downloadTask.taskId);
+      id = await FlutterDownloader.resume(taskId: downloadTask.taskId);
+    }
+
+    if (id != null) {
+      _idToUrlMap[id.toString()] = uri.toString();
     }
 
     return _getProgressOrDefault(downloadTask);
@@ -108,8 +171,8 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
     final status = (await _getStatus(uri));
 
     return status.status == DownloadTaskStatus.complete
-        ? uri
-        : await getFilePath(uri);
+        ? await getFilePath(uri)
+        : uri;
   }
 
   @override
