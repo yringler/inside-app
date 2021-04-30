@@ -1,11 +1,18 @@
 import 'package:audio_service/audio_service.dart';
 
-setStartTime(Map<String, dynamic> extras, Duration start) {
+void setStartTime(Map<String, dynamic> extras, Duration start) {
   extras['playback-start'] = start;
 }
 
 Duration getStartTime(Map<String, dynamic> extras) =>
     extras['playback-start'] ?? Duration.zero;
+
+Map<String, dynamic> setOverrideUri(Map<String, dynamic> extras, Uri uri) {
+  extras['override-uri'] = uri;
+  return extras;
+}
+
+Uri? getOverrideUri(Map<String, dynamic> extras) => extras['override-uri'];
 
 /// Uses just_audio to handle playback.
 class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {

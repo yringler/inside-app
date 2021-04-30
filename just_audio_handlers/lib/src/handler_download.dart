@@ -36,28 +36,29 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
 
   @override
   Future<void> prepareFromMediaId(String mediaId,
-      [Map<String, dynamic>? extras]) async {
-    final finalUri = await downloader.getPlaybackUriFromUri(Uri.parse(mediaId));
-    await super.prepareFromMediaId(finalUri.toString(), extras);
-  }
+          [Map<String, dynamic>? extras]) async =>
+      await super.prepareFromMediaId(
+          mediaId, await _getExtras(Uri.parse(mediaId), extras));
 
   @override
-  Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
-    final finalUri = await downloader.getPlaybackUriFromUri(uri);
-    await super.prepareFromUri(finalUri, extras);
-  }
+  Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async =>
+      await super.prepareFromUri(uri, await _getExtras(uri, extras));
 
   @override
   Future<void> playFromMediaId(String mediaId,
-      [Map<String, dynamic>? extras]) async {
-    final finalUri = await downloader.getPlaybackUriFromUri(Uri.parse(mediaId));
-    await super.playFromMediaId(finalUri.toString(), extras);
-  }
+          [Map<String, dynamic>? extras]) async =>
+      await super.playFromMediaId(
+          (await _getExtras(Uri.parse(mediaId), extras)).toString(), extras);
 
   @override
-  Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
-    final finalUri = await downloader.getPlaybackUriFromUri(uri);
-    super.playFromUri(finalUri, extras);
+  Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async =>
+      super.playFromUri(uri, await _getExtras(uri, extras));
+
+  Future<Map<String, dynamic>> _getExtras(
+      Uri mediaId, Map<String, dynamic>? extras) async {
+    final finalUri = await downloader.getPlaybackUriFromUri(mediaId);
+    extras = setOverrideUri(extras ?? {}, finalUri);
+    return extras;
   }
 }
 
