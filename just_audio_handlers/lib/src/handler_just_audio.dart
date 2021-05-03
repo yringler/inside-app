@@ -91,13 +91,19 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
   }
 
   @override
-  Future<void> pause() async {}
+  Future<void> pause() async {
+    await _player.pause();
+  }
 
   @override
-  Future<void> seek(newPosition) async {}
+  Future<void> seek(newPosition) async {
+    await _player.seek(newPosition);
+  }
 
   @override
-  Future<void> setSpeed(double speed) async {}
+  Future<void> setSpeed(double speed) async {
+    await _player.setSpeed(speed);
+  }
 
   /// Broadcasts the current state to all clients.
   void _broadcastState(PlaybackEvent event) {
