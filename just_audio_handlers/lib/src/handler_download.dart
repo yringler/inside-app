@@ -6,7 +6,7 @@ import 'dart:ui';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:just_audio_handlers/just_audio_handlers.dart';
+import 'package:just_audio_handlers/src/extra_settings.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:slugify/slugify.dart';
 import 'package:dart_extensions/dart_extensions.dart';
@@ -20,16 +20,16 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
       : super(inner) {
     // If we finish downloading something which is currently playing, start playing
     // from downloaded file.
-    downloader.completedStream.listen((uri) {
+    downloader.completedStream.listen((uri) async {
       if (mediaItem.valueWrapper?.value?.id == uri.toString()) {
         Map<String, dynamic> extras = {};
         final start =
             playbackState.valueWrapper?.value.position ?? Duration.zero;
 
-        setStartTime(extras, start);
-        getOverrideUri(extras);
+        ExtraSettings.setStartTime(extras, start);
+        ExtraSettings.setOverrideUri(extras, await getFilePath(uri));
 
-        playFromMediaId(mediaItem.valueWrapper!.value!.id, extras);
+        await playFromMediaId(mediaItem.valueWrapper!.value!.id, extras);
       }
     });
   }
@@ -57,7 +57,7 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
   Future<Map<String, dynamic>> _getPlayUri(
       Uri mediaId, Map<String, dynamic>? extras) async {
     final finalUri = await downloader.getPlaybackUriFromUri(mediaId);
-    extras = setOverrideUri(extras ?? {}, finalUri);
+    extras = ExtraSettings.setOverrideUri(extras ?? {}, finalUri);
     return extras;
   }
 }

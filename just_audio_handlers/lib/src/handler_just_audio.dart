@@ -2,38 +2,13 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
-
-void setStartTime(Map<String, dynamic> extras, Duration start) {
-  extras['playback-start'] = start;
-}
-
-Duration getStartTime(Map<String, dynamic> extras) =>
-    extras['playback-start'] ?? Duration.zero;
-
-Map<String, dynamic> setOverrideUri(Map<String, dynamic> extras, Uri uri) {
-  extras['override-uri'] = uri;
-  return extras;
-}
-
-Uri? getOverrideUri(Map<String, dynamic> extras) => extras['override-uri'];
-
-class ExtraSettings {
-  final Duration start;
-  final Uri finalUri;
-
-  ExtraSettings({required this.start, required this.finalUri});
-
-  ExtraSettings.fromExtras(Map<String, dynamic>? extras,
-      {required Uri defaultUri})
-      : this(
-            start: getStartTime(extras ?? {}),
-            finalUri: getOverrideUri(extras ?? {}) ?? defaultUri);
-}
+import 'package:just_audio_handlers/src/extra_settings.dart';
 
 /// Uses just_audio to handle playback.
 /// Inherit to override getMediaItem, if you want to get metadata from a media id.
 class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
   final AudioPlayer _player;
+  final Map<String, String> _fileUriToOriginalId = {};
 
   AudioHandlerJustAudio({required player}) : _player = player {
     _player.playbackEventStream.listen(_broadcastState);
@@ -45,12 +20,8 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
       return;
     }
 
-    final parsedExtras = ExtraSettings.fromExtras(extras, defaultUri: uri);
-    await this.pause();
-    mediaItem
-        .add(MediaItem(id: uri.toString(), album: 'Classes', title: 'Class'));
-    await _player.setAudioSource(AudioSource.uri(uri),
-        initialPosition: parsedExtras.start);
+    await _prepareMediaItem(extras ?? {}, uri,
+        MediaItem(id: uri.toString(), album: 'Classes', title: 'Class'));
   }
 
   @override
@@ -66,21 +37,15 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
       return;
     }
 
-    final parsedExtras =
-        ExtraSettings.fromExtras(extras, defaultUri: Uri.parse(mediaId));
-
-    await this.pause();
-
     final item = await getMediaItem(mediaId);
 
+    // If we can't get media meta data, just play it like a regular Uri.
     if (item == null) {
       await prepareFromUri(Uri.parse(mediaId), extras);
       return;
     }
 
-    mediaItem.add(item);
-    await _player.setAudioSource(AudioSource.uri(parsedExtras.finalUri),
-        initialPosition: parsedExtras.start);
+    await _prepareMediaItem(extras ?? {}, Uri.parse(mediaId), item);
   }
 
   @override
@@ -103,6 +68,20 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
   @override
   Future<void> setSpeed(double speed) async {
     await _player.setSpeed(speed);
+  }
+
+  Future _prepareMediaItem(
+      Map<String, dynamic> extras, Uri defaultUri, MediaItem item) async {
+    final parsedExtras =
+        ExtraSettings.fromExtras(extras, defaultUri: defaultUri);
+
+    await this.pause();
+
+    _fileUriToOriginalId[parsedExtras.finalUri.toString()] = item.id;
+
+    mediaItem.add(item);
+    await _player.setAudioSource(AudioSource.uri(parsedExtras.finalUri),
+        initialPosition: parsedExtras.start);
   }
 
   /// Broadcasts the current state to all clients.
