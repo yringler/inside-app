@@ -38,23 +38,24 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
   Future<void> prepareFromMediaId(String mediaId,
           [Map<String, dynamic>? extras]) async =>
       await super.prepareFromMediaId(
-          mediaId, await _getPlayUri(Uri.parse(mediaId), extras));
+          mediaId, await _getExtras(Uri.parse(mediaId), extras));
 
   @override
   Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async =>
-      await super.prepareFromUri(uri, await _getPlayUri(uri, extras));
+      await super.prepareFromUri(uri, await _getExtras(uri, extras));
 
   @override
   Future<void> playFromMediaId(String mediaId,
           [Map<String, dynamic>? extras]) async =>
       await super.playFromMediaId(
-          (await _getPlayUri(Uri.parse(mediaId), extras)).toString(), extras);
+          (await _getExtras(Uri.parse(mediaId), extras)).toString(), extras);
 
   @override
   Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async =>
-      super.playFromUri(uri, await _getPlayUri(uri, extras));
+      super.playFromUri(uri, await _getExtras(uri, extras));
 
-  Future<Map<String, dynamic>> _getPlayUri(
+  /// Returns extras, adding a final playback URL
+  Future<Map<String, dynamic>> _getExtras(
       Uri mediaId, Map<String, dynamic>? extras) async {
     final finalUri = await downloader.getPlaybackUriFromUri(mediaId);
     extras = ExtraSettings.setOverrideUri(extras ?? {}, finalUri);
