@@ -1,6 +1,7 @@
 import 'dart:html';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:just_audio_handlers/src/extra_settings.dart';
 
 /// Saves current position in media, and restores to that position when playback
 /// starts.
@@ -13,23 +14,50 @@ class AudioHandlerPersistPosition extends CompositeAudioHandler {
 
   @override
   Future<void> prepareFromMediaId(String mediaId,
-      [Map<String, dynamic>? extras]) async {}
+          [Map<String, dynamic>? extras]) async =>
+      await super
+          .prepareFromMediaId(mediaId, await _getExtras(mediaId, extras));
 
   @override
-  Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async {}
+  Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async =>
+      await super.prepareFromUri(uri, await _getExtras(uri.toString(), extras));
 
   @override
   Future<void> playFromMediaId(String mediaId,
-      [Map<String, dynamic>? extras]) async {}
+          [Map<String, dynamic>? extras]) async =>
+      await super.playFromMediaId(mediaId, await _getExtras(mediaId, extras));
 
   @override
-  Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async {}
+  Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async =>
+      await super.playFromUri(uri, await _getExtras(uri.toString(), extras));
 
   @override
-  Future<void> seek(Duration position) async {}
+  Future<void> seek(Duration position) async {
+    await super.seek(position);
+    await positionRepository.set(mediaItem.value!.id, position);
+  }
 
   @override
-  Future<void> stop() async {}
+  Future<void> stop() async {
+    await _save();
+    await super.stop();
+  }
+
+  Future<void> _save() async {
+    if (mediaItem.hasValue &&
+        mediaItem.value != null &&
+        playbackState.hasValue) {
+      await positionRepository.set(
+          mediaItem.value!.id, playbackState.value.position);
+    }
+  }
+
+  Future<Map<String, dynamic>> _getExtras(
+      String id, Map<String, dynamic>? extras) async {
+    extras ??= {};
+    ExtraSettings.setStartTime(extras, await positionRepository.get(id));
+    return extras;
+  }
 }
 
 abstract class PositionSaver {
