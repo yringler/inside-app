@@ -1,11 +1,35 @@
+import 'dart:html';
+
 import 'package:audio_service/audio_service.dart';
 
+/// Saves current position in media, and restores to that position when playback
+/// starts.
 class AudioHandlerPersistPosition extends CompositeAudioHandler {
   final PositionSaver positionRepository;
 
   AudioHandlerPersistPosition(AudioHandler inner,
       {required this.positionRepository})
       : super(inner);
+
+  @override
+  Future<void> prepareFromMediaId(String mediaId,
+      [Map<String, dynamic>? extras]) async {}
+
+  @override
+  Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async {}
+
+  @override
+  Future<void> playFromMediaId(String mediaId,
+      [Map<String, dynamic>? extras]) async {}
+
+  @override
+  Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async {}
+
+  @override
+  Future<void> seek(Duration position) async {}
+
+  @override
+  Future<void> stop() async {}
 }
 
 abstract class PositionSaver {
