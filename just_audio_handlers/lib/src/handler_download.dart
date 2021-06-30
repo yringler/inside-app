@@ -21,15 +21,20 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
     // If we finish downloading something which is currently playing, start playing
     // from downloaded file.
     downloader.completedStream.listen((uri) async {
-      if (mediaItem.valueWrapper?.value?.id == uri.toString()) {
+      if (!mediaItem.hasValue || mediaItem.value == null) {
+        return;
+      }
+
+      if (mediaItem.value!.id == uri.toString()) {
         Map<String, dynamic> extras = {};
-        final start =
-            playbackState.valueWrapper?.value.position ?? Duration.zero;
+        final start = playbackState.hasValue
+            ? playbackState.value.position
+            : Duration.zero;
 
         ExtraSettings.setStartTime(extras, start);
         ExtraSettings.setOverrideUri(extras, await getFilePath(uri));
 
-        await playFromMediaId(mediaItem.valueWrapper!.value!.id, extras);
+        await playFromMediaId(mediaItem.value!.id, extras);
       }
     });
   }

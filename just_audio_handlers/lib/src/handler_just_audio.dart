@@ -16,7 +16,7 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
-    if (uri.toString() == mediaItem.valueWrapper?.value?.id) {
+    if (mediaItem.hasValue && uri.toString() == mediaItem.value?.id) {
       return;
     }
 
@@ -33,7 +33,7 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
   @override
   Future<void> prepareFromMediaId(String mediaId,
       [Map<String, dynamic>? extras]) async {
-    if (mediaId == mediaItem.valueWrapper?.value?.id) {
+    if (mediaItem.hasValue && mediaId == mediaItem.value?.id) {
       return;
     }
 
@@ -87,7 +87,7 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
   /// Broadcasts the current state to all clients.
   void _broadcastState(PlaybackEvent event) {
     final playing = _player.playing;
-    playbackState.add(playbackState.valueWrapper!.value.copyWith(
+    playbackState.add(playbackState.value.copyWith(
       controls: [
         MediaControl.skipToPrevious,
         if (playing) MediaControl.pause else MediaControl.play,

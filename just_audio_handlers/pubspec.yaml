@@ -17,7 +17,7 @@ dependencies:
       url: https://github.com/ryanheise/audio_service.git
       ref: one-isolate
       path: audio_service
-  just_audio: ^0.7.4
+  just_audio: ^0.8.0
   hive: ^2.0.2
   flutter_downloader: ^1.6.0
   slugify: ^2.0.0
