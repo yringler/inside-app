@@ -1,3 +1,8 @@
+/*
+ * This file is pretty much copied vertebim from the https://github.com/ryanheise/audio_service example
+ * Just using our just_audio_handler instead of theirs.
+ */
+
 // ignore_for_file: public_member_api_docs
 
 // FOR MORE EXAMPLES, VISIT THE GITHUB REPOSITORY AT:
