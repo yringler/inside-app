@@ -102,6 +102,18 @@ class PersistedPosition extends HiveObject {
   PersistedPosition({required this.modifiedDate, required this.milliseconds});
 }
 
+/// Make sure that the string is a valid HiveDb ID.
+String extractID(String source) {
+  final bigEnough = source.padLeft(220);
+  return bigEnough.substring(bigEnough.length - 220);
+}
+
+extension HiveDbString on String {
+  String toHiveId() {
+    return extractID(this);
+  }
+}
+
 class HivePositionSaver extends PositionSaver {
   static HiveImpl _hive = HiveImpl();
   static late Box<PersistedPosition> _positionBox;
@@ -125,14 +137,15 @@ class HivePositionSaver extends PositionSaver {
 
   @override
   Future<Duration> get(String mediaId) async {
-    final positionMilliseconds = _positionBox.get(mediaId)?.milliseconds ?? 0;
+    final positionMilliseconds =
+        _positionBox.get(mediaId.toHiveId())?.milliseconds ?? 0;
     return Duration(milliseconds: positionMilliseconds);
   }
 
   @override
   Future<void> set(String mediaId, Duration position) async {
     _positionBox.put(
-        mediaId,
+        mediaId.toHiveId(),
         PersistedPosition(
             milliseconds: position.inMilliseconds,
             modifiedDate: DateTime.now()));
