@@ -1,113 +1,153 @@
-import 'package:flutter/material.dart';
+// ignore_for_file: public_member_api_docs
 
-void main() {
+// FOR MORE EXAMPLES, VISIT THE GITHUB REPOSITORY AT:
+//
+//  https://github.com/ryanheise/audio_service
+//
+// This example implements a minimal audio handler that renders the current
+// media item and playback state to the system notification and responds to 4
+// media actions:
+//
+// - play
+// - pause
+// - seek
+// - stop
+//
+// To run this example, use:
+//
+// flutter run
+
+import 'dart:async';
+
+import 'package:audio_service/audio_service.dart';
+import 'package:example/common.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_handlers/just_audio_handlers.dart';
+import 'package:rxdart/rxdart.dart';
+
+// You might want to provide this using dependency injection rather than a
+// global variable.
+late AudioHandler _audioHandler;
+
+Future<void> main() async {
+  _audioHandler = await AudioService.init(
+    builder: () => AudioHandlerJustAudio(player: AudioPlayer()),
+    config: AudioServiceConfig(
+      androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
+      androidNotificationChannelName: 'Audio playback',
+      androidNotificationOngoing: true,
+      androidEnableQueue: true,
+    ),
+  );
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'Audio Service Demo',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: MainScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
+class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('Audio Service Demo'),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+          children: [
+            // Show media item title
+            StreamBuilder<MediaItem?>(
+              stream: _audioHandler.mediaItem,
+              builder: (context, snapshot) {
+                final mediaItem = snapshot.data;
+                return Text(mediaItem?.title ?? '');
+              },
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            // Play/pause/stop buttons.
+            StreamBuilder<bool>(
+              stream: _audioHandler.playbackState
+                  .map((state) => state.playing)
+                  .distinct(),
+              builder: (context, snapshot) {
+                final playing = snapshot.data ?? false;
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _button(Icons.fast_rewind, _audioHandler.rewind),
+                    if (playing)
+                      _button(Icons.pause, _audioHandler.pause)
+                    else
+                      _button(
+                          Icons.play_arrow,
+                          () => _audioHandler.playFromUri(Uri.parse(
+                              'https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3'))),
+                    _button(Icons.stop, _audioHandler.stop),
+                    _button(Icons.fast_forward, _audioHandler.fastForward),
+                  ],
+                );
+              },
+            ),
+            // A seek bar.
+            StreamBuilder<MediaState>(
+              stream: _mediaStateStream,
+              builder: (context, snapshot) {
+                final mediaState = snapshot.data;
+                return SeekBar(
+                  duration: mediaState?.mediaItem?.duration ?? Duration.zero,
+                  position: mediaState?.position ?? Duration.zero,
+                  onChangeEnd: (newPosition) {
+                    _audioHandler.seek(newPosition);
+                  },
+                );
+              },
+            ),
+            // Display the processing state.
+            StreamBuilder<AudioProcessingState>(
+              stream: _audioHandler.playbackState
+                  .map((state) => state.processingState)
+                  .distinct(),
+              builder: (context, snapshot) {
+                final processingState =
+                    snapshot.data ?? AudioProcessingState.idle;
+                return Text(
+                    "Processing state: ${describeEnum(processingState)}");
+              },
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+
+  /// A stream reporting the combined state of the current media item and its
+  /// current position.
+  Stream<MediaState> get _mediaStateStream =>
+      Rx.combineLatest2<MediaItem?, Duration, MediaState>(
+          _audioHandler.mediaItem,
+          AudioService.positionStream,
+          (mediaItem, position) => MediaState(mediaItem, position));
+
+  IconButton _button(IconData iconData, VoidCallback onPressed) => IconButton(
+        icon: Icon(iconData),
+        iconSize: 64.0,
+        onPressed: onPressed,
+      );
+}
+
+class MediaState {
+  final MediaItem? mediaItem;
+  final Duration position;
+
+  MediaState(this.mediaItem, this.position);
 }
