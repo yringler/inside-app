@@ -1,7 +1,12 @@
-import 'dart:html';
-
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/widgets.dart';
+import 'package:hive/src/hive_impl.dart';
+import 'package:hive/hive.dart';
 import 'package:just_audio_handlers/src/extra_settings.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+
+part 'handler_persist_position.g.dart';
 
 /// Saves current position in media, and restores to that position when playback
 /// starts.
@@ -14,27 +19,35 @@ class AudioHandlerPersistPosition extends CompositeAudioHandler {
 
   @override
   Future<void> prepareFromMediaId(String mediaId,
-          [Map<String, dynamic>? extras]) async =>
-      await super
-          .prepareFromMediaId(mediaId, await _getExtras(mediaId, extras));
+      [Map<String, dynamic>? extras]) async {
+    _save();
+    await super.prepareFromMediaId(mediaId, await _getExtras(mediaId, extras));
+  }
 
   @override
-  Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async =>
-      await super.prepareFromUri(uri, await _getExtras(uri.toString(), extras));
+  Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
+    _save();
+    await super.prepareFromUri(uri, await _getExtras(uri.toString(), extras));
+  }
 
   @override
   Future<void> playFromMediaId(String mediaId,
-          [Map<String, dynamic>? extras]) async =>
-      await super.playFromMediaId(mediaId, await _getExtras(mediaId, extras));
+      [Map<String, dynamic>? extras]) async {
+    _save();
+    await super.playFromMediaId(mediaId, await _getExtras(mediaId, extras));
+  }
 
   @override
-  Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async =>
-      await super.playFromUri(uri, await _getExtras(uri.toString(), extras));
+  Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
+    _save();
+    await super.playFromUri(uri, await _getExtras(uri.toString(), extras));
+  }
 
   @override
   Future<void> seek(Duration position) async {
     await super.seek(position);
-    await positionRepository.set(mediaItem.value!.id, position);
+    await positionRepository.set(
+        mediaItem.value!.id, playbackState.value.position);
   }
 
   @override
@@ -78,16 +91,50 @@ class MemoryPositionSaver extends PositionSaver {
       _positions[mediaId] = position;
 }
 
+@HiveType(typeId: 0)
+class PersistedPosition extends HiveObject {
+  @HiveField(0)
+  DateTime modifiedDate;
+
+  @HiveField(1)
+  int milliseconds;
+
+  PersistedPosition({required this.modifiedDate, required this.milliseconds});
+}
+
 class HivePositionSaver extends PositionSaver {
-  @override
-  Future<Duration> get(String mediaId) {
-    // TODO: implement get
-    throw UnimplementedError();
+  static HiveImpl _hive = HiveImpl();
+  static late Box<PersistedPosition> _positionBox;
+  static const maxPositions = 200;
+
+  static Future<void> init() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    final path = (await getApplicationSupportDirectory()).path;
+    _hive.init(p.join(path, 'hive_position'));
+    _hive.registerAdapter(PersistedPositionAdapter());
+    _positionBox = await _hive.openBox<PersistedPosition>('positions');
+
+    final overSaved = _positionBox.length - maxPositions * 2;
+    if (overSaved > 0) {
+      final items = _positionBox.values.toList()
+        ..sort((a, b) => b.modifiedDate.compareTo(a.modifiedDate));
+
+      items.take(overSaved).forEach((e) => e.delete());
+    }
   }
 
   @override
-  Future<void> set(String mediaId, Duration position) {
-    // TODO: implement set
-    throw UnimplementedError();
+  Future<Duration> get(String mediaId) async {
+    final positionMilliseconds = _positionBox.get(mediaId)?.milliseconds ?? 0;
+    return Duration(milliseconds: positionMilliseconds);
+  }
+
+  @override
+  Future<void> set(String mediaId, Duration position) async {
+    _positionBox.put(
+        mediaId,
+        PersistedPosition(
+            milliseconds: position.inMilliseconds,
+            modifiedDate: DateTime.now()));
   }
 }
