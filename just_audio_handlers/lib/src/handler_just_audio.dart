@@ -45,7 +45,12 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
       return;
     }
 
-    await _prepareMediaItem(extras ?? {}, Uri.parse(mediaId), item);
+    final duration =
+        await _prepareMediaItem(extras ?? {}, Uri.parse(mediaId), item);
+
+    if (duration != item.duration) {
+      mediaItem.add(item.copyWith(duration: duration));
+    }
   }
 
   @override
@@ -58,6 +63,11 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
   @override
   Future<void> pause() async {
     await _player.pause();
+  }
+
+  @override
+  Future<void> stop() async {
+    await _player.stop();
   }
 
   @override
