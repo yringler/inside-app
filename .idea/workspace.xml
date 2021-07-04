@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7e5cb1e-734b-400e-8c2d-5055a6732c06" name="Default Changelist" comment="" />
+    <list default="true" id="f7e5cb1e-734b-400e-8c2d-5055a6732c06" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -34,5 +36,11 @@
       <updated>1625402200338</updated>
     </task>
     <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="2561" y="314" width="628" height="522" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1625403990159">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state x="2561" y="314" width="628" height="522" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/1920.0.1920.1200/0.66.1920.1080@1920.0.1920.1200" timestamp="1625403990159" />
   </component>
 </project>
