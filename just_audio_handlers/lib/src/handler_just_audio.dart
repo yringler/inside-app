@@ -45,12 +45,7 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
       return;
     }
 
-    final duration =
-        await _prepareMediaItem(extras ?? {}, Uri.parse(mediaId), item);
-
-    if (duration != item.duration) {
-      mediaItem.add(item.copyWith(duration: duration));
-    }
+    await _prepareMediaItem(extras ?? {}, Uri.parse(mediaId), item);
   }
 
   @override
@@ -90,8 +85,14 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
     _fileUriToOriginalId[parsedExtras.finalUri.toString()] = item.id;
 
     mediaItem.add(item);
-    await _player.setAudioSource(AudioSource.uri(parsedExtras.finalUri),
+
+    final duration = await _player.setAudioSource(
+        AudioSource.uri(parsedExtras.finalUri),
         initialPosition: parsedExtras.start);
+
+    if (duration != null && duration != item.duration) {
+      mediaItem.add(item.copyWith(duration: duration));
+    }
   }
 
   /// Broadcasts the current state to all clients.
