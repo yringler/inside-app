@@ -37,8 +37,12 @@ import 'package:rxdart/rxdart.dart';
 late AudioHandler _audioHandler;
 
 Future<void> main() async {
+  await HivePositionSaver.init();
+
   _audioHandler = await AudioService.init(
-    builder: () => AudioHandlerJustAudio(player: AudioPlayer()),
+    builder: () => AudioHandlerPersistPosition(
+        AudioHandlerJustAudio(player: AudioPlayer()),
+        positionRepository: HivePositionSaver()),
     config: AudioServiceConfig(
       androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
       androidNotificationChannelName: 'Audio playback',
