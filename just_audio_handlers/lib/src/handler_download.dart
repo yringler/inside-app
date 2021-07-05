@@ -103,6 +103,7 @@ abstract class AudioDownloader {
   void destory();
 }
 
+/// Downloader implementation which uses flutter_downloader.
 class FlutterDownloaderAudioDownloader extends AudioDownloader {
   /// Port to recieve all the progress updates from flutter_downloader.
   final ReceivePort _progressPort = ReceivePort();
