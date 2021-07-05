@@ -46,8 +46,8 @@ class AudioHandlerPersistPosition extends CompositeAudioHandler {
   @override
   Future<void> seek(Duration position) async {
     await super.seek(position);
-    await positionRepository.set(
-        mediaItem.value!.id, playbackState.value.position);
+    // Save after the seek, in case the position isn't a valid position.
+    await _save();
   }
 
   @override
@@ -65,6 +65,7 @@ class AudioHandlerPersistPosition extends CompositeAudioHandler {
     }
   }
 
+  /// Adds saved start time, if set, to extra settings.
   Future<Map<String, dynamic>> _getExtras(
       String id, Map<String, dynamic>? extras) async {
     extras ??= {};
@@ -126,12 +127,11 @@ class HivePositionSaver extends PositionSaver {
     _hive.registerAdapter(PersistedPositionAdapter());
     _positionBox = await _hive.openBox<PersistedPosition>('positions');
 
-    final overSaved = _positionBox.length - maxPositions * 2;
-    if (overSaved > 0) {
+    if (_positionBox.length > maxPositions * 2) {
       final items = _positionBox.values.toList()
-        ..sort((a, b) => b.modifiedDate.compareTo(a.modifiedDate));
+        ..sort((a, b) => a.modifiedDate.compareTo(b.modifiedDate));
 
-      items.take(overSaved).forEach((e) => e.delete());
+      items.skip(maxPositions).forEach((e) => e.delete());
     }
   }
 
@@ -144,7 +144,7 @@ class HivePositionSaver extends PositionSaver {
 
   @override
   Future<void> set(String mediaId, Duration position) async {
-    _positionBox.put(
+    await _positionBox.put(
         mediaId.toHiveId(),
         PersistedPosition(
             milliseconds: position.inMilliseconds,

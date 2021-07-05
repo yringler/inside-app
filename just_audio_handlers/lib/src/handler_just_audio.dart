@@ -8,20 +8,24 @@ import 'package:just_audio_handlers/src/extra_settings.dart';
 /// Inherit to override getMediaItem, if you want to get metadata from a media id.
 class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
   final AudioPlayer _player;
-  final Map<String, String> _fileUriToOriginalId = {};
+  final String defaultAlbum;
+  final String defaultClass;
 
-  AudioHandlerJustAudio({required player}) : _player = player {
+  AudioHandlerJustAudio(
+      {required player, String? defaultAlbum, String? defaultClass})
+      : _player = player,
+        this.defaultAlbum = defaultAlbum ?? '',
+        this.defaultClass = defaultClass ?? '' {
     _player.playbackEventStream.listen(_broadcastState);
   }
 
   @override
   Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
-    if (mediaItem.hasValue && uri.toString() == mediaItem.value?.id) {
-      return;
-    }
-
-    await _prepareMediaItem(extras ?? {}, uri,
-        MediaItem(id: uri.toString(), album: 'Classes', title: 'Class'));
+    await _prepareMediaItem(
+        extras ?? {},
+        uri,
+        MediaItem(
+            id: uri.toString(), album: defaultAlbum, title: defaultClass));
   }
 
   @override
@@ -33,11 +37,12 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
   @override
   Future<void> prepareFromMediaId(String mediaId,
       [Map<String, dynamic>? extras]) async {
-    if (mediaItem.hasValue && mediaId == mediaItem.value?.id) {
-      return;
-    }
-
-    final item = await getMediaItem(mediaId);
+    // If the media ID is already being played, don't query it.
+    // We may still want to update the player source, for example if
+    // we are switching to play from an offline file.
+    final item = mediaItem.hasValue && mediaId == mediaItem.value?.id
+        ? mediaItem.value
+        : await getMediaItem(mediaId);
 
     // If we can't get media meta data, just play it like a regular Uri.
     if (item == null) {
@@ -80,9 +85,12 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
     final parsedExtras =
         ExtraSettings.fromExtras(extras, defaultUri: defaultUri);
 
-    await this.pause();
-
-    _fileUriToOriginalId[parsedExtras.finalUri.toString()] = item.id;
+    // There's nothing to do if we're already plyaing the requested Uri, and there
+    // isn' even an alternative.
+    if (mediaItem.valueOrNull?.id == item.id &&
+        parsedExtras.finalUri == parsedExtras.originalUri) {
+      return;
+    }
 
     mediaItem.add(item);
 

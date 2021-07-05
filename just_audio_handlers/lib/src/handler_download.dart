@@ -125,7 +125,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
         _completedPort.sendPort, completedDownloadPortName);
 
     // Notify client that a download was finished.
-    _progressPort.listen((arg) {
+    _completedPort.listen((arg) {
       String id = arg;
       assert(_idToUrlMap.containsKey(id));
       _downloadCompletedController.add(Uri.parse(_idToUrlMap[id]!));
@@ -163,7 +163,8 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
           fileName: getFileName(uri: uri),
           openFileFromNotification: false);
     } else if (status == DownloadTaskStatus.paused) {
-      id = await FlutterDownloader.resume(taskId: downloadTask.taskId);
+      id = await FlutterDownloader.resume(taskId: downloadTask.taskId) ??
+          downloadTask.taskId;
     }
 
     if (id != null) {
@@ -186,6 +187,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
   Future<BehaviorSubject<double>> getProgressFromUri(Uri uri) async =>
       (await _getProgressOrDefault(await _getStatus(uri))).progress;
 
+  /// Returns the download progress from the map, adding it if it isn't there.
   Future<CreatedDownload> _getProgressOrDefault(DownloadTask task) async =>
       _progressMap[task.taskId] ??= CreatedDownload(
           downloadedFile: await getFilePath(Uri.parse(task.url)),
@@ -209,6 +211,8 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
     return tasks!.single;
   }
 
+  /// UI thread, called when the UI reciever port gets a message from the background
+  /// download isolate.
   void _onDownloadStatus(data) async {
     final String id = data[0];
     final int progress = data[2];
@@ -242,7 +246,7 @@ void downloadCallback(String id, DownloadTaskStatus status, int progress) {
 
 /// Convert URL into a valid file name for android and iOS
 String getFileName({required Uri uri}) {
-  // Android is around 150, iOS is closer to 200, but this should be unique, and
+  // Android is around 150, iOS is closer to 200, but this should be unique and
   // not cause errors.
   const maxSize = 120;
 
