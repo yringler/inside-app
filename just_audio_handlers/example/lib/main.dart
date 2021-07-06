@@ -36,6 +36,7 @@ import 'package:rxdart/rxdart.dart';
 // global variable.
 late AudioHandler _audioHandler;
 late FlutterDownloaderAudioDownloader _downloader;
+late HivePositionSaver _positionSaver;
 
 const _audioSource =
     'https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3';
@@ -45,12 +46,13 @@ Future<void> main() async {
   await FlutterDownloaderAudioDownloader.init();
 
   _downloader = FlutterDownloaderAudioDownloader();
+  _positionSaver = HivePositionSaver();
 
   _audioHandler = await AudioService.init(
     builder: () => AudioHandlerDownloader(
         downloader: _downloader,
         inner: AudioHandlerPersistPosition(
-          positionRepository: HivePositionSaver(),
+          positionRepository: _positionSaver,
           inner: AudioHandlerJustAudio(player: AudioPlayer()),
         )),
     config: AudioServiceConfig(
