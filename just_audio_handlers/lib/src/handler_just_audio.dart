@@ -94,7 +94,7 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
         ExtraSettings.fromExtras(extras, defaultUri: defaultUri);
 
     // There's nothing to do if we're already playing the requested Uri, and there
-    // isn' even an alternative.
+    // isn't even an alternative.
     if (mediaItem.valueOrNull?.id == item.id &&
         parsedExtras.finalUri == parsedExtras.originalUri) {
       return false;
