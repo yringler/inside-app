@@ -30,8 +30,16 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
-    await prepareFromUri(uri, extras);
+    final preparedUri = await _prepareMediaItem(uri, extras);
     await _player.play();
+
+    // When we prepare, we prepare with the start time.
+    // But if the audio was already in prepared state, we need to seek to the
+    // saved position
+    final start = ExtraSettings.getStartTime(extras);
+    if (!preparedUri) {
+      await _player.seek(start);
+    }
   }
 
   @override
@@ -80,7 +88,7 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
     await _player.setSpeed(speed);
   }
 
-  Future _prepareMediaItem(
+  Future<bool> _prepareMediaItem(
       Map<String, dynamic> extras, Uri defaultUri, MediaItem item) async {
     final parsedExtras =
         ExtraSettings.fromExtras(extras, defaultUri: defaultUri);
@@ -89,7 +97,7 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
     // isn' even an alternative.
     if (mediaItem.valueOrNull?.id == item.id &&
         parsedExtras.finalUri == parsedExtras.originalUri) {
-      return;
+      return false;
     }
 
     mediaItem.add(item);
@@ -101,6 +109,8 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
     if (duration != null && duration != item.duration) {
       mediaItem.add(item.copyWith(duration: duration));
     }
+
+    return true;
   }
 
   /// Broadcasts the current state to all clients.
