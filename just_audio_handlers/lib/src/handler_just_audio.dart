@@ -141,8 +141,8 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
         ProcessingState.completed: AudioProcessingState.completed,
       }[_player.processingState]!,
       playing: playing,
-      updatePosition: _player.position,
-      bufferedPosition: _player.bufferedPosition,
+      updatePosition: event.updatePosition,
+      bufferedPosition: event.bufferedPosition,
       speed: _player.speed,
       queueIndex: event.currentIndex,
     ));

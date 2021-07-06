@@ -51,6 +51,12 @@ class AudioHandlerPersistPosition extends CompositeAudioHandler {
   }
 
   @override
+  Future<void> pause() async {
+    await super.pause();
+    await _save();
+  }
+
+  @override
   Future<void> stop() async {
     await _save();
     await super.stop();
