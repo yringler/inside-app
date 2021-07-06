@@ -13,8 +13,8 @@ part 'handler_persist_position.g.dart';
 class AudioHandlerPersistPosition extends CompositeAudioHandler {
   final PositionSaver positionRepository;
 
-  AudioHandlerPersistPosition(AudioHandler inner,
-      {required this.positionRepository})
+  AudioHandlerPersistPosition(
+      {required this.positionRepository, required AudioHandler inner})
       : super(inner);
 
   @override

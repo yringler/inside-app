@@ -35,14 +35,24 @@ import 'package:rxdart/rxdart.dart';
 // You might want to provide this using dependency injection rather than a
 // global variable.
 late AudioHandler _audioHandler;
+late FlutterDownloaderAudioDownloader _downloader;
+
+const _audioSource =
+    'https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3';
 
 Future<void> main() async {
   await HivePositionSaver.init();
+  await FlutterDownloaderAudioDownloader.init();
+
+  _downloader = FlutterDownloaderAudioDownloader();
 
   _audioHandler = await AudioService.init(
-    builder: () => AudioHandlerPersistPosition(
-        AudioHandlerJustAudio(player: AudioPlayer()),
-        positionRepository: HivePositionSaver()),
+    builder: () => AudioHandlerDownloader(
+        downloader: _downloader,
+        inner: AudioHandlerPersistPosition(
+          positionRepository: HivePositionSaver(),
+          inner: AudioHandlerJustAudio(player: AudioPlayer()),
+        )),
     config: AudioServiceConfig(
       androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
       androidNotificationChannelName: 'Audio playback',
@@ -99,10 +109,14 @@ class MainScreen extends StatelessWidget {
                     else
                       _button(
                           Icons.play_arrow,
-                          () => _audioHandler.playFromUri(Uri.parse(
-                              'https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3'))),
+                          () => _audioHandler
+                              .playFromUri(Uri.parse(_audioSource))),
                     _button(Icons.stop, _audioHandler.stop),
                     _button(Icons.fast_forward, _audioHandler.fastForward),
+                    _button(
+                        Icons.download,
+                        () => _downloader
+                            .downloadFromUri(Uri.parse(_audioSource)))
                   ],
                 );
               },

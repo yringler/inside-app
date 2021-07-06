@@ -16,7 +16,8 @@ import 'package:path/path.dart' as p;
 class AudioHandlerDownloader extends CompositeAudioHandler {
   final AudioDownloader downloader;
 
-  AudioHandlerDownloader(AudioHandler inner, {required this.downloader})
+  AudioHandlerDownloader(
+      {required this.downloader, required AudioHandler inner})
       : super(inner) {
     // If we finish downloading something which is currently playing, start playing
     // from downloaded file.
@@ -53,7 +54,7 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
   Future<void> playFromMediaId(String mediaId,
           [Map<String, dynamic>? extras]) async =>
       await super.playFromMediaId(
-          (await _getExtras(Uri.parse(mediaId), extras)).toString(), extras);
+          mediaId, (await _getExtras(Uri.parse(mediaId), extras)));
 
   @override
   Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async =>
