@@ -30,13 +30,17 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
-    final preparedUri = await _prepareMediaItem(uri, extras);
+    final preparedUri = await _prepareMediaItem(
+        extras ?? {},
+        uri,
+        MediaItem(
+            id: uri.toString(), album: defaultAlbum, title: defaultClass));
     await _player.play();
 
     // When we prepare, we prepare with the start time.
     // But if the audio was already in prepared state, we need to seek to the
     // saved position
-    final start = ExtraSettings.getStartTime(extras);
+    final start = ExtraSettings.getStartTime(extras ?? {});
     if (!preparedUri) {
       await _player.seek(start);
     }
