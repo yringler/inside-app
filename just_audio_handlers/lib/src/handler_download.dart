@@ -221,7 +221,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
 
     if (!_progressMap.containsKey(id)) {
       final task = (await FlutterDownloader.loadTasksWithRawQuery(
-              query: 'SELECT * FROM task WHERE id = \'$id\''))!
+              query: 'SELECT * FROM task WHERE task_id = \'$id\''))!
           .single;
 
       await _getProgressOrDefault(task);

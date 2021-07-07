@@ -165,7 +165,7 @@ class MainScreen extends StatelessWidget {
 
   IconButton _button(IconData iconData, VoidCallback onPressed) => IconButton(
         icon: Icon(iconData),
-        iconSize: 64.0,
+        iconSize: 40.0,
         onPressed: onPressed,
       );
 }
