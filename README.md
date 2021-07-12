@@ -1,15 +1,9 @@
-[![Codemagic build status](https://api.codemagic.io/apps/5db2f36c25dc3f3292d4f13c/5db2f36c25dc3f3292d4f13b/status_badge.svg)](https://codemagic.io/apps/5db2f36c25dc3f3292d4f13c/5db2f36c25dc3f3292d4f13b/latest_build)
+# App and plugin mono-repo
 
-# inside-app
-App to make it easier to learn with Rabbi Paltiel's (Inside Chassidus).
+The Inside Chassidus App
 
-# Support
-If you have any issues with this app, please open an issue above, or email me at yrappdev@gmail.com.
+And the just_audio_handlers plugin with default audio_service / just_audio implementation, which has extra goodies like
+persist position.
 
-# Beta URLs
-The app is available for iOS and android.<br>
-[google play](https://play.google.com/store/apps/details?id=org.insidechassidus.inside_chassidus)<br>
-[apple](https://apps.apple.com/us/app/inside-chassidus/id1485498089)<br>
-Beta: [apple testflight](https://testflight.apple.com/join/i9eR1Quy)
-
-Testing assisted by [BrowserStack](https://www.browserstack.com/) ![BrowserStack Logo](https://raw.githubusercontent.com/yringler/inside-app/master/Browserstack-logo%402x.png)
+Possibly, if just_audio_handlers stabalizes, and other's are interested in using / hacking on it, it will be moved to its own
+repository.
