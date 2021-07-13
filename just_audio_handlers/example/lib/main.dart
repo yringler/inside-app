@@ -28,6 +28,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:example/common.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:rxdart/rxdart.dart';
@@ -56,11 +57,9 @@ Future<void> main() async {
           inner: AudioHandlerJustAudio(player: AudioPlayer()),
         )),
     config: AudioServiceConfig(
-      androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
-      androidNotificationChannelName: 'Audio playback',
-      androidNotificationOngoing: true,
-      androidEnableQueue: true,
-    ),
+        androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
+        androidNotificationChannelName: 'Audio playback',
+        androidNotificationOngoing: true),
   );
   runApp(MyApp());
 }
@@ -115,10 +114,41 @@ class MainScreen extends StatelessWidget {
                               .playFromUri(Uri.parse(_audioSource))),
                     _button(Icons.stop, _audioHandler.stop),
                     _button(Icons.fast_forward, _audioHandler.fastForward),
-                    _button(
-                        Icons.download,
-                        () => _downloader
-                            .downloadFromUri(Uri.parse(_audioSource)))
+                    StreamBuilder<DownloadTask>(
+                      stream: _downloader
+                          .getDownloadStateStream(Uri.parse(_audioSource)),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return CircularProgressIndicator();
+                        }
+
+                        final download = snapshot.data;
+
+                        if (download == null) {
+                          return ErrorWidget("Could not load download state");
+                        }
+
+                        if (download.status == DownloadTaskStatus.enqueued) {
+                          return CircularProgressIndicator();
+                        }
+
+                        if (download.status == DownloadTaskStatus.running) {
+                          return CircularProgressIndicator(
+                            value: download.progress / 100.0,
+                          );
+                        }
+
+                        if (download.status == DownloadTaskStatus.complete) {
+                          return _button(Icons.delete,
+                              () => _downloader.remove(download.taskId));
+                        }
+
+                        return _button(
+                            Icons.download,
+                            () => _downloader
+                                .downloadFromUri(Uri.parse(_audioSource)));
+                      },
+                    )
                   ],
                 );
               },
@@ -160,7 +190,7 @@ class MainScreen extends StatelessWidget {
   Stream<MediaState> get _mediaStateStream =>
       Rx.combineLatest2<MediaItem?, Duration, MediaState>(
           _audioHandler.mediaItem,
-          AudioService.positionStream,
+          AudioService.position,
           (mediaItem, position) => MediaState(mediaItem, position));
 
   IconButton _button(IconData iconData, VoidCallback onPressed) => IconButton(

@@ -69,37 +69,20 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
   }
 }
 
-/// A progressing download.
-class CreatedDownload {
-  /// The download destination.
-  final Uri downloadedFile;
-
-  final BehaviorSubject<double> progress;
-
-  Future<double> get complete => progress.firstWhere((event) => event == 1);
-
-  CreatedDownload({required this.downloadedFile, required this.progress});
-
-  CreatedDownload copyWith(
-          {Uri? downloadedFile, BehaviorSubject<double>? progress}) =>
-      CreatedDownload(
-          downloadedFile: downloadedFile ?? this.downloadedFile,
-          progress: progress ?? this.progress);
-}
-
 /// Common interface around downloading an audio file and checking state.
 abstract class AudioDownloader {
   /// Returns the path to use as the audio source.
   /// If the file has been downloaded, returns the file path; otherwise, a noop.
   Future<Uri> getPlaybackUriFromUri(Uri uri);
 
-  /// Get progress stream; .5 is 50% complete, 1 when done.
-  Future<BehaviorSubject<double>> getProgressFromUri(Uri uri);
+  Stream<DownloadTask> getDownloadStateStream(Uri uri);
 
-  Future<CreatedDownload> downloadFromUri(Uri uri);
+  Stream<DownloadTask> downloadFromUri(Uri uri);
 
   /// Called when the given (web) uri has completed downloading.
   Stream<Uri> get completedStream;
+
+  Future<void> remove(String id);
 
   void destory();
 }
@@ -112,7 +95,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
   final StreamController<Uri> _downloadCompletedController =
       StreamController.broadcast();
 
-  Map<String, CreatedDownload> _progressMap = {};
+  Map<String, BehaviorSubject<DownloadTask>> _progressMap = {};
   Map<String, String> _idToUrlMap = {};
 
   FlutterDownloaderAudioDownloader() {
@@ -150,14 +133,15 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
   Stream<Uri> get completedStream => _downloadCompletedController.stream;
 
   @override
-  Future<CreatedDownload> downloadFromUri(Uri uri) async {
-    final downloadTask = await _getStatus(uri);
+  Stream<DownloadTask> downloadFromUri(Uri uri) async* {
+    final downloadTask = await _getTask(uri);
     final status = downloadTask.status;
 
     String? id;
 
-    if (status == DownloadTaskStatus.canceled ||
-        status == DownloadTaskStatus.failed ||
+    if (status == DownloadTaskStatus.canceled) {
+      id = await FlutterDownloader.retry(taskId: downloadTask.taskId);
+    } else if (status == DownloadTaskStatus.failed ||
         status == DownloadTaskStatus.undefined) {
       id = await FlutterDownloader.enqueue(
           url: uri.toString(),
@@ -173,61 +157,77 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
       _idToUrlMap[id.toString()] = uri.toString();
     }
 
-    return _getProgressOrDefault(downloadTask);
+    await for (var status in getDownloadStateStream(uri)) {
+      yield status;
+    }
   }
 
   @override
   Future<Uri> getPlaybackUriFromUri(Uri uri) async {
-    final status = (await _getStatus(uri));
+    final task = await _getTask(uri);
 
-    return status.status == DownloadTaskStatus.complete
+    return task.status == DownloadTaskStatus.complete
         ? await getFilePath(uri)
         : uri;
   }
 
   @override
-  Future<BehaviorSubject<double>> getProgressFromUri(Uri uri) async =>
-      (await _getProgressOrDefault(await _getStatus(uri))).progress;
+  Stream<DownloadTask> getDownloadStateStream(Uri uri) async* {
+    _progressMap[uri.toString()] ??=
+        BehaviorSubject.seeded(await _getTask(uri));
 
-  /// Returns the download progress from the map, adding it if it isn't there.
-  Future<CreatedDownload> _getProgressOrDefault(DownloadTask task) async =>
-      _progressMap[task.taskId] ??= CreatedDownload(
-          downloadedFile: await getFilePath(Uri.parse(task.url)),
-          progress: BehaviorSubject.seeded(task.progress / 100.0));
+    await for (var status in _progressMap[uri.toString()]!) {
+      yield status;
+    }
+  }
 
-  Future<DownloadTask> _getStatus(Uri uri) async {
-    final tasks = await FlutterDownloader.loadTasksWithRawQuery(
-        query: 'SELECT * FROM task WHERE url like \'$uri\'');
+  @override
+  Future<void> remove(String id) async {
+    final url = _idToUrlMap[id];
 
-    if (tasks?.isEmptyOrNull ?? true) {
-      return DownloadTask(
-          status: DownloadTaskStatus.undefined,
-          progress: 0,
-          filename: '',
-          savedDir: '',
-          taskId: '',
-          timeCreated: 0,
-          url: '');
+    if (url != null) {
+      // Flutter downloader doesn't save the final URI (which can change
+      // between updates on iOS), so we delete the file based on a seperate data set
+      // that we keep track of, not from the flutter_downloader DB.
+
+      final file = File.fromUri(Uri.parse(url));
+
+      if (await file.exists()) {
+        await file.delete();
+      }
     }
 
-    return tasks!.single;
+    await FlutterDownloader.remove(taskId: id);
   }
 
   /// UI thread, called when the UI reciever port gets a message from the background
   /// download isolate.
   void _onDownloadStatus(data) async {
     final String id = data[0];
+    final DownloadTaskStatus status = data[1];
     final int progress = data[2];
 
-    if (!_progressMap.containsKey(id)) {
+    if (!_idToUrlMap.containsKey(id) ||
+        !_progressMap.containsKey(_idToUrlMap[id])) {
       final task = (await FlutterDownloader.loadTasksWithRawQuery(
               query: 'SELECT * FROM task WHERE task_id = \'$id\''))!
           .single;
 
-      await _getProgressOrDefault(task);
+      _progressMap[task.url] ??= BehaviorSubject.seeded(task);
+      _idToUrlMap[id] = task.url;
     }
 
-    _progressMap[id]!.progress.add(progress / 100.0);
+    // ignore: close_sinks
+    final currentSubject = _progressMap[_idToUrlMap[id]]!;
+
+    currentSubject.add(DownloadTask(
+        taskId: id,
+        status: status,
+        progress: progress,
+        url: _idToUrlMap[id]!,
+        filename: currentSubject.value.filename,
+        savedDir: currentSubject.value.savedDir,
+        timeCreated: currentSubject.value.timeCreated));
   }
 }
 
@@ -267,3 +267,24 @@ Future<String> getDownloadFolder() async => (Platform.isIOS
 
 Future<Uri> getFilePath(Uri uri) async =>
     Uri.file(p.join(await getDownloadFolder(), getFileName(uri: uri)));
+
+Future<DownloadTask> _getTask(Uri uri) async {
+  // Any pause etc during download creates a new download task.
+  // Make sure to get most recent.
+  final tasks = await FlutterDownloader.loadTasksWithRawQuery(
+      query:
+          'SELECT TOP(1) * FROM task WHERE url like \'$uri\' order by time_created desc');
+
+  if (tasks?.isEmptyOrNull ?? true) {
+    return DownloadTask(
+        status: DownloadTaskStatus.undefined,
+        progress: 0,
+        filename: '',
+        savedDir: '',
+        taskId: '',
+        timeCreated: 0,
+        url: uri.toString());
+  }
+
+  return tasks!.single;
+}

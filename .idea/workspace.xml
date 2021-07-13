@@ -5,7 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f7e5cb1e-734b-400e-8c2d-5055a6732c06" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inside-app.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inside-app.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/just_audio_handlers/example/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/just_audio_handlers/example/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/just_audio_handlers/example/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/just_audio_handlers/example/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/just_audio_handlers/lib/src/handler_download.dart" beforeDir="false" afterPath="$PROJECT_DIR$/just_audio_handlers/lib/src/handler_download.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/just_audio_handlers/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/just_audio_handlers/pubspec.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
