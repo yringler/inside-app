@@ -143,10 +143,10 @@ class MainScreen extends StatelessWidget {
                               () => _downloader.remove(download.taskId));
                         }
 
-                        return _button(
-                            Icons.download,
-                            () => _downloader
-                                .downloadFromUri(Uri.parse(_audioSource)));
+                        return _button(Icons.download, () {
+                          final uri = Uri.parse(_audioSource);
+                          _downloader.downloadFromUri(uri);
+                        });
                       },
                     )
                   ],

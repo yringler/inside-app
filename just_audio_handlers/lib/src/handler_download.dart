@@ -77,7 +77,7 @@ abstract class AudioDownloader {
 
   Stream<DownloadTask> getDownloadStateStream(Uri uri);
 
-  Stream<DownloadTask> downloadFromUri(Uri uri);
+  Future<DownloadTask> downloadFromUri(Uri uri);
 
   /// Called when the given (web) uri has completed downloading.
   Stream<Uri> get completedStream;
@@ -133,8 +133,8 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
   Stream<Uri> get completedStream => _downloadCompletedController.stream;
 
   @override
-  Stream<DownloadTask> downloadFromUri(Uri uri) async* {
-    final downloadTask = await _getTask(uri);
+  Future<DownloadTask> downloadFromUri(Uri uri) async {
+    final downloadTask = (await _getCachedTask(uri)).value;
     final status = downloadTask.status;
 
     String? id;
@@ -149,34 +149,30 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
           fileName: getFileName(uri: uri),
           openFileFromNotification: false);
     } else if (status == DownloadTaskStatus.paused) {
-      id = await FlutterDownloader.resume(taskId: downloadTask.taskId) ??
-          downloadTask.taskId;
+      id = await FlutterDownloader.resume(taskId: downloadTask.taskId);
     }
 
-    if (id != null) {
+    id ??= downloadTask.taskId;
+
+    assert(id.isNotEmpty);
+
+    if (id.isNotEmpty) {
       _idToUrlMap[id.toString()] = uri.toString();
+      return await _getTaskById(id);
     }
 
-    await for (var status in getDownloadStateStream(uri)) {
-      yield status;
-    }
+    return downloadTask;
   }
 
   @override
-  Future<Uri> getPlaybackUriFromUri(Uri uri) async {
-    final task = await _getTask(uri);
-
-    return task.status == DownloadTaskStatus.complete
-        ? await getFilePath(uri)
-        : uri;
-  }
+  Future<Uri> getPlaybackUriFromUri(Uri uri) async =>
+      (await _getCachedTask(uri)).value.status == DownloadTaskStatus.complete
+          ? await getFilePath(uri)
+          : uri;
 
   @override
   Stream<DownloadTask> getDownloadStateStream(Uri uri) async* {
-    _progressMap[uri.toString()] ??=
-        BehaviorSubject.seeded(await _getTask(uri));
-
-    await for (var status in _progressMap[uri.toString()]!) {
+    await for (var status in await _getCachedTask(uri)) {
       yield status;
     }
   }
@@ -209,9 +205,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
 
     if (!_idToUrlMap.containsKey(id) ||
         !_progressMap.containsKey(_idToUrlMap[id])) {
-      final task = (await FlutterDownloader.loadTasksWithRawQuery(
-              query: 'SELECT * FROM task WHERE task_id = \'$id\''))!
-          .single;
+      final task = await _getTaskById(id);
 
       _progressMap[task.url] ??= BehaviorSubject.seeded(task);
       _idToUrlMap[id] = task.url;
@@ -228,6 +222,16 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
         filename: currentSubject.value.filename,
         savedDir: currentSubject.value.savedDir,
         timeCreated: currentSubject.value.timeCreated));
+  }
+
+  Future<BehaviorSubject<DownloadTask>> _getCachedTask(Uri uri) async {
+    final task = await _getTask(uri);
+
+    if (!task.taskId.isEmptyOrNull) {
+      _idToUrlMap[task.taskId] = task.url;
+    }
+
+    return _progressMap[uri.toString()] ??= BehaviorSubject.seeded(task);
   }
 }
 
@@ -273,7 +277,7 @@ Future<DownloadTask> _getTask(Uri uri) async {
   // Make sure to get most recent.
   final tasks = await FlutterDownloader.loadTasksWithRawQuery(
       query:
-          'SELECT TOP(1) * FROM task WHERE url like \'$uri\' order by time_created desc');
+          'SELECT * FROM task WHERE url like \'$uri\' ORDER BY time_created desc LIMIT 1');
 
   if (tasks?.isEmptyOrNull ?? true) {
     return DownloadTask(
@@ -288,3 +292,8 @@ Future<DownloadTask> _getTask(Uri uri) async {
 
   return tasks!.single;
 }
+
+Future<DownloadTask> _getTaskById(String id) async =>
+    (await FlutterDownloader.loadTasksWithRawQuery(
+            query: 'SELECT * FROM task WHERE task_id = \'$id\''))!
+        .single;
