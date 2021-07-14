@@ -33,7 +33,7 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
             : Duration.zero;
 
         ExtraSettings.setStartTime(extras, start);
-        ExtraSettings.setOverrideUri(extras, await getFilePath(uri));
+        ExtraSettings.setOverrideUri(extras, await _getFilePath(uri));
 
         await playFromMediaId(mediaItem.value!.id, extras);
       }
@@ -145,7 +145,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
         status == DownloadTaskStatus.undefined) {
       id = await FlutterDownloader.enqueue(
           url: uri.toString(),
-          savedDir: await getDownloadFolder(),
+          savedDir: await _getDownloadFolder(),
           fileName: getFileName(uri: uri),
           openFileFromNotification: false);
     } else if (status == DownloadTaskStatus.paused) {
@@ -167,7 +167,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
   @override
   Future<Uri> getPlaybackUriFromUri(Uri uri) async =>
       (await _getCachedTask(uri)).value.status == DownloadTaskStatus.complete
-          ? await getFilePath(uri)
+          ? await _getFilePath(uri)
           : uri;
 
   @override
@@ -186,14 +186,24 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
       // between updates on iOS), so we delete the file based on a seperate data set
       // that we keep track of, not from the flutter_downloader DB.
 
-      final file = File.fromUri(Uri.parse(url));
+      final file = File.fromUri(await _getFilePath(Uri.parse(url)));
 
       if (await file.exists()) {
         await file.delete();
       }
     }
 
-    await FlutterDownloader.remove(taskId: id);
+    // The try is in case the task was already removed...
+    // The finally is to make sure that the client knows that (now that it's been
+    // deleted) no progress has been made on the download.
+
+    try {
+      await FlutterDownloader.remove(taskId: id);
+    } finally {
+      if (!url.isEmptyOrNull) {
+        _progressMap[url]?.add(await _getTask(Uri.parse(url!)));
+      }
+    }
   }
 
   /// UI thread, called when the UI reciever port gets a message from the background
@@ -264,13 +274,13 @@ String getFileName({required Uri uri}) {
   return sluggifiedName.limitFromStart(maxSize)! + '.$suffix';
 }
 
-Future<String> getDownloadFolder() async => (Platform.isIOS
+Future<String> _getDownloadFolder() async => (Platform.isIOS
         ? await paths.getApplicationDocumentsDirectory()
         : await paths.getExternalStorageDirectory())!
     .path;
 
-Future<Uri> getFilePath(Uri uri) async =>
-    Uri.file(p.join(await getDownloadFolder(), getFileName(uri: uri)));
+Future<Uri> _getFilePath(Uri uri) async =>
+    Uri.file(p.join(await _getDownloadFolder(), getFileName(uri: uri)));
 
 Future<DownloadTask> _getTask(Uri uri) async {
   // Any pause etc during download creates a new download task.

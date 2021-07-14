@@ -133,6 +133,11 @@ class MainScreen extends StatelessWidget {
                         }
 
                         if (download.status == DownloadTaskStatus.running) {
+                          // Ensure that there's always a visible loader.
+                          if (download.progress < 5) {
+                            return CircularProgressIndicator();
+                          }
+
                           return CircularProgressIndicator(
                             value: download.progress / 100.0,
                           );
