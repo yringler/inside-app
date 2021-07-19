@@ -7,8 +7,7 @@ import 'package:inside_chassidus/routes/player-route/widgets/index.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar.dart';
-import 'package:just_audio_service/download-manager/download-manager.dart';
-import 'package:just_audio_service/widgets/download-button.dart';
+import 'package:just_audio_handlers/just_audio_handlers.dart';
 
 class PlayerRoute extends StatelessWidget {
   static const String routeName = '/library/playerroute';
@@ -47,9 +46,13 @@ class PlayerRoute extends StatelessWidget {
                 children: [
                   _favoriteButton(context),
                   DownloadButton(
-                    audioUrl: media.source!,
-                    downloadManager:
-                        BlocProvider.getDependency<ForgroundDownloadManager>(),
+                    buttonBuilder: (icon, onPressed) => IconButton(
+                        onPressed: onPressed,
+                        icon: Icon(
+                          icon,
+                        )),
+                    audioSource: media.source!,
+                    downloader: BlocProvider.getDependency<AudioDownloader>(),
                   )
                 ],
               ),
@@ -83,7 +86,8 @@ class PlayerRoute extends StatelessWidget {
       return null;
     }
 
-    final parentSection = await _siteBoxes.sections!.get(media.closestSectionId);
+    final parentSection =
+        await _siteBoxes.sections!.get(media.closestSectionId);
 
     // Make sure that the parent exists, and that it really has the data.
     // This is done in case IDs change etc - we don't want to navigate to library,

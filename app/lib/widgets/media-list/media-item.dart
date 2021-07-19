@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
@@ -30,7 +31,9 @@ class MediaItem extends StatelessWidget {
       title = fallbackTitle;
     }
 
-    final style = AudioService.currentMediaItem?.id == media?.source
+    final handler = BlocProvider.getDependency<AudioHandler>();
+
+    final style = handler.mediaItem.valueOrNull?.id == media?.source
         ? Theme.of(context)
             .textTheme
             .bodyText2!

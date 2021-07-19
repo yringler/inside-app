@@ -1,11 +1,11 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/util/duration-helpers.dart';
-import 'package:just_audio_service/position-manager/position-manager.dart';
-import 'package:just_audio_service/position-manager/position.dart';
+import 'package:just_audio_handlers/just_audio_handlers.dart';
 
-typedef Widget ProgressStreamBuilder(PositionState? state);
+typedef Widget ProgressStreamBuilder(Duration state);
 
 class ProgressBar extends StatelessWidget {
   final Media? media;
@@ -14,69 +14,77 @@ class ProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mediaManager = BlocProvider.getDependency<PositionManager>();
+    final mediaManager = BlocProvider.getDependency<AudioHandler>();
+    final positionManager = BlocProvider.getDependency<PositionSaver>();
 
     // As soon as we get to a class you're in the middle of, even before you play, show
     // the position that you're at.
 
     return FutureBuilder<Duration>(
-      future: mediaManager.positionDataManager!.getPosition(media!.source!),
+      future: positionManager.get(media!.source!),
       initialData: Duration.zero,
       builder: (context, snapshot) => _progressBar(mediaManager, snapshot.data),
     );
   }
 
-  Widget _progressBar(PositionManager mediaManager, Duration? start) {
+  Widget _progressBar(AudioHandler handler, Duration? start) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        _slider(mediaManager, start: start),
-        _timeLabels(mediaManager, start: start)
+        _slider(handler, start: start),
+        _timeLabels(handler, start: start)
       ],
     );
   }
 
-  Row _timeLabels(PositionManager positionManager, {Duration? start}) {
+  Row _timeLabels(AudioHandler handler, {Duration? start}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         // Show current time in class.
         _stateDurationStreamBuilder(
-            positionManager.positionStateStreamOf(media!.source!),
+            getPositionStateFiltered(handler, media!.source!)
+                .map((event) => event.state.position),
             inactiveBuilder: (_) => _time(start),
-            builder: (data) => _time(data!.position!.position)),
+            builder: (data) => _time(data)),
         // Show time remaining in class.
         _stateDurationStreamBuilder(
-            positionManager.positionStateStreamOf(media!.source!),
+            getPositionStateFiltered(handler, media!.source!)
+                .map((event) => event.state.position),
             inactiveBuilder: (_) => _time(media!.length - start!),
-            builder: (data) => _time(media!.length - data!.position!.position))
+            builder: (position) => _time(media!.length - position))
       ],
     );
   }
 
-  Widget _slider(PositionManager positionManager, {Duration? start}) {
+  Widget _slider(AudioHandler handler, {Duration? start}) {
+    final positionSaver = BlocProvider.getDependency<PositionSaver>();
     final maxSliderValue = media!.length.inMilliseconds.toDouble();
 
     if (maxSliderValue == 0) {
       return Container(child: Slider(onChanged: null, value: 0, max: 0));
     }
 
-    final onChanged = (double newProgress) => positionManager
-        .seek(Duration(milliseconds: newProgress.round()), id: media!.source);
+    final onChanged = (double newProgress) => positionSaver.set(
+        media!.source!, Duration(milliseconds: newProgress.round()));
 
     return Container(
       child: _stateDurationStreamBuilder(
-          positionManager.positionStateStreamOf(media!.source!),
+          getPositionStateWithPersisted(handler, positionSaver,
+              mediaId: media!.source!),
           inactiveBuilder: (_) => Slider(
                 onChanged: onChanged,
                 value: start!.inMilliseconds.toDouble(),
                 max: maxSliderValue,
               ),
-          builder: (data) {
-            double value = data!.position!.position.inMilliseconds.toDouble();
+          builder: (position) {
+            double value = position.inMilliseconds.toDouble();
 
-            value =
-                value > maxSliderValue ? maxSliderValue : value < 0 ? 0 : value;
+            value = value > maxSliderValue
+                ? maxSliderValue
+                : value < 0
+                    ? 0
+                    : value;
 
             return Slider(
               value: value,
@@ -88,18 +96,17 @@ class ProgressBar extends StatelessWidget {
   }
 
   /// Simplifies creating a [StreamBuilder] for [WithMediaState<Duration>]
-  Widget _stateDurationStreamBuilder<T>(Stream<PositionState> stream,
+  Widget _stateDurationStreamBuilder<T>(Stream<Duration> stream,
           {ProgressStreamBuilder? builder,
           ProgressStreamBuilder? inactiveBuilder}) =>
-      StreamBuilder<PositionState>(
+      StreamBuilder<Duration>(
         stream: stream,
         builder: (context, snapshot) {
-          if (!snapshot.hasData || snapshot.data!.position?.position == null) {
-            return inactiveBuilder!(PositionState(
-                position: Position(id: media!.source, position: Duration.zero)));
+          if (!snapshot.hasData || snapshot.data == null) {
+            return inactiveBuilder!(Duration.zero);
           }
 
-          return builder!(snapshot.data);
+          return builder!(snapshot.data!);
         },
       );
 

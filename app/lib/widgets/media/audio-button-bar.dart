@@ -3,8 +3,8 @@ import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:inside_api/models.dart';
+import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:inside_chassidus/widgets/media-list/play-button.dart';
-import 'package:just_audio_service/position-manager/position-manager.dart';
 
 class AudioButtonBar extends StatelessWidget {
   final Media? media;
@@ -18,18 +18,20 @@ class AudioButtonBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mediaManager = BlocProvider.getDependency<PositionManager>();
+    final handler = BlocProvider.getDependency<AudioHandler>();
+    final positionSaver = BlocProvider.getDependency<PositionSaver>();
 
     return ButtonBar(
       children: <Widget>[
         IconButton(
           icon: Icon(FontAwesomeIcons.stepBackward),
-          onPressed: () => mediaManager.seek(Duration.zero, id: _mediaSource),
+          onPressed: () =>
+              positionSaver.set(_mediaSource, Duration.zero, handler: handler),
         ),
         IconButton(
             icon: Icon(FontAwesomeIcons.undo),
-            onPressed: () =>
-                mediaManager.skip(Duration(seconds: -15), id: _mediaSource)),
+            onPressed: () => positionSaver
+                .skip(_mediaSource, Duration(seconds: -15), handler: handler)),
         PlayButton(
           media: media,
           mediaSource: _mediaSource,
@@ -37,9 +39,9 @@ class AudioButtonBar extends StatelessWidget {
         ),
         IconButton(
             icon: Icon(FontAwesomeIcons.redo),
-            onPressed: () =>
-                mediaManager.skip(Duration(seconds: 15), id: _mediaSource)),
-        _speedButton()
+            onPressed: () => positionSaver
+                .skip(_mediaSource, Duration(seconds: 15), handler: handler)),
+        _speedButton(handler)
       ],
       alignment: MainAxisAlignment.spaceBetween,
     );
@@ -48,9 +50,10 @@ class AudioButtonBar extends StatelessWidget {
   /// Speeds, in integer percentages.
   static const speeds = [.75, 1.0, 1.25, 1.5, 2.0];
 
-  _speedButton() => StreamBuilder<double>(
-        stream: AudioService.playbackStateStream
+  _speedButton(AudioHandler audioHandler) => StreamBuilder<double>(
+        stream: audioHandler.playbackState
             .map((event) => event.speed)
+            .distinct()
             .where((speed) => speed != 0),
         initialData: 1,
         builder: (context, state) {
@@ -63,7 +66,7 @@ class AudioButtonBar extends StatelessWidget {
               currentSpeed.toStringAsFixed(2).replaceAll('.00', '');
 
           return MaterialButton(
-              onPressed: () => AudioService.setSpeed(nextSpeed),
+              onPressed: () => audioHandler.setSpeed(nextSpeed),
               child: Text('$currentDisplaySpeed x'));
         },
       );

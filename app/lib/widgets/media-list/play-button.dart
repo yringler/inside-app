@@ -2,11 +2,8 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_api/models.dart';
-import 'package:inside_chassidus/util/audio-service/audio-task.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
-import 'package:just_audio_service/download-manager/download-manager.dart';
-import 'package:just_audio_service/position-manager/position-manager.dart';
-import 'package:just_audio_service/download-manager/download-audio-task.dart';
+import 'package:just_audio_handlers/just_audio_handlers.dart';
 
 class PlayButton extends StatelessWidget {
   final Media? media;
@@ -27,24 +24,14 @@ class PlayButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mediaManger = BlocProvider.getDependency<PositionManager>();
+    final audioHandler = BlocProvider.getDependency<AudioHandler>();
 
     return StreamBuilder<PositionState>(
-      stream: mediaManger.positionStateStream,
+      stream: getPositionState(audioHandler),
       // Default: play button (in case never gets stream, because from diffirent media not now playing)
       builder: (context, snapshot) {
         VoidCallback onPressed = () {
-          if (!AudioService.running) {
-            AudioService.start(
-                    backgroundTaskEntrypoint: _audioServiceEntryPoint,
-                    androidNotificationChannelName: "Inside Chassidus Class",
-                    androidStopForegroundOnPause: true,
-                    params: DownloadAudioTask.createStartParams(
-                        BlocProvider.getDependency<ForgroundDownloadManager>()))
-                .then((_) => AudioService.playFromMediaId(_mediaSource!));
-          } else {
-            AudioService.playFromMediaId(_mediaSource!);
-          }
+          audioHandler.playFromMediaId(_mediaSource!);
 
           if (media != null) {
             BlocProvider.getDependency<ChosenClassService>()
@@ -53,17 +40,15 @@ class PlayButton extends StatelessWidget {
         };
         var icon = Icons.play_circle_filled;
 
-        if (snapshot.hasData &&
-            snapshot.data!.position?.id == _mediaSource &&
-            snapshot.data!.state != null) {
-          if (snapshot.data!.state!.processingState ==
-              AudioProcessingState.connecting) {
+        if (snapshot.hasData && snapshot.data?.id == _mediaSource) {
+          if (snapshot.data!.state.processingState ==
+              AudioProcessingState.loading) {
             return CircularProgressIndicator();
           }
 
-          if (snapshot.data!.state!.playing) {
+          if (snapshot.data!.state.playing) {
             icon = Icons.pause_circle_filled;
-            onPressed = () => AudioService.pause();
+            onPressed = () => audioHandler.pause();
           }
         }
 
@@ -80,8 +65,4 @@ class PlayButton extends StatelessWidget {
       },
     );
   }
-}
-
-_audioServiceEntryPoint() {
-  AudioServiceBackground.run(() => LoggingAudioTask());
 }

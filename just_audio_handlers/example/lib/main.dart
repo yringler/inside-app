@@ -114,46 +114,10 @@ class MainScreen extends StatelessWidget {
                               .playFromUri(Uri.parse(_audioSource))),
                     _button(Icons.stop, _audioHandler.stop),
                     _button(Icons.fast_forward, _audioHandler.fastForward),
-                    StreamBuilder<DownloadTask>(
-                      stream: _downloader
-                          .getDownloadStateStream(Uri.parse(_audioSource)),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return CircularProgressIndicator();
-                        }
-
-                        final download = snapshot.data;
-
-                        if (download == null) {
-                          return ErrorWidget("Could not load download state");
-                        }
-
-                        if (download.status == DownloadTaskStatus.enqueued) {
-                          return CircularProgressIndicator();
-                        }
-
-                        if (download.status == DownloadTaskStatus.running) {
-                          // Ensure that there's always a visible loader.
-                          if (download.progress < 5) {
-                            return CircularProgressIndicator();
-                          }
-
-                          return CircularProgressIndicator(
-                            value: download.progress / 100.0,
-                          );
-                        }
-
-                        if (download.status == DownloadTaskStatus.complete) {
-                          return _button(Icons.delete,
-                              () => _downloader.remove(download.taskId));
-                        }
-
-                        return _button(Icons.download, () {
-                          final uri = Uri.parse(_audioSource);
-                          _downloader.downloadFromUri(uri);
-                        });
-                      },
-                    )
+                    DownloadButton(
+                        audioSource: _audioSource,
+                        buttonBuilder: _button,
+                        downloader: _downloader)
                   ],
                 );
               },

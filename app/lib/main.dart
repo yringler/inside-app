@@ -18,6 +18,8 @@ import 'package:inside_chassidus/tabs/recent-tab.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart';
 import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
@@ -29,6 +31,8 @@ void main() async {
   )));
 
   await Firebase.initializeApp();
+  FlutterDownloaderAudioDownloader.init();
+  await HivePositionSaver.init();
 
   // Set `enableInDevMode` to true to see reports while in debug mode
   // This is only to be used for confirming that reports are being
@@ -43,17 +47,30 @@ void main() async {
 
   final siteBoxes = await (getBoxes());
   final chosenService = await ChosenClassService.create();
-  final downloadManager = ForgroundDownloadManager(maxDownloads: 10);
+  final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
-  await downloadManager.init();
+  final PositionSaver positionSaver = HivePositionSaver();
+
+  final AudioHandler audioHandler = await AudioService.init(
+    builder: () => AudioHandlerDownloader(
+        downloader: downloadManager,
+        inner: AudioHandlerPersistPosition(
+          positionRepository: positionSaver,
+          inner: AudioHandlerJustAudio(player: AudioPlayer()),
+        )),
+    config: AudioServiceConfig(
+        androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
+        androidNotificationChannelName: 'Audio playback',
+        androidNotificationOngoing: true),
+  );
 
   runApp(BlocProvider(dependencies: [
-    Dependency(
-        (i) => PositionManager(positionDataManager: PositionDataManager())),
+    Dependency((i) => positionSaver),
     Dependency((i) => siteBoxes),
     Dependency((i) => chosenService),
     Dependency((i) => downloadManager),
-    Dependency((i) => libraryPositionService)
+    Dependency((i) => libraryPositionService),
+    Dependency((i) => audioHandler)
   ], blocs: [
     Bloc((i) => IsPlayerButtonsShowingBloc())
   ], child: AppRouterWidget()));
@@ -159,23 +176,21 @@ class MyAppState extends State<MyApp> {
   }
 
   @override
-  Widget build(BuildContext context) => AudioServiceWidget(
-        child: Scaffold(
-          appBar: AppBar(
-              title: Text(appTitle),
-              leading: _getCanPop()
-                  ? BackButton(
-                      onPressed: () =>
-                          _getCurrentRouterKey().currentState!.maybePop(),
-                    )
-                  : null),
-          body: AudioButtonbarAwareBody(
-              body: Material(
-            child: _getCurrentTab(),
-          )),
-          bottomSheet: CurrentMediaButtonBar(),
-          bottomNavigationBar: bottomNavigationBar(),
-        ),
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+            title: Text(appTitle),
+            leading: _getCanPop()
+                ? BackButton(
+                    onPressed: () =>
+                        _getCurrentRouterKey().currentState!.maybePop(),
+                  )
+                : null),
+        body: AudioButtonbarAwareBody(
+            body: Material(
+          child: _getCurrentTab(),
+        )),
+        bottomSheet: CurrentMediaButtonBar(),
+        bottomNavigationBar: bottomNavigationBar(),
       );
 
   BottomNavigationBar bottomNavigationBar() {

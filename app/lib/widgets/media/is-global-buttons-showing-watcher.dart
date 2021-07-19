@@ -2,7 +2,6 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/blocs/is-player-buttons-showing.dart';
-import 'package:just_audio_service/position-manager/position-manager.dart';
 import 'package:rxdart/rxdart.dart';
 
 typedef Widget GlobalMediaButtonsAwareBuilder(BuildContext context,
@@ -15,20 +14,24 @@ class IsGlobalMediaButtonsShowingWatcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final positionManager = BlocProvider.getDependency<PositionManager>();
+    final positionManager = BlocProvider.getDependency<AudioHandler>();
     final isOtherButtonsShowing =
         BlocProvider.getBloc<IsPlayerButtonsShowingBloc>();
 
     return StreamBuilder<StateAndShowing>(
-        stream: Rx.combineLatest2<PositionState, bool, StateAndShowing>(
-            positionManager.positionStateStream.distinct(
-                (a, b) => a.state?.processingState == b.state?.processingState),
-            isOtherButtonsShowing.globalButtonsShowingStream,
-            (a, b) => StateAndShowing(positionState: a, isGlobalShowing: b)),
+        stream:
+            Rx.combineLatest3<MediaItem, PlaybackState, bool, StateAndShowing>(
+                positionManager.mediaItem
+                    .where((event) => event != null)
+                    .map((event) => event!),
+                positionManager.playbackState,
+                isOtherButtonsShowing.globalButtonsShowingStream,
+                (a, b, c) => StateAndShowing(
+                    mediaItem: a, playbackState: b, isGlobalShowing: c)),
         builder: (context, state) => builder(context,
-            mediaSource: state.data?.positionState?.position?.id ?? null,
+            mediaSource: state.data?.mediaItem.id ?? null,
             isGlobalButtonsShowing: (state.data?.isGlobalShowing ?? false) &&
-                _showState(state.data?.positionState?.state)));
+                _showState(state.data?.playbackState)));
   }
 
   /// If the given state can have a global player shown.
@@ -40,16 +43,20 @@ class IsGlobalMediaButtonsShowingWatcher extends StatelessWidget {
     return ![
       AudioProcessingState.completed,
       AudioProcessingState.error,
-      AudioProcessingState.none
+      AudioProcessingState.idle
     ].contains(state.processingState);
   }
 }
 
 class StateAndShowing {
-  final PositionState? positionState;
+  final MediaItem mediaItem;
+  final PlaybackState playbackState;
 
   /// If global play buttons are showing.
   final bool? isGlobalShowing;
 
-  StateAndShowing({this.positionState, this.isGlobalShowing});
+  StateAndShowing(
+      {required this.playbackState,
+      required this.isGlobalShowing,
+      required this.mediaItem});
 }
