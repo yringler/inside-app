@@ -61,6 +61,7 @@ void main() async {
     config: AudioServiceConfig(
         androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
         androidNotificationChannelName: 'Audio playback',
+        androidStopForegroundOnPause: true,
         androidNotificationOngoing: true),
   );
 
