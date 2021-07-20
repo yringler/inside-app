@@ -20,7 +20,7 @@ And I've migrated my own (non trivial) app (also found in this mono repo) to use
 Todo
 
 ## History
-Offhand, this is my . There were
+This is roughly my 7th major rewrite of audio handling.
 1. My first run used one of the older audio_player(s)
 2. Switched to an older version of audio_service with that audio player
 3. Switched to an older version of just_audio (pretty much version 0.0.1)
