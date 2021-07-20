@@ -28,23 +28,25 @@ class ProgressBar extends StatelessWidget {
   }
 
   Widget _progressBar(AudioHandler handler, Duration? start) {
+    final stream = getPositionStateWithPersisted(
+        handler, BlocProvider.getDependency<PositionSaver>(),
+        mediaId: media!.source!);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        _slider(handler, start: start),
-        _timeLabels(handler, start: start)
+        _slider(handler, start: start, stream: stream),
+        _timeLabels(handler, start: start, stream: stream)
       ],
     );
   }
 
-  Row _timeLabels(AudioHandler handler, {Duration? start}) {
+  Row _timeLabels(AudioHandler handler,
+      {Duration? start, required Stream<Duration> stream}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         // Show current time in class.
-        _stateDurationStreamBuilder(
-            getPositionStateFiltered(handler, media!.source!)
-                .map((event) => event.state.position),
+        _stateDurationStreamBuilder(stream,
             inactiveBuilder: (_) => _time(start),
             builder: (data) => _time(data)),
         // Show time remaining in class.
@@ -57,7 +59,8 @@ class ProgressBar extends StatelessWidget {
     );
   }
 
-  Widget _slider(AudioHandler handler, {Duration? start}) {
+  Widget _slider(AudioHandler handler,
+      {Duration? start, required Stream<Duration> stream}) {
     final positionSaver = BlocProvider.getDependency<PositionSaver>();
     final maxSliderValue = media!.length.inMilliseconds.toDouble();
 
@@ -66,12 +69,11 @@ class ProgressBar extends StatelessWidget {
     }
 
     final onChanged = (double newProgress) => positionSaver.set(
-        media!.source!, Duration(milliseconds: newProgress.round()));
+        media!.source!, Duration(milliseconds: newProgress.round()),
+        handler: handler);
 
     return Container(
-      child: _stateDurationStreamBuilder(
-          getPositionStateWithPersisted(handler, positionSaver,
-              mediaId: media!.source!),
+      child: _stateDurationStreamBuilder(stream,
           inactiveBuilder: (_) => Slider(
                 onChanged: onChanged,
                 value: start!.inMilliseconds.toDouble(),

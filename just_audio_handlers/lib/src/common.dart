@@ -5,19 +5,23 @@ import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:rxdart/rxdart.dart';
 
 class PositionState {
-  final String id;
+  get id => mediaItem.id;
+  get position => state.position;
+  final MediaItem mediaItem;
   final PlaybackState state;
 
-  PositionState({required this.id, required this.state});
+  PositionState({required this.state, required this.mediaItem});
 }
 
 Stream<PositionState> getPositionState(AudioHandler audioHandler) =>
-    Rx.combineLatest2<MediaItem, PlaybackState, PositionState>(
+    Rx.combineLatest3<MediaItem, PlaybackState, Duration, PositionState>(
         audioHandler.mediaItem
             .where((event) => event != null)
             .map((event) => event!),
         audioHandler.playbackState,
-        (a, b) => PositionState(id: a.id, state: b));
+        AudioService.position,
+        (a, b, c) =>
+            PositionState(mediaItem: a, state: b.copyWith(updatePosition: c)));
 
 Stream<PositionState> getPositionStateFiltered(
         AudioHandler audioHandler, String mediaId) =>
@@ -26,11 +30,11 @@ Stream<PositionState> getPositionStateFiltered(
 Stream<Duration> getPositionStateWithPersisted(
         AudioHandler handler, PositionSaver saver,
         {required String mediaId}) =>
-    Rx.concatEager<Duration>([
+    Rx.merge<Duration>([
       getPositionStateFiltered(handler, mediaId)
           .map((event) => event.state.position),
       saver.getStream(mediaId)
-    ]);
+    ]).shareReplay();
 
 typedef Widget ButtonBuilder(IconData icon, VoidCallback onPressed);
 

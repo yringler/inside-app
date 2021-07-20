@@ -68,7 +68,7 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
   @override
   Future<void> playFromMediaId(String mediaId,
       [Map<String, dynamic>? extras]) async {
-    await prepareFromMediaId(mediaId);
+    await prepareFromMediaId(mediaId, extras);
     await _player.play();
   }
 

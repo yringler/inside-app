@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:just_audio_handlers/src/extra_settings.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:quiver/async.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'handler_persist_position.g.dart';
@@ -87,7 +88,9 @@ abstract class PositionSaver {
   @mustCallSuper
   Future<void> set(String? mediaId, Duration position,
       {AudioHandler? handler}) async {
-    _positionStreams[mediaId]?.add(position);
+    if (mediaId != null && _positionStreams.containsKey(mediaId)) {
+      _positionStreams[mediaId]!.add(position);
+    }
     if (handler != null) {
       if (mediaId == null) {
         handler.seek(position);
@@ -119,12 +122,15 @@ abstract class PositionSaver {
   Future<Duration> get(String mediaId);
 
   @mustCallSuper
-  Stream<Duration> getStream(String mediaId) async* {
-    _positionStreams[mediaId] ??= BehaviorSubject.seeded(await get(mediaId));
+  Stream<Duration> getStream(String mediaId) =>
+      FutureStream(getFutureStream(mediaId));
 
-    await for (final position in _positionStreams[mediaId]!.stream) {
-      yield position;
+  Future<Stream<Duration>> getFutureStream(String mediaId) async {
+    if (!_positionStreams.containsKey(mediaId)) {
+      _positionStreams[mediaId] = BehaviorSubject.seeded(await get(mediaId));
     }
+
+    return _positionStreams[mediaId]!;
   }
 }
 
@@ -144,7 +150,7 @@ class MemoryPositionSaver extends PositionSaver {
       _positions[mediaId] = position;
     }
 
-    await super.set(mediaId, position);
+    await super.set(mediaId, position, handler: handler);
   }
 }
 
@@ -212,11 +218,5 @@ class HivePositionSaver extends PositionSaver {
     }
 
     await super.set(mediaId, position, handler: handler);
-  }
-
-  @override
-  Stream<Duration> getStream(String mediaId) {
-    // TODO: implement getStream
-    throw UnimplementedError();
   }
 }

@@ -28,10 +28,8 @@ import 'package:audio_service/audio_service.dart';
 import 'package:example/common.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
-import 'package:rxdart/rxdart.dart';
 
 // You might want to provide this using dependency injection rather than a
 // global variable.
@@ -123,13 +121,13 @@ class MainScreen extends StatelessWidget {
               },
             ),
             // A seek bar.
-            StreamBuilder<MediaState>(
-              stream: _mediaStateStream,
+            StreamBuilder<PositionState>(
+              stream: getPositionState(_audioHandler),
               builder: (context, snapshot) {
                 final mediaState = snapshot.data;
                 return SeekBar(
-                  duration: mediaState?.mediaItem?.duration ?? Duration.zero,
-                  position: mediaState?.position ?? Duration.zero,
+                  duration: mediaState?.mediaItem.duration ?? Duration.zero,
+                  position: mediaState?.state.position ?? Duration.zero,
                   onChangeEnd: (newPosition) {
                     _audioHandler.seek(newPosition);
                   },
@@ -153,14 +151,6 @@ class MainScreen extends StatelessWidget {
       ),
     );
   }
-
-  /// A stream reporting the combined state of the current media item and its
-  /// current position.
-  Stream<MediaState> get _mediaStateStream =>
-      Rx.combineLatest2<MediaItem?, Duration, MediaState>(
-          _audioHandler.mediaItem,
-          AudioService.position,
-          (mediaItem, position) => MediaState(mediaItem, position));
 
   IconButton _button(IconData iconData, VoidCallback onPressed) => IconButton(
         icon: Icon(iconData),

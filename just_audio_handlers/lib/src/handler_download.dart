@@ -7,6 +7,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:just_audio_handlers/src/extra_settings.dart';
+import 'package:quiver/async.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:slugify/slugify.dart';
 import 'package:dart_extensions/dart_extensions.dart';
@@ -171,11 +172,8 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
           : uri;
 
   @override
-  Stream<DownloadTask> getDownloadStateStream(Uri uri) async* {
-    await for (var status in await _getCachedTask(uri)) {
-      yield status;
-    }
-  }
+  Stream<DownloadTask> getDownloadStateStream(Uri uri) =>
+      FutureStream(_getCachedTask(uri));
 
   @override
   Future<void> remove(String id) async {
