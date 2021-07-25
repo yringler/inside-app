@@ -56,11 +56,15 @@ void main() async {
         downloader: downloadManager,
         inner: AudioHandlerPersistPosition(
           positionRepository: positionSaver,
-          inner: AudioHandlerJustAudio(player: AudioPlayer()),
+          inner: LoggingJustAudioHandler(
+              logger: AnalyticsLogger(),
+              inner: AudioHandlerJustAudio(player: AudioPlayer())),
         )),
     config: AudioServiceConfig(
         androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
         androidNotificationChannelName: 'Audio playback',
+        fastForwardInterval: const Duration(seconds: 15),
+        rewindInterval: const Duration(seconds: 15),
         androidStopForegroundOnPause: true,
         androidNotificationOngoing: true),
   );
@@ -341,4 +345,15 @@ Future<bool> _ensureDataLoaded(List<dynamic> args) async {
 
   await boxes.hive!.close();
   return true;
+}
+
+class AnalyticsLogger extends AudioLogger {
+  final FirebaseAnalytics analytics = FirebaseAnalytics();
+
+  @override
+  Future<void> onComplete(MediaItem item) async {
+    analytics.logEvent(
+        name: "completed_class",
+        parameters: {"class_source": item.id.limitFromEnd(100) ?? ""});
+  }
 }

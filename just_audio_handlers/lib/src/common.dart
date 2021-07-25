@@ -13,15 +13,21 @@ class PositionState {
   PositionState({required this.state, required this.mediaItem});
 }
 
-Stream<PositionState> getPositionState(AudioHandler audioHandler) =>
-    Rx.combineLatest3<MediaItem, PlaybackState, Duration, PositionState>(
+Stream<PositionState> getMediaItemState(AudioHandler audioHandler) =>
+    Rx.combineLatest2<MediaItem, PlaybackState, PositionState>(
         audioHandler.mediaItem
             .where((event) => event != null)
             .map((event) => event!),
         audioHandler.playbackState,
+        (a, b) => PositionState(state: b, mediaItem: a));
+
+Stream<PositionState> getPositionState(AudioHandler audioHandler) =>
+    Rx.combineLatest2<PositionState, Duration, PositionState>(
+        getMediaItemState(audioHandler),
         AudioService.position,
-        (a, b, c) =>
-            PositionState(mediaItem: a, state: b.copyWith(updatePosition: c)));
+        (a, b) => PositionState(
+            mediaItem: a.mediaItem,
+            state: a.state.copyWith(updatePosition: b)));
 
 Stream<PositionState> getPositionStateFiltered(
         AudioHandler audioHandler, String mediaId) =>
