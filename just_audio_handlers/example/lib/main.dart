@@ -30,6 +30,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
+import 'package:rxdart/rxdart.dart';
 
 // You might want to provide this using dependency injection rather than a
 // global variable.
@@ -37,8 +38,12 @@ late AudioHandler _audioHandler;
 late FlutterDownloaderAudioDownloader _downloader;
 late HivePositionSaver _positionSaver;
 
-const _audioSource =
+const _audioSource1 =
     'https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3';
+const _audioSource2 =
+    'https://insidechassidus.org/wp-content/uploads/Classes/Life%20Lessons/faith/A_good_world.mp3';
+
+final source = BehaviorSubject.seeded(_audioSource1);
 
 Future<void> main() async {
   await HivePositionSaver.init();
@@ -103,19 +108,34 @@ class MainScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _button(Icons.fast_rewind, _audioHandler.rewind),
+                    StreamBuilder<String>(
+                      stream: source,
+                      builder: (context, snap) => _button(
+                          Icons.next_plan_outlined,
+                          () => _audioHandler.playFromUri(Uri.parse(
+                              snap.data == _audioSource1
+                                  ? _audioSource2
+                                  : _audioSource1))),
+                    ),
                     if (playing)
                       _button(Icons.pause, _audioHandler.pause)
                     else
-                      _button(
-                          Icons.play_arrow,
-                          () => _audioHandler
-                              .playFromUri(Uri.parse(_audioSource))),
+                      StreamBuilder<String>(
+                        stream: source,
+                        builder: (context, snap) => _button(
+                            Icons.play_arrow,
+                            () => _audioHandler
+                                .playFromUri(Uri.parse(snap.data!))),
+                      ),
                     _button(Icons.stop, _audioHandler.stop),
                     _button(Icons.fast_forward, _audioHandler.fastForward),
-                    DownloadButton(
-                        audioSource: _audioSource,
-                        buttonBuilder: _button,
-                        downloader: _downloader)
+                    StreamBuilder<String>(
+                      stream: source,
+                      builder: (context, snap) => DownloadButton(
+                          audioSource: snap.data!,
+                          buttonBuilder: _button,
+                          downloader: _downloader),
+                    )
                   ],
                 );
               },
@@ -152,7 +172,7 @@ class MainScreen extends StatelessWidget {
     );
   }
 
-  IconButton _button(IconData iconData, VoidCallback onPressed) => IconButton(
+  Widget _button(IconData iconData, VoidCallback onPressed) => IconButton(
         icon: Icon(iconData),
         iconSize: 40.0,
         onPressed: onPressed,

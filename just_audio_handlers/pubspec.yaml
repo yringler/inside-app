@@ -13,7 +13,11 @@ dependencies:
   flutter:
     sdk: flutter
   audio_service: ^0.18.0-beta.0
-  just_audio: ^0.9.0
+  just_audio:
+    git:
+      url: https://github.com/ryanheise/just_audio
+      ref: fix/stop_position
+      path: just_audio
   hive: ^2.0.4
   flutter_downloader: ^1.6.0
   slugify: ^2.0.0

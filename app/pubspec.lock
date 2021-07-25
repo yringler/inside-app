@@ -498,9 +498,11 @@ packages:
   just_audio:
     dependency: transitive
     description:
-      name: just_audio
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: just_audio
+      ref: "fix/stop_position"
+      resolved-ref: "8cc907b5be3f7f3b5883895a9ccb7453ec7fc376"
+      url: "https://github.com/ryanheise/just_audio"
+    source: git
     version: "0.9.3"
   just_audio_handlers:
     dependency: "direct main"

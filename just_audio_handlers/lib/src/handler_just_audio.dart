@@ -16,7 +16,8 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
       : _player = player,
         this.defaultAlbum = defaultAlbum ?? '',
         this.defaultClass = defaultClass ?? '' {
-    _player.playbackEventStream.listen(_broadcastState);
+    // This beautiful construct is copied from the audio_service example.
+    _player.playbackEventStream.map(_transformEvent).pipe(playbackState);
   }
 
   @override
@@ -30,29 +31,19 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
-    final preparedUri = await _prepareMediaItem(
-        extras ?? {},
-        uri,
-        MediaItem(
-            id: uri.toString(), album: defaultAlbum, title: defaultClass));
+    await prepareFromUri(uri, extras);
     await _player.play();
-
-    // When we prepare, we prepare with the start time.
-    // But if the audio was already in prepared state, we need to seek to the
-    // saved position
-    final start = ExtraSettings.getStartTime(extras ?? {});
-    if (!preparedUri) {
-      await _player.seek(start);
-    }
   }
 
   @override
   Future<void> prepareFromMediaId(String mediaId,
       [Map<String, dynamic>? extras]) async {
+    if (_isPlaying(mediaId, extras)) return;
+
     // If the media ID is already being played, don't query it.
     // We may still want to update the player source, for example if
     // we are switching to play from an offline file.
-    final item = mediaItem.hasValue && mediaId == mediaItem.value?.id
+    final item = mediaId == mediaItem.valueOrNull?.id
         ? mediaItem.value
         : await getMediaItem(mediaId);
 
@@ -92,17 +83,14 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
     await _player.setSpeed(speed);
   }
 
-  Future<bool> _prepareMediaItem(
+  Future<void> _prepareMediaItem(
       Map<String, dynamic> extras, Uri defaultUri, MediaItem item) async {
+    if (_isPlaying(defaultUri.toString(), extras)) return;
+
     final parsedExtras =
         ExtraSettings.fromExtras(extras, defaultUri: defaultUri);
 
-    // There's nothing to do if we're already playing the requested Uri, and there
-    // isn't even an alternative.
-    if (mediaItem.valueOrNull?.id == item.id &&
-        parsedExtras.finalUri == parsedExtras.originalUri) {
-      return false;
-    }
+    item = item.copyWith(extras: extras);
 
     mediaItem.add(item);
 
@@ -114,18 +102,30 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
       mediaItem.add(item.copyWith(duration: duration));
     }
 
-    return true;
+    return;
   }
 
-  /// Broadcasts the current state to all clients.
-  void _broadcastState(PlaybackEvent event) {
-    final playing = _player.playing;
-    playbackState.add(playbackState.value.copyWith(
+  bool _isPlaying(String id, Map<String, dynamic>? extras) {
+    if (mediaItem.valueOrNull?.id == null) {
+      return false;
+    }
+
+    final currentExtras = ExtraSettings.fromExtras(
+        mediaItem.valueOrNull?.extras,
+        defaultUri: Uri.parse(mediaItem.value!.id));
+    final newExtras =
+        ExtraSettings.fromExtras(extras, defaultUri: Uri.parse(id));
+
+    return currentExtras.finalUri == newExtras.finalUri;
+  }
+
+  PlaybackState _transformEvent(PlaybackEvent event) {
+    return PlaybackState(
       controls: [
-        MediaControl.skipToPrevious,
-        if (playing) MediaControl.pause else MediaControl.play,
+        MediaControl.rewind,
+        if (_player.playing) MediaControl.pause else MediaControl.play,
         MediaControl.stop,
-        MediaControl.skipToNext,
+        MediaControl.fastForward,
       ],
       systemActions: const {
         MediaAction.seek,
@@ -140,11 +140,11 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
         ProcessingState.ready: AudioProcessingState.ready,
         ProcessingState.completed: AudioProcessingState.completed,
       }[_player.processingState]!,
-      playing: playing,
-      updatePosition: event.updatePosition,
-      bufferedPosition: event.bufferedPosition,
+      playing: _player.playing,
+      updatePosition: _player.position,
+      bufferedPosition: _player.bufferedPosition,
       speed: _player.speed,
       queueIndex: event.currentIndex,
-    ));
+    );
   }
 }
