@@ -51,6 +51,8 @@ void main() async {
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
   final PositionSaver positionSaver = HivePositionSaver();
 
+  await limitDownloads(downloadManager);
+
   final AudioHandler audioHandler = await AudioService.init(
     builder: () => AudioHandlerDownloader(
         downloader: downloadManager,

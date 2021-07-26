@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
@@ -82,6 +83,8 @@ abstract class AudioDownloader {
   Stream<Uri> get completedStream;
 
   Future<void> remove(String id);
+
+  Future<List<DownloadTask>> getAllDownloaded();
 
   void destory();
 }
@@ -239,6 +242,11 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
 
     return _progressMap[uri.toString()] ??= BehaviorSubject.seeded(task);
   }
+
+  @override
+  Future<List<DownloadTask>> getAllDownloaded() async {
+    return ((await FlutterDownloader.loadTasks()) ?? []);
+  }
 }
 
 /// Name of port which provides access to the full download progress.
@@ -285,18 +293,67 @@ Future<DownloadTask> _getTask(Uri uri) async {
       query:
           'SELECT * FROM task WHERE url like \'$uri\' ORDER BY time_created desc LIMIT 1');
 
+  final emptyTask = DownloadTask(
+      status: DownloadTaskStatus.undefined,
+      progress: 0,
+      filename: '',
+      savedDir: '',
+      taskId: '',
+      timeCreated: 0,
+      url: uri.toString());
+
   if (tasks?.isEmptyOrNull ?? true) {
-    return DownloadTask(
-        status: DownloadTaskStatus.undefined,
-        progress: 0,
-        filename: '',
-        savedDir: '',
-        taskId: '',
-        timeCreated: 0,
-        url: uri.toString());
+    return emptyTask;
   }
 
-  return tasks!.single;
+  final task = tasks!.single;
+
+  if (!await ensureValidExists(task)) {
+    return emptyTask;
+  }
+
+  return task;
+}
+
+/// Returns true if the file is downloaded and exists, or if the file wasn't downloaded yet.
+/// Returns false if the sytem thinks it was downloaded, but the file doesn't exist.
+Future<bool> ensureValidExists(DownloadTask task) async {
+  if (task.status == DownloadTaskStatus.complete) {
+    final path = await _getFilePath(Uri.parse(task.url));
+    final exists = await File(path.toString()).exists();
+
+    if (!exists) {
+      await FlutterDownloader.remove(taskId: task.taskId);
+      return false;
+    }
+
+    return true;
+  }
+
+  return true;
+}
+
+Future<void> limitDownloads(AudioDownloader downloader,
+    {int limit = 10}) async {
+  final tasks = await downloader.getAllDownloaded();
+  final validatedTasks = (await Future.wait(tasks
+          .map((task) async => await ensureValidExists(task) ? task : null)))
+      .where((element) => element != null)
+      .map((e) => e!);
+  final completedTasks = validatedTasks
+      .where((element) => element.status == DownloadTaskStatus.complete)
+      .toList();
+
+  final numberToDelete = completedTasks.length - limit;
+
+  if (numberToDelete < 0) {
+    return;
+  }
+
+  completedTasks.sortBy((k) => k.timeCreated);
+  await Future.wait(completedTasks
+      .take(numberToDelete)
+      .map((e) => downloader.remove(e.taskId)));
 }
 
 Future<DownloadTask> _getTaskById(String id) async =>
