@@ -30,7 +30,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
-import 'package:rxdart/rxdart.dart';
 
 // You might want to provide this using dependency injection rather than a
 // global variable.
@@ -42,8 +41,6 @@ const _audioSource1 =
     'https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3';
 const _audioSource2 =
     'https://insidechassidus.org/wp-content/uploads/Classes/Life%20Lessons/faith/A_good_world.mp3';
-
-final source = BehaviorSubject.seeded(_audioSource1);
 
 Future<void> main() async {
   await HivePositionSaver.init();
@@ -109,7 +106,8 @@ class MainScreen extends StatelessWidget {
                   children: [
                     _button(Icons.fast_rewind, _audioHandler.rewind),
                     StreamBuilder<String>(
-                      stream: source,
+                      stream: _audioHandler.mediaItem
+                          .map((event) => event?.id ?? _audioSource1),
                       builder: (context, snap) => _button(
                           Icons.next_plan_outlined,
                           () => _audioHandler.playFromUri(Uri.parse(
@@ -121,7 +119,8 @@ class MainScreen extends StatelessWidget {
                       _button(Icons.pause, _audioHandler.pause)
                     else
                       StreamBuilder<String>(
-                        stream: source,
+                        stream: _audioHandler.mediaItem
+                            .map((event) => event?.id ?? _audioSource1),
                         builder: (context, snap) => _button(
                             Icons.play_arrow,
                             () => _audioHandler
@@ -130,9 +129,10 @@ class MainScreen extends StatelessWidget {
                     _button(Icons.stop, _audioHandler.stop),
                     _button(Icons.fast_forward, _audioHandler.fastForward),
                     StreamBuilder<String>(
-                      stream: source,
+                      stream: _audioHandler.mediaItem
+                          .map((event) => event?.id ?? _audioSource1),
                       builder: (context, snap) => DownloadButton(
-                          audioSource: snap.data!,
+                          audioSource: snap.data ?? '',
                           buttonBuilder: _button,
                           downloader: _downloader),
                     )
@@ -166,6 +166,11 @@ class MainScreen extends StatelessWidget {
                     "Processing state: ${describeEnum(processingState)}");
               },
             ),
+            StreamBuilder<String>(
+              stream: _audioHandler.mediaItem
+                  .map((event) => event?.id ?? _audioSource1),
+              builder: (context, snap) => Text(snap.data ?? ''),
+            )
           ],
         ),
       ),
