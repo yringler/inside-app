@@ -182,12 +182,10 @@ packages:
   just_audio:
     dependency: transitive
     description:
-      path: just_audio
-      ref: "fix/stop_position"
-      resolved-ref: "8cc907b5be3f7f3b5883895a9ccb7453ec7fc376"
-      url: "https://github.com/ryanheise/just_audio"
-    source: git
-    version: "0.9.3"
+      name: just_audio
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.9.4"
   just_audio_handlers:
     dependency: "direct main"
     description:
@@ -208,7 +206,7 @@ packages:
       name: just_audio_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.0"
+    version: "0.4.1"
   matcher:
     dependency: transitive
     description:
@@ -243,14 +241,14 @@ packages:
       name: path_provider_linux
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.0"
+    version: "2.0.2"
   path_provider_macos:
     dependency: transitive
     description:
       name: path_provider_macos
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.0"
+    version: "2.0.2"
   path_provider_platform_interface:
     dependency: transitive
     description:
@@ -264,7 +262,7 @@ packages:
       name: path_provider_windows
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.1"
+    version: "2.0.3"
   pedantic:
     dependency: transitive
     description:
