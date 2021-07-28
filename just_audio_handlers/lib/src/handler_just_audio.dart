@@ -21,6 +21,9 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
   }
 
   @override
+  Future<void> play() => _player.play();
+
+  @override
   Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
     await _prepareMediaItem(
         extras ?? {},

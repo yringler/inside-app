@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:dart_extensions/dart_extensions.dart';
@@ -50,6 +51,9 @@ void main() async {
   final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
   final PositionSaver positionSaver = HivePositionSaver();
+
+  final session = await AudioSession.instance;
+  await session.configure(AudioSessionConfiguration.speech());
 
   await limitDownloads(downloadManager);
 

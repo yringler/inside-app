@@ -55,6 +55,7 @@ dependencies:
   just_audio_handlers:
     path:
       ../just_audio_handlers
+  audio_session: ^0.1.5
 dev_dependencies:
   build_runner: ^2.0.6
   hive_generator: ^1.0.1
