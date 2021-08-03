@@ -24,7 +24,7 @@ LazyDatabase _openConnection() {
   });
 }
 
-@UseMoor()
+@UseMoor(tables: [Media])
 class InsideDatabase extends _$InsideDatabase {
   InsideDatabase() : super(_openConnection());
 
