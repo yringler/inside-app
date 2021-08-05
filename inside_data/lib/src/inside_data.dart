@@ -53,5 +53,21 @@ class Section extends SiteDataBase {
 abstract class SiteDataLayer {
   Future<void> init();
   List<Section> topLevel();
-  Future<Section> parentOf(SiteDataBase);
+  Future<Section> parentOf(String id);
+  Future<Section> section(String id);
+  Future<Media> media(String id);
+}
+
+class SiteData {
+  final List<Section> sections;
+  final List<ContentReference> content;
+
+  SiteData({required this.sections, required this.content});
+}
+
+/// Provides initial access to load all of site.
+/// After the whole site is loaded, it is copied into a data layer.
+abstract class SiteDataLoader {
+  /// If no data, load will load data, and trigger to prepare updates for next time.
+  Future<SiteData> load(Duration lastLoadTime, {bool ensureLatest = false});
 }
