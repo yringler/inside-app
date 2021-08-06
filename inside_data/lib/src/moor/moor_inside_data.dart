@@ -9,9 +9,12 @@ import 'package:path/path.dart' as p;
 part 'moor_inside_data.g.dart';
 
 class MediaTable extends Table {
+  /// The post ID if the class is it's own post. Otherwise, taken from media source.
+  TextColumn get id => text()();
+
   /// The ID of the section the media belongs to.
   TextColumn get parentId => text()();
-  TextColumn get id => text()();
+  TextColumn get source => text()();
   IntColumn get sort => integer()();
   TextColumn get title => text().nullable()();
   TextColumn get description => text().nullable()();
@@ -24,25 +27,17 @@ class MediaTable extends Table {
 }
 
 class SectionTable extends Table {
-  TextColumn get id => text()();
+  IntColumn get id => integer()();
+  TextColumn get parentId => text()();
   IntColumn get sort => integer()();
 
   /// A section can only have a single parent, but some sections kind of are
   /// in two places. So there's a placeholder section which redirects to the
-  /// content.
+  /// real section.
   TextColumn get redirectId => text()();
 
   TextColumn get title => text().nullable()();
   TextColumn get description => text().nullable()();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-/// The total number of classes in a section. Because this number is more subject
-/// to change than other datums of a section, we move it to its own table.
-class SectionAudioCountTable extends Table {
-  TextColumn get id => text()();
   IntColumn get count => integer()();
 
   @override
@@ -68,8 +63,7 @@ LazyDatabase _openConnection() {
   });
 }
 
-@UseMoor(
-    tables: [SectionTable, MediaTable, SectionAudioCountTable, UpdateTimeTable])
+@UseMoor(tables: [SectionTable, MediaTable, UpdateTimeTable])
 class InsideDatabase extends _$InsideDatabase {
   InsideDatabase() : super(_openConnection());
 
@@ -91,12 +85,6 @@ class MoorInsideData extends SiteDataLayer {
   @override
   Future<Media> media(String id) {
     // TODO: implement media
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Section> parentOf(String id) {
-    // TODO: implement parentOf
     throw UnimplementedError();
   }
 

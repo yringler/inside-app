@@ -53,7 +53,6 @@ class Section extends SiteDataBase {
 abstract class SiteDataLayer {
   Future<void> init();
   List<Section> topLevel();
-  Future<Section> parentOf(String id);
   Future<Section> section(String id);
   Future<Media> media(String id);
 }
