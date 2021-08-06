@@ -12,6 +12,11 @@ dependencies:
   moor: ^4.4.1
   path_provider: ^2.0.2
   sqlite3_flutter_libs: ^0.5.0
+  flutter_wordpress:
+    git:
+      #url: https://github.com/dreamsoftin/flutter_wordpress
+      url: https://github.com/yringler/flutter_wordpress/
+      ref: b7827495f4ccf0d5ab555018ae4849c09034989a
 dev_dependencies: 
   build_runner: ^2.1.0
   moor_generator: ^4.4.1

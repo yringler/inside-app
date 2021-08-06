@@ -181,6 +181,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_wordpress:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: b7827495f4ccf0d5ab555018ae4849c09034989a
+      resolved-ref: b7827495f4ccf0d5ab555018ae4849c09034989a
+      url: "https://github.com/yringler/flutter_wordpress/"
+    source: git
+    version: "0.3.0-nullsafety.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -202,6 +211,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
+  http:
+    dependency: transitive
+    description:
+      name: http
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.13.3"
   http_multi_server:
     dependency: transitive
     description:
