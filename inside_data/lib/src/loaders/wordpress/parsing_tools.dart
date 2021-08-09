@@ -18,6 +18,7 @@ String _parseXml(String xmlString) {
   return returnValue.isEmpty ? '' : htmlUnescape.convert(returnValue);
 }
 
+/// Turns a post... possibly into a section, if it contains multiple media items.
 SiteDataBase? parsePost(SiteDataBase post) {
   final xml = html.parse(post.description);
 
@@ -45,7 +46,8 @@ SiteDataBase? parsePost(SiteDataBase post) {
         title: post.title,
         order: post.sort,
         link: post.link,
-        id: post.id);
+        id: post.id)
+      ?..parent = post.parent;
 
     return media;
   } else {
@@ -57,7 +59,8 @@ SiteDataBase? parsePost(SiteDataBase post) {
             // Oooh sneaky. I haven't done a sneaky post fix increment like that
             // ... ever, I think.
             order: sort++,
-            link: post.link))
+            link: post.link)
+          ?..parent = int.parse(post.id))
         .where((element) => element != null)
         .cast<Media>()
         .toList();
@@ -79,7 +82,8 @@ SiteDataBase? parsePost(SiteDataBase post) {
         title: post.title,
         description: description,
         content: medias.map((e) => ContentReference(media: e)).toList(),
-        sort: post.sort);
+        sort: post.sort)
+      ..parent = post.parent;
   }
 }
 

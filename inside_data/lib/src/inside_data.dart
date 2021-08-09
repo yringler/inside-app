@@ -3,6 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 part 'inside_data.g.dart';
 
 class SiteDataBase {
+  late int parent;
   final String id;
   String title;
   String description;
