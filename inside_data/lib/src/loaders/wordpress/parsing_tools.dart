@@ -7,11 +7,11 @@ import 'package:inside_data/inside_data.dart';
 final htmlUnescape = HtmlUnescape();
 
 void parseDataXml(SiteDataBase dataItem) {
-  dataItem.title = parseXml(dataItem.title);
-  dataItem.description = parseXml(dataItem.description);
+  dataItem.title = _parseXml(dataItem.title);
+  dataItem.description = _parseXml(dataItem.description);
 }
 
-String parseXml(String xmlString) {
+String _parseXml(String xmlString) {
   final xml = html.parse(xmlString.replaceAll('<br>', '\n'));
   final returnValue = xml.children.map((e) => e.text).join(' ').trim();
 
@@ -31,7 +31,7 @@ SiteDataBase? parsePost(SiteDataBase post) {
     return null;
   }
 
-  var description = parseXml(xml.outerHtml);
+  var description = _parseXml(xml.outerHtml);
 
   // If it doesn't have a good description, forget about it.
   // In particular, sometimes the description will be "MP3"
@@ -49,13 +49,15 @@ SiteDataBase? parsePost(SiteDataBase post) {
 
     return media;
   } else {
+    int sort = 0;
     final medias = audios
         .map((e) => _toMedia(e,
-            description: description,
+            description: '',
             title: post.title,
-            order: post.sort,
-            link: post.link,
-            id: post.id))
+            // Oooh sneaky. I haven't done a sneaky post fix increment like that
+            // ... ever, I think.
+            order: sort++,
+            link: post.link))
         .where((element) => element != null)
         .cast<Media>()
         .toList();
