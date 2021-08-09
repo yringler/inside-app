@@ -67,8 +67,14 @@ SiteDataBase? parsePost(SiteDataBase post) {
 
     // Give any media without a good title the title of the post with a counter.
     for (var i = 0; i < medias.length; ++i) {
-      if ((medias[i].title.length) <= 3 && post.title.length > 3) {
-        medias[i].title = '${post.title}: Class ${i + 1}';
+      if ((medias[i].title.length) <= 3) {
+        String title = '';
+
+        if (post.title.length > 3) {
+          title += '${post.title}: ';
+        }
+
+        medias[i].title += 'Class ${i + 1}';
       }
     }
 
