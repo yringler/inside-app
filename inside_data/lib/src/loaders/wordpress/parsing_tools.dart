@@ -74,7 +74,7 @@ SiteDataBase? parsePost(SiteDataBase post) {
           title += '${post.title}: ';
         }
 
-        medias[i].title += 'Class ${i + 1}';
+        medias[i].title = title + 'Class ${i + 1}';
       }
     }
 
