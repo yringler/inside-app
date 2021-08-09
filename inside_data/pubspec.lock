@@ -148,6 +148,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
+  csslib:
+    dependency: transitive
+    description:
+      name: csslib
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.17.0"
   dart_style:
     dependency: transitive
     description:
@@ -185,8 +192,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: b7827495f4ccf0d5ab555018ae4849c09034989a
-      resolved-ref: b7827495f4ccf0d5ab555018ae4849c09034989a
+      ref: limit_fields
+      resolved-ref: "1fdfe9da80447c13b34a5d742f8706bfb3a48eea"
       url: "https://github.com/yringler/flutter_wordpress/"
     source: git
     version: "0.3.0-nullsafety.0"
@@ -211,8 +218,22 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
+  html:
+    dependency: "direct main"
+    description:
+      name: html
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.15.0"
+  html_unescape:
+    dependency: "direct main"
+    description:
+      name: html_unescape
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       url: "https://pub.dartlang.org"
@@ -432,7 +453,7 @@ packages:
       name: source_gen
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.3"
+    version: "1.0.5"
   source_helper:
     dependency: transitive
     description:

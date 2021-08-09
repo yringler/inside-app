@@ -13,6 +13,7 @@ Media _$MediaFromJson(Map<String, dynamic> json) => Media(
       sort: json['sort'] as int,
       title: json['title'] as String,
       description: json['description'] as String,
+      link: json['link'] as String,
     );
 
 Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
@@ -20,6 +21,7 @@ Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
       'title': instance.title,
       'description': instance.description,
       'sort': instance.sort,
+      'link': instance.link,
       'source': instance.source,
       'length': instance.length.inMicroseconds,
     };
@@ -49,6 +51,7 @@ Section _$SectionFromJson(Map<String, dynamic> json) => Section(
       sort: json['sort'] as int,
       title: json['title'] as String,
       description: json['description'] as String,
+      link: json['link'] as String,
     );
 
 Map<String, dynamic> _$SectionToJson(Section instance) => <String, dynamic>{
@@ -56,6 +59,7 @@ Map<String, dynamic> _$SectionToJson(Section instance) => <String, dynamic>{
       'title': instance.title,
       'description': instance.description,
       'sort': instance.sort,
+      'link': instance.link,
       'audioCount': instance.audioCount,
       'content': instance.content,
     };
