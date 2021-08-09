@@ -42,13 +42,18 @@ class WordpressRepository {
       posts[i].parent = id;
     }
 
-    return CustomEndpointGroup(
+    final group = CustomEndpointGroup(
         id: base.id,
         name: base.postName,
         description: base.postContentFiltered,
-        sort: base.menuOrder ?? 0,
         link: 'https://insidechassidus.org/series/${base.postName}',
         posts: posts);
+
+    if (base.menuOrder != null) {
+      group.sort = base.menuOrder!;
+    }
+
+    return group;
   }
 
   Future<CustomEndpointCategory> _childCategories(wp.Category category) async {
