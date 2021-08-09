@@ -22,16 +22,16 @@ class SiteDataBase {
 @JsonSerializable()
 class Media extends SiteDataBase {
   final String source;
-  final Duration length;
+  Duration? length;
 
   Media(
       {required this.source,
-      required this.length,
+      this.length,
       required String id,
       required int sort,
       required String title,
       required String description,
-      required String link})
+      String link = ''})
       : super(
             id: id,
             title: title,
@@ -66,12 +66,11 @@ class ContentReference {
 
 @JsonSerializable()
 class Section extends SiteDataBase {
-  final int audioCount;
+  late int audioCount;
   final List<ContentReference> content;
 
   Section(
-      {required this.audioCount,
-      required this.content,
+      {required this.content,
       required String id,
       required int sort,
       required String title,
