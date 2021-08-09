@@ -99,7 +99,6 @@ Media? _toMedia(Element element,
     required int order,
     required String link,
     String? id}) {
-  element.remove();
   final audioSource = element.querySelector('audio')?.attributes['src'];
   final audioTitle = title.isNotEmpty
       ? title
