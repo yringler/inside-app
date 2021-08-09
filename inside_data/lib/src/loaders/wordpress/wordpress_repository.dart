@@ -62,21 +62,26 @@ class WordpressRepository {
     final categories = await wordPress.fetchCategories(
         params: wp.ParamsCategoryList(parent: category.id), fetchAll: true);
 
+    final customCategories =
+        (await Future.wait(categories.map((e) => _childCategories(e))))
+            .toList();
+
+    for (int i = 0; i < customCategories.length; i++) {
+      customCategories[i].sort = i;
+    }
+
     return CustomEndpointCategory(
         id: category.id ?? 0,
         parent: category.parent ?? 0,
         name: category.name ?? '',
         description: category.description ?? '',
-        sort: 0,
         link: category.link ?? '',
         posts: posts.where((element) => element.type == 'post').toList(),
         series: (await Future.wait(
                 posts.where((e) => e.type == 'series').map((e) => _series(e))))
             .toList()
               ..forEach((element) => element.parent = category.id ?? 0),
-        categories:
-            (await Future.wait(categories.map((e) => _childCategories(e))))
-                .toList());
+        categories: customCategories);
   }
 }
 
@@ -99,7 +104,7 @@ class CustomEndpointGroup {
   final int id;
   final String name;
   final String description;
-  final int sort;
+  late int sort;
   late int parent;
   List<CustomEndpointPost> posts;
 
@@ -110,7 +115,6 @@ class CustomEndpointGroup {
       {required this.id,
       required this.name,
       required this.description,
-      required this.sort,
       required this.link,
       this.posts = const []});
 }
@@ -126,16 +130,10 @@ class CustomEndpointCategory extends CustomEndpointGroup {
       this.categories = const [],
       List<CustomEndpointPost> posts = const [],
       required int id,
-      required int sort,
       required String name,
       required String description,
       required String link})
-      : super(
-            id: id,
-            name: name,
-            description: description,
-            sort: sort,
-            link: link);
+      : super(id: id, name: name, description: description, link: link);
 }
 
 /// A post which is returned from the custom categories and series endpoint.
