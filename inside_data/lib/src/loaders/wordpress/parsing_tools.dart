@@ -55,7 +55,7 @@ SiteDataBase? parsePost(SiteDataBase post) {
     final medias = audios
         .map((e) => _toMedia(e,
             description: '',
-            title: post.title,
+            title: '',
             // Oooh sneaky. I haven't done a sneaky post fix increment like that
             // ... ever, I think.
             order: sort++,
