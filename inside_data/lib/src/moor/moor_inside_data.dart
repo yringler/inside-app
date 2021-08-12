@@ -8,12 +8,23 @@ import 'package:path/path.dart' as p;
 
 part 'moor_inside_data.g.dart';
 
+/// A media can have many parents, either other "media"s or sections
+class MediaParentsTable extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get mediaId => text()();
+  TextColumn get parentMedia => text().nullable()();
+  TextColumn get parentSection => text().nullable()();
+}
+
+/// Called media table, because that's the most common and concrete usage. But more generally,
+/// this is really a content table, and can also hold a "media parent", which is not a section,
+/// it's kind of like a section which is content focused, and only contains other media, not
+/// other sections.
+/// (This corresponds to a custom post type which can be the parent of other posts.)
 class MediaTable extends Table {
   /// The post ID if the class is it's own post. Otherwise, taken from media source.
   TextColumn get id => text()();
 
-  /// The ID of the section the media belongs to.
-  TextColumn get parentId => text()();
   TextColumn get source => text()();
   IntColumn get sort => integer()();
   TextColumn get title => text().nullable()();

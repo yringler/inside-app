@@ -205,6 +205,8 @@ abstract class CustomEndpointGroup {
   }
 }
 
+/// A series is a custom post type which can be a parent to other posts.
+/// Sqlite-wise, it will end up being stored as a post, not a section.
 @JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
 class CustomEndpointSeries extends CustomEndpointGroup {
   @JsonKey(defaultValue: {})
