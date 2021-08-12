@@ -29,7 +29,7 @@ Map<String, dynamic> _$CustomEndpointGroupToJson(
       'description': instance.description,
       'sort': instance.sort,
       'parent': instance.parent,
-      'posts': instance.posts,
+      'posts': instance.posts.map((e) => e.toJson()).toList(),
       'link': instance.link,
     };
 
@@ -65,30 +65,30 @@ Map<String, dynamic> _$CustomEndpointCategoryToJson(
       'name': instance.name,
       'description': instance.description,
       'sort': instance.sort,
-      'posts': instance.posts,
+      'posts': instance.posts.map((e) => e.toJson()).toList(),
       'link': instance.link,
       'parent': instance.parent,
-      'series': instance.series,
-      'categories': instance.categories,
+      'series': instance.series.map((e) => e.toJson()).toList(),
+      'categories': instance.categories.map((e) => e.toJson()).toList(),
     };
 
 CustomEndpointPost _$CustomEndpointPostFromJson(Map<String, dynamic> json) =>
     CustomEndpointPost(
-      id: json['id'] as int,
+      id: json['ID'] as int,
       postTitle: json['post_title'] as String,
       postName: json['post_name'] as String,
       postContentFiltered: json['post_content_filtered'] as String,
       postDate: json['post_date'] as String,
       postModified: json['post_modified'] as String,
-      menuOrder: json['menu_order'] as int?,
-      type: json['type'] as String,
+      menuOrder: json['menu_order'] as int? ?? 0,
+      postType: json['post_type'] as String,
     )..parent = json['parent'] as int?;
 
 Map<String, dynamic> _$CustomEndpointPostToJson(CustomEndpointPost instance) =>
     <String, dynamic>{
-      'id': instance.id,
+      'ID': instance.id,
       'parent': instance.parent,
-      'type': instance.type,
+      'post_type': instance.postType,
       'post_title': instance.postTitle,
       'post_name': instance.postName,
       'post_content_filtered': instance.postContentFiltered,

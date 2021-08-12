@@ -17,7 +17,9 @@ class WordpressRepository {
 
   WordpressRepository({required this.wordpressDomain})
       : wordPress = wp.WordPress(
-            baseUrl: wordpressDomain,
+            baseUrl: wordpressDomain.contains('http')
+                ? wordpressDomain
+                : 'https://$wordpressDomain',
             authenticator: wp.WordPressAuthenticator.JWT);
 
   Future<CustomEndpointCategory> category(int id) async {
@@ -59,9 +61,8 @@ class WordpressRepository {
         link: 'https://insidechassidus.org/series/${base.postName}',
         posts: posts);
 
-    if (base.menuOrder != null) {
-      group.sort = base.menuOrder!;
-    }
+    group.sort = base.menuOrder;
+    group.parent = base.parent ?? 0;
 
     return _loadedGroups[id] = group;
   }
@@ -72,12 +73,17 @@ class WordpressRepository {
     }
 
     final postsResponse = await http.get(Uri.parse(
-        'https://$wordpressDomain/$customApiPathCategory/categories/${category.id ?? 0}'));
-    final posts = (jsonDecode(postsResponse.body) as Map<String, dynamic>)
-        .values
-        .map((e) => CustomEndpointPost.fromJson(e))
-        .toList()
-          ..forEach((element) => element.parent = category.id!);
+        'https://$wordpressDomain/$customApiPathCategory/category/${category.id!}'));
+
+    List<CustomEndpointPost>? posts;
+
+    if (postsResponse.body.trim().isNotEmpty) {
+      posts = (jsonDecode(postsResponse.body) as Map<String, dynamic>)
+          .values
+          .map((e) => CustomEndpointPost.fromJson(e))
+          .toList()
+            ..forEach((element) => element.parent = category.id!);
+    }
 
     final categories = await wordPress.fetchCategories(
         params: wp.ParamsCategoryList(parent: category.id), fetchAll: true);
@@ -90,16 +96,22 @@ class WordpressRepository {
       customCategories[i].sort = i;
     }
 
+    List<CustomEndpointGroup> series = posts != null
+        ? (await Future.wait(posts
+                .where((e) => e.postType == 'series')
+                .map((e) => _series(e))))
+            .toList()
+        : [];
+
     return _loadedCategories[category.id!] = CustomEndpointCategory(
         id: category.id ?? 0,
         parent: category.parent ?? 0,
         name: category.name ?? '',
         description: category.description ?? '',
         link: category.link ?? '',
-        posts: posts.where((element) => element.type == 'post').toList(),
-        series: (await Future.wait(
-                posts.where((e) => e.type == 'series').map((e) => _series(e))))
-            .toList(),
+        posts: posts?.where((element) => element.postType == 'post').toList() ??
+            [],
+        series: series,
         categories: customCategories);
   }
 }
@@ -119,12 +131,12 @@ List<CustomEndpointGroup> flattenCategoryChildren(
     ];
 
 /// Used for the core category / series data.
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
 class CustomEndpointGroup {
   final int id;
   final String name;
   final String description;
-  late int sort;
+  int sort = 0;
   late int parent;
   List<CustomEndpointPost> posts;
 
@@ -143,7 +155,7 @@ class CustomEndpointGroup {
   Map<String, dynamic> toJson() => _$CustomEndpointGroupToJson(this);
 }
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
 class CustomEndpointCategory extends CustomEndpointGroup {
   final int parent;
   List<CustomEndpointGroup> series;
@@ -166,12 +178,13 @@ class CustomEndpointCategory extends CustomEndpointGroup {
 }
 
 /// A post which is returned from the custom categories and series endpoint.
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
 class CustomEndpointPost {
+  @JsonKey(name: 'ID')
   final int id;
   int? parent;
   // Will be one of 'post' or 'series'
-  final String type;
+  final String postType;
   final String postTitle;
 
   /// Used to create URL
@@ -181,10 +194,11 @@ class CustomEndpointPost {
   final String postModified;
 
   /// Where to position this post in list. Only set in category endpoint, not in series endpoint.
-  int? menuOrder;
+  @JsonKey(defaultValue: 0)
+  int menuOrder;
 
-  bool get isPost => type == 'post';
-  bool get isSeries => type == 'series';
+  bool get isPost => postType == 'post';
+  bool get isSeries => postType == 'series';
   DateTime get date => DateTime.parse(postDate);
   DateTime get modified => DateTime.parse(postModified);
 
@@ -196,7 +210,7 @@ class CustomEndpointPost {
       required this.postDate,
       required this.postModified,
       required this.menuOrder,
-      required this.type});
+      required this.postType});
 
   factory CustomEndpointPost.fromJson(Map<String, dynamic> json) =>
       _$CustomEndpointPostFromJson(json);
