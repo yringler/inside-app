@@ -221,6 +221,7 @@ class CustomEndpointPost {
 
   /// Used to create URL
   final String postName;
+  final String postContent;
   final String postContentFiltered;
   final String postDate;
   final String postModified;
@@ -242,6 +243,7 @@ class CustomEndpointPost {
       required this.postDate,
       required this.postModified,
       required this.menuOrder,
+      required this.postContent,
       required this.postType});
 
   factory CustomEndpointPost.fromJson(Map<String, dynamic> json) =>

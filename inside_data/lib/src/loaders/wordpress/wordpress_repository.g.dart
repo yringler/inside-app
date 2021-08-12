@@ -81,6 +81,7 @@ CustomEndpointPost _$CustomEndpointPostFromJson(Map<String, dynamic> json) =>
       postDate: json['post_date'] as String,
       postModified: json['post_modified'] as String,
       menuOrder: json['menu_order'] as int? ?? 0,
+      postContent: json['post_content'] as String,
       postType: json['post_type'] as String,
     )..parent = json['parent'] as int?;
 
@@ -91,6 +92,7 @@ Map<String, dynamic> _$CustomEndpointPostToJson(CustomEndpointPost instance) =>
       'post_type': instance.postType,
       'post_title': instance.postTitle,
       'post_name': instance.postName,
+      'post_content': instance.postContent,
       'post_content_filtered': instance.postContentFiltered,
       'post_date': instance.postDate,
       'post_modified': instance.postModified,
