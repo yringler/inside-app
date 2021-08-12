@@ -12,6 +12,8 @@ class WordpressRepository {
   static const customApiPathSeries = 'wp-json/shiur-series/v1';
   final String wordpressDomain;
   final wp.WordPress wordPress;
+  final Map<int, CustomEndpointCategory> _loadedCategories = {};
+  final Map<int, CustomEndpointGroup> _loadedGroups = {};
 
   WordpressRepository({required this.wordpressDomain})
       : wordPress = wp.WordPress(
@@ -19,16 +21,24 @@ class WordpressRepository {
             authenticator: wp.WordPressAuthenticator.JWT);
 
   Future<CustomEndpointCategory> category(int id) async {
+    if (_loadedCategories.containsKey(id)) {
+      return _loadedCategories[id]!;
+    }
+
     final coreResponse = await http.get(
         Uri.parse('https://$wordpressDomain/$standardApiPath/categories/$id'));
     final category = wp.Category.fromJson(jsonDecode(coreResponse.body));
 
-    return await _childCategories(category);
+    return _loadedCategories[id] = await _childCategories(category);
   }
 
   Future<CustomEndpointGroup> _series(CustomEndpointPost base) async {
     assert(base.isSeries);
     final id = base.id;
+
+    if (_loadedGroups.containsKey(id)) {
+      return _loadedGroups[id]!;
+    }
 
     final postsResponse = await http
         .get(Uri.parse('https://$wordpressDomain/$customApiPathSeries/$id'));
@@ -53,10 +63,14 @@ class WordpressRepository {
       group.sort = base.menuOrder!;
     }
 
-    return group;
+    return _loadedGroups[id] = group;
   }
 
   Future<CustomEndpointCategory> _childCategories(wp.Category category) async {
+    if (_loadedCategories.containsKey(category.id)) {
+      return _loadedCategories[category.id]!;
+    }
+
     final postsResponse = await http.get(Uri.parse(
         'https://$wordpressDomain/$customApiPathCategory/categories/${category.id ?? 0}'));
     final posts = (jsonDecode(postsResponse.body) as Map<String, dynamic>)
@@ -75,7 +89,7 @@ class WordpressRepository {
       customCategories[i].sort = i;
     }
 
-    return CustomEndpointCategory(
+    return _loadedCategories[category.id!] = CustomEndpointCategory(
         id: category.id ?? 0,
         parent: category.parent ?? 0,
         name: category.name ?? '',
