@@ -89,7 +89,7 @@ class WordpressRepository {
         params: wp.ParamsCategoryList(parent: category.id), fetchAll: true);
 
     final customCategories =
-        (await Future.wait(categories.map((e) => _childCategories(e))))
+        (await Future.wait(categories.map((e) => _childCategories(e)).toList()))
             .toList();
 
     for (int i = 0; i < customCategories.length; i++) {
@@ -99,7 +99,8 @@ class WordpressRepository {
     List<CustomEndpointGroup> series = posts != null
         ? (await Future.wait(posts
                 .where((e) => e.postType == 'series')
-                .map((e) => _series(e))))
+                .map((e) => _series(e))
+                .toList()))
             .toList()
         : [];
 

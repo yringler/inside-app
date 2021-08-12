@@ -9,5 +9,6 @@ Future<void> main(List<String> args) async {
   final repository = WordpressRepository(wordpressDomain: domain);
   final data = await repository.category(id);
 
-  print(jsonEncode(data.toJson()));
+  final encoder = JsonEncoder.withIndent('\t');
+  print(encoder.convert(data.toJson()));
 }
