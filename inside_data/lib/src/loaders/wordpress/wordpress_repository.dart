@@ -76,7 +76,8 @@ class WordpressRepository {
     final posts = (jsonDecode(postsResponse.body) as Map<String, dynamic>)
         .values
         .map((e) => CustomEndpointPost.fromJson(e))
-        .toList();
+        .toList()
+          ..forEach((element) => element.parent = category.id!);
 
     final categories = await wordPress.fetchCategories(
         params: wp.ParamsCategoryList(parent: category.id), fetchAll: true);
@@ -98,8 +99,7 @@ class WordpressRepository {
         posts: posts.where((element) => element.type == 'post').toList(),
         series: (await Future.wait(
                 posts.where((e) => e.type == 'series').map((e) => _series(e))))
-            .toList()
-              ..forEach((element) => element.parent = category.id ?? 0),
+            .toList(),
         categories: customCategories);
   }
 }
