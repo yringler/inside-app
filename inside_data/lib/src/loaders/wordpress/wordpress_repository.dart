@@ -98,15 +98,15 @@ class WordpressRepository {
         (await Future.wait(categories.map((e) => _childCategories(e)).toList()))
             .toList();
 
-    for (int i = 0; i < customCategories.length; i++) {
-      customCategories[i].sort = i;
-    }
+    CustomEndpointGroup.setSort(customCategories);
 
     List<CustomEndpointGroup> series = posts != null
         ? (await Future.wait(
                 posts.where((e) => e.isSeries).map((e) => _series(e)).toList()))
             .toList()
         : [];
+
+    CustomEndpointGroup.setSort(series);
 
     final returnValue = CustomEndpointCategory(
         id: category.id ?? 0,
@@ -174,6 +174,12 @@ class CustomEndpointGroup {
   factory CustomEndpointGroup.fromJson(Map<String, dynamic> json) =>
       _$CustomEndpointGroupFromJson(json);
   Map<String, dynamic> toJson() => _$CustomEndpointGroupToJson(this);
+
+  static void setSort(List<CustomEndpointGroup> groups) {
+    for (int i = 0; i < groups.length; ++i) {
+      groups[i].sort = i + 1;
+    }
+  }
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
