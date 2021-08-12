@@ -50,47 +50,47 @@ SiteDataBase? parsePost(SiteDataBase post) {
       ?..parent = post.parent;
 
     return media;
-  } else {
-    int sort = 0;
-    final medias = audios
-        .map((e) => _toMedia(e,
-            description: '',
-            title: '',
-            // Oooh sneaky. I haven't done a sneaky post fix increment like that
-            // ... ever, I think.
-            order: sort++,
-            link: post.link)
-          ?..parent = int.parse(post.id))
-        .where((element) => element != null)
-        .cast<Media>()
-        .toList();
-
-    // Give any media without a good title the title of the post with a counter.
-    for (var i = 0; i < medias.length; ++i) {
-      if ((medias[i].title.length) <= 3) {
-        String title = '';
-
-        if (post.title.length > 3) {
-          title += '${post.title}: ';
-        }
-
-        medias[i].title = title + 'Class ${i + 1}';
-      }
-    }
-
-    if (medias.isEmpty) {
-      return null;
-    }
-
-    return Section(
-        id: post.id,
-        link: post.link,
-        title: post.title,
-        description: description,
-        content: medias.map((e) => ContentReference(media: e)).toList(),
-        sort: post.sort)
-      ..parent = post.parent;
   }
+
+  int sort = 0;
+  final medias = audios
+      .map((e) => _toMedia(e,
+          description: '',
+          title: '',
+          // Oooh sneaky. I haven't done a sneaky post fix increment like that
+          // ... ever, I think.
+          order: sort++,
+          link: post.link)
+        ?..parent = int.parse(post.id))
+      .where((element) => element != null)
+      .cast<Media>()
+      .toList();
+
+  // Give any media without a good title the title of the post with a counter.
+  for (var i = 0; i < medias.length; ++i) {
+    if ((medias[i].title.length) <= 3) {
+      String title = '';
+
+      if (post.title.length > 3) {
+        title += '${post.title}: ';
+      }
+
+      medias[i].title = title + 'Class ${i + 1}';
+    }
+  }
+
+  if (medias.isEmpty) {
+    return null;
+  }
+
+  return Section(
+      id: post.id,
+      link: post.link,
+      title: post.title,
+      description: description,
+      content: medias.map((e) => ContentReference(media: e)).toList(),
+      sort: post.sort)
+    ..parent = post.parent;
 }
 
 Media? _toMedia(Element element,
