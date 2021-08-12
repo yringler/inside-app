@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flutter_wordpress/flutter_wordpress.dart' as wp;
 import 'package:http/http.dart' as http;
+import 'package:rxdart/subjects.dart';
 
 part 'wordpress_repository.g.dart';
 
@@ -14,6 +15,7 @@ class WordpressRepository {
   final wp.WordPress wordPress;
   final Map<int, CustomEndpointCategory> _loadedCategories = {};
   final Map<int, CustomEndpointGroup> _loadedGroups = {};
+  final BehaviorSubject<int> _connections = BehaviorSubject.seeded(0);
 
   WordpressRepository({required this.wordpressDomain})
       : wordPress = wp.WordPress(
@@ -27,11 +29,12 @@ class WordpressRepository {
       return _loadedCategories[id]!;
     }
 
-    final coreResponse = await http.get(
-        Uri.parse('https://$wordpressDomain/$standardApiPath/categories/$id'));
+    final coreResponse = await _withConnectionCount(() => http.get(
+        Uri.parse('https://$wordpressDomain/$standardApiPath/categories/$id')));
     final category = wp.Category.fromJson(jsonDecode(coreResponse.body));
 
-    return _loadedCategories[id] = await _childCategories(category);
+    _loadedCategories[id] = await _childCategories(category);
+    return _loadedCategories[id]!;
   }
 
   Future<CustomEndpointGroup> _series(CustomEndpointPost base) async {
@@ -42,8 +45,8 @@ class WordpressRepository {
       return _loadedGroups[id]!;
     }
 
-    final postsResponse = await http
-        .get(Uri.parse('https://$wordpressDomain/$customApiPathSeries/$id'));
+    final postsResponse = await _withConnectionCount(() => http
+        .get(Uri.parse('https://$wordpressDomain/$customApiPathSeries/$id')));
     final posts = (jsonDecode(postsResponse.body) as Map<String, dynamic>)
         .values
         .map((e) => CustomEndpointPost.fromJson(e))
@@ -64,7 +67,8 @@ class WordpressRepository {
     group.sort = base.menuOrder;
     group.parent = base.parent ?? 0;
 
-    return _loadedGroups[id] = group;
+    _loadedGroups[id] = group;
+    return group;
   }
 
   Future<CustomEndpointCategory> _childCategories(wp.Category category) async {
@@ -72,8 +76,8 @@ class WordpressRepository {
       return _loadedCategories[category.id]!;
     }
 
-    final postsResponse = await http.get(Uri.parse(
-        'https://$wordpressDomain/$customApiPathCategory/category/${category.id!}'));
+    final postsResponse = await _withConnectionCount(() => http.get(Uri.parse(
+        'https://$wordpressDomain/$customApiPathCategory/category/${category.id!}')));
 
     List<CustomEndpointPost>? posts;
 
@@ -85,8 +89,10 @@ class WordpressRepository {
             ..forEach((element) => element.parent = category.id!);
     }
 
-    final categories = await wordPress.fetchCategories(
-        params: wp.ParamsCategoryList(parent: category.id), fetchAll: true);
+    final categories = await _withConnectionCount(() =>
+        wordPress.fetchCategories(
+            params: wp.ParamsCategoryList(parent: category.id),
+            fetchAll: true));
 
     final customCategories =
         (await Future.wait(categories.map((e) => _childCategories(e)).toList()))
@@ -97,23 +103,37 @@ class WordpressRepository {
     }
 
     List<CustomEndpointGroup> series = posts != null
-        ? (await Future.wait(posts
-                .where((e) => e.postType == 'series')
-                .map((e) => _series(e))
-                .toList()))
+        ? (await Future.wait(
+                posts.where((e) => e.isSeries).map((e) => _series(e)).toList()))
             .toList()
         : [];
 
-    return _loadedCategories[category.id!] = CustomEndpointCategory(
+    final returnValue = CustomEndpointCategory(
         id: category.id ?? 0,
         parent: category.parent ?? 0,
         name: category.name ?? '',
         description: category.description ?? '',
         link: category.link ?? '',
-        posts: posts?.where((element) => element.postType == 'post').toList() ??
-            [],
+        posts: posts?.where((element) => element.isPost).toList() ?? [],
         series: series,
         categories: customCategories);
+
+    _loadedCategories[category.id!] = returnValue;
+
+    return returnValue;
+  }
+
+  Future<T> _withConnectionCount<T>(Future<T> get()) async {
+    try {
+      await _connections.firstWhere((element) => element < 2);
+      _connections.add(_connections.value + 1);
+      return await get();
+    } catch (err) {
+      print('error: $err');
+      throw err;
+    } finally {
+      _connections.add(_connections.value - 1);
+    }
   }
 }
 
@@ -171,7 +191,12 @@ class CustomEndpointCategory extends CustomEndpointGroup {
       required String name,
       required String description,
       required String link})
-      : super(id: id, name: name, description: description, link: link);
+      : super(
+            id: id,
+            name: name,
+            description: description,
+            link: link,
+            posts: posts);
 
   factory CustomEndpointCategory.fromJson(Map<String, dynamic> json) =>
       _$CustomEndpointCategoryFromJson(json);
