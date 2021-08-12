@@ -162,19 +162,49 @@ class WordpressRepository {
   }
 }
 
-/// Recursively flattens children, does not return self.
-/// Returning self would mean that each item would be returned twice - once as a
-/// parent, and once as a child.
-List<CustomEndpointGroup> flattenCategoryChildren(
-        CustomEndpointCategory group) =>
-    [
-      ...group.series,
-      ...[
-        for (var group
-            in group.categories.map((e) => flattenCategoryChildren(e)))
-          ...group
-      ]
-    ];
+class WordpressSite {
+  final List<CustomEndpointSeries> series;
+  final List<CustomEndpointCategory> categories;
+
+  WordpressSite({required this.series, required this.categories});
+
+  factory WordpressSite.fromNested(
+          {required List<CustomEndpointCategory> categories}) =>
+      WordpressSite(series: [
+        ...categories.map((e) => e.series).expand((element) => element),
+        ...categories.map((e) => _flattenSeries(e)).expand((element) => element)
+      ], categories: [
+        ...categories,
+        ...categories
+            .map((e) => _flattenCategories(e))
+            .expand((element) => element)
+      ]);
+
+  /// Recursively flattens children, does not return self.
+  /// Returning self would mean that each item would be returned twice - once as a
+  /// parent, and once as a child.
+  static List<CustomEndpointSeries> _flattenSeries(
+          CustomEndpointCategory group) =>
+      [
+        ...group.series,
+        ...[
+          for (var group in group.categories.map((e) => _flattenCategories(e)))
+            ...group
+        ].map((e) => e.series).expand((element) => element)
+      ];
+
+  /// Recursively flattens children, does not return self.
+  /// Returning self would mean that each item would be returned twice - once as a
+  /// parent, and once as a child.
+  static List<CustomEndpointCategory> _flattenCategories(
+          CustomEndpointCategory group) =>
+      [
+        ...[
+          for (var group in group.categories.map((e) => _flattenCategories(e)))
+            ...group
+        ]
+      ];
+}
 
 /// Used for the core category / series data.
 @JsonSerializable(
