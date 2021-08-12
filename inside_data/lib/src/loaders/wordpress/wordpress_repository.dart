@@ -119,6 +119,7 @@ List<CustomEndpointGroup> flattenCategoryChildren(
     ];
 
 /// Used for the core category / series data.
+@JsonSerializable(fieldRename: FieldRename.snake)
 class CustomEndpointGroup {
   final int id;
   final String name;
@@ -136,8 +137,13 @@ class CustomEndpointGroup {
       required this.description,
       required this.link,
       this.posts = const []});
+
+  factory CustomEndpointGroup.fromJson(Map<String, dynamic> json) =>
+      _$CustomEndpointGroupFromJson(json);
+  Map<String, dynamic> toJson() => _$CustomEndpointGroupToJson(this);
 }
 
+@JsonSerializable(fieldRename: FieldRename.snake)
 class CustomEndpointCategory extends CustomEndpointGroup {
   final int parent;
   List<CustomEndpointGroup> series;
@@ -153,6 +159,10 @@ class CustomEndpointCategory extends CustomEndpointGroup {
       required String description,
       required String link})
       : super(id: id, name: name, description: description, link: link);
+
+  factory CustomEndpointCategory.fromJson(Map<String, dynamic> json) =>
+      _$CustomEndpointCategoryFromJson(json);
+  Map<String, dynamic> toJson() => _$CustomEndpointCategoryToJson(this);
 }
 
 /// A post which is returned from the custom categories and series endpoint.
@@ -190,4 +200,5 @@ class CustomEndpointPost {
 
   factory CustomEndpointPost.fromJson(Map<String, dynamic> json) =>
       _$CustomEndpointPostFromJson(json);
+  Map<String, dynamic> toJson() => _$CustomEndpointPostToJson(this);
 }
