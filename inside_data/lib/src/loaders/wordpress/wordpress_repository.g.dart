@@ -6,21 +6,6 @@ part of 'wordpress_repository.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-CustomEndpointGroup _$CustomEndpointGroupFromJson(Map<String, dynamic> json) =>
-    CustomEndpointGroup(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      description: json['description'] as String,
-      link: json['link'] as String,
-      posts: (json['posts'] as List<dynamic>?)
-              ?.map(
-                  (e) => CustomEndpointPost.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-    )
-      ..sort = json['sort'] as int
-      ..parent = json['parent'] as int;
-
 Map<String, dynamic> _$CustomEndpointGroupToJson(
         CustomEndpointGroup instance) =>
     <String, dynamic>{
@@ -28,9 +13,37 @@ Map<String, dynamic> _$CustomEndpointGroupToJson(
       'name': instance.name,
       'description': instance.description,
       'sort': instance.sort,
-      'parent': instance.parent,
       'posts': instance.posts.map((e) => e.toJson()).toList(),
       'link': instance.link,
+    };
+
+CustomEndpointSeries _$CustomEndpointSeriesFromJson(
+        Map<String, dynamic> json) =>
+    CustomEndpointSeries(
+      posts: (json['posts'] as List<dynamic>?)
+              ?.map(
+                  (e) => CustomEndpointPost.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      parents:
+          (json['parents'] as List<dynamic>?)?.map((e) => e as int).toSet() ??
+              {},
+      id: json['id'] as int,
+      name: json['name'] as String,
+      description: json['description'] as String,
+      link: json['link'] as String,
+    )..sort = json['sort'] as int;
+
+Map<String, dynamic> _$CustomEndpointSeriesToJson(
+        CustomEndpointSeries instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'description': instance.description,
+      'sort': instance.sort,
+      'posts': instance.posts.map((e) => e.toJson()).toList(),
+      'link': instance.link,
+      'parents': instance.parents.toList(),
     };
 
 CustomEndpointCategory _$CustomEndpointCategoryFromJson(
@@ -39,7 +52,7 @@ CustomEndpointCategory _$CustomEndpointCategoryFromJson(
       parent: json['parent'] as int,
       series: (json['series'] as List<dynamic>?)
               ?.map((e) =>
-                  CustomEndpointGroup.fromJson(e as Map<String, dynamic>))
+                  CustomEndpointSeries.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
       categories: (json['categories'] as List<dynamic>?)
@@ -74,6 +87,9 @@ Map<String, dynamic> _$CustomEndpointCategoryToJson(
 
 CustomEndpointPost _$CustomEndpointPostFromJson(Map<String, dynamic> json) =>
     CustomEndpointPost(
+      parents:
+          (json['parents'] as List<dynamic>?)?.map((e) => e as int).toSet() ??
+              {},
       id: json['ID'] as int,
       postTitle: json['post_title'] as String,
       postName: json['post_name'] as String,
@@ -83,12 +99,12 @@ CustomEndpointPost _$CustomEndpointPostFromJson(Map<String, dynamic> json) =>
       menuOrder: json['menu_order'] as int? ?? 0,
       postContent: json['post_content'] as String,
       postType: json['post_type'] as String,
-    )..parent = json['parent'] as int?;
+    );
 
 Map<String, dynamic> _$CustomEndpointPostToJson(CustomEndpointPost instance) =>
     <String, dynamic>{
       'ID': instance.id,
-      'parent': instance.parent,
+      'parents': instance.parents.toList(),
       'post_type': instance.postType,
       'post_title': instance.postTitle,
       'post_name': instance.postName,

@@ -15,6 +15,7 @@ class WordpressRepository {
   final wp.WordPress wordPress;
   final Map<int, CustomEndpointCategory> _loadedCategories = {};
   final Map<int, CustomEndpointGroup> _loadedGroups = {};
+  final Map<int, CustomEndpointPost> _loadedPosts = {};
   final BehaviorSubject<int> _connections = BehaviorSubject.seeded(0);
 
   WordpressRepository({required this.wordpressDomain})
@@ -37,12 +38,12 @@ class WordpressRepository {
     return _loadedCategories[id]!;
   }
 
-  Future<CustomEndpointGroup> _series(CustomEndpointPost base) async {
+  Future<CustomEndpointSeries> _series(CustomEndpointPost base) async {
     assert(base.isSeries);
     final id = base.id;
 
     if (_loadedGroups.containsKey(id)) {
-      return _loadedGroups[id]!;
+      return _loadedGroups[id]! as CustomEndpointSeries;
     }
 
     final postsResponse = await _withConnectionCount(() => http
@@ -50,14 +51,24 @@ class WordpressRepository {
     final posts = (jsonDecode(postsResponse.body) as Map<String, dynamic>)
         .values
         .map((e) => CustomEndpointPost.fromJson(e))
-        .toList();
+        .map((e) {
+      // To have all parents accounted for, make sure to use saved if found.
+      _loadedPosts[e.id] ??= e;
+      if (e.menuOrder > 0) {
+        _loadedPosts[e.id]!.menuOrder = e.menuOrder;
+      }
+      _loadedPosts[e.id]!.parents.add(id);
+      return _loadedPosts[e.id]!;
+    }).toList();
 
     for (int i = 0; i < posts.length; i++) {
-      posts[i].menuOrder = i;
-      posts[i].parent = id;
+      if (posts[i].menuOrder == 0) {
+        posts[i].menuOrder = i;
+      }
     }
 
-    final group = CustomEndpointGroup(
+    final group = CustomEndpointSeries(
+        parents: {},
         id: base.id,
         name: base.postName,
         description: base.postContentFiltered,
@@ -65,7 +76,8 @@ class WordpressRepository {
         posts: posts);
 
     group.sort = base.menuOrder;
-    group.parent = base.parent ?? 0;
+
+    group.parents.addAll(base.parents);
 
     _loadedGroups[id] = group;
     return group;
@@ -85,8 +97,17 @@ class WordpressRepository {
       posts = (jsonDecode(postsResponse.body) as Map<String, dynamic>)
           .values
           .map((e) => CustomEndpointPost.fromJson(e))
-          .toList()
-            ..forEach((element) => element.parent = category.id!);
+          .map((e) {
+        // To have all parents accounted for, make sure to use saved if found.
+        _loadedPosts[e.id] ??= e;
+        if (e.menuOrder > 0) {
+          _loadedPosts[e.id]!.menuOrder = e.menuOrder;
+        }
+        if (category.id != null) {
+          _loadedPosts[e.id]!.parents.add(category.id!);
+        }
+        return _loadedPosts[e.id]!;
+      }).toList();
     }
 
     final categories = await _withConnectionCount(() =>
@@ -100,11 +121,15 @@ class WordpressRepository {
 
     CustomEndpointGroup.setSort(customCategories);
 
-    List<CustomEndpointGroup> series = posts != null
+    List<CustomEndpointSeries> series = posts != null
         ? (await Future.wait(
                 posts.where((e) => e.isSeries).map((e) => _series(e)).toList()))
             .toList()
         : [];
+
+    if (category.id != null) {
+      series.forEach((element) => element.parents.add(category.id!));
+    }
 
     CustomEndpointGroup.setSort(series);
 
@@ -152,13 +177,13 @@ List<CustomEndpointGroup> flattenCategoryChildren(
     ];
 
 /// Used for the core category / series data.
-@JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
-class CustomEndpointGroup {
+@JsonSerializable(
+    fieldRename: FieldRename.snake, explicitToJson: true, createFactory: false)
+abstract class CustomEndpointGroup {
   final int id;
   final String name;
   final String description;
   int sort = 0;
-  late int parent;
   List<CustomEndpointPost> posts;
 
   /// A URL to site where this content can be seen.
@@ -171,8 +196,6 @@ class CustomEndpointGroup {
       required this.link,
       this.posts = const []});
 
-  factory CustomEndpointGroup.fromJson(Map<String, dynamic> json) =>
-      _$CustomEndpointGroupFromJson(json);
   Map<String, dynamic> toJson() => _$CustomEndpointGroupToJson(this);
 
   static void setSort(List<CustomEndpointGroup> groups) {
@@ -183,9 +206,32 @@ class CustomEndpointGroup {
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
+class CustomEndpointSeries extends CustomEndpointGroup {
+  @JsonKey(defaultValue: {})
+  final Set<int> parents;
+  CustomEndpointSeries(
+      {List<CustomEndpointPost> posts = const [],
+      required this.parents,
+      required int id,
+      required String name,
+      required String description,
+      required String link})
+      : super(
+            id: id,
+            name: name,
+            description: description,
+            link: link,
+            posts: posts);
+
+  factory CustomEndpointSeries.fromJson(Map<String, dynamic> json) =>
+      _$CustomEndpointSeriesFromJson(json);
+  Map<String, dynamic> toJson() => _$CustomEndpointSeriesToJson(this);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
 class CustomEndpointCategory extends CustomEndpointGroup {
   final int parent;
-  List<CustomEndpointGroup> series;
+  List<CustomEndpointSeries> series;
   List<CustomEndpointCategory> categories;
 
   CustomEndpointCategory(
@@ -214,7 +260,8 @@ class CustomEndpointCategory extends CustomEndpointGroup {
 class CustomEndpointPost {
   @JsonKey(name: 'ID')
   final int id;
-  int? parent;
+  @JsonKey(defaultValue: {})
+  final Set<int> parents;
   // Will be one of 'post' or 'series'
   final String postType;
   final String postTitle;
@@ -236,7 +283,8 @@ class CustomEndpointPost {
   DateTime get modified => DateTime.parse(postModified);
 
   CustomEndpointPost(
-      {required this.id,
+      {required this.parents,
+      required this.id,
       required this.postTitle,
       required this.postName,
       required this.postContentFiltered,
