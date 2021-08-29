@@ -15,7 +15,7 @@ class WordpressLoader extends SiteDataLoader {
   Future<SiteData> load(DateTime lastLoadTime,
       {bool ensureLatest = false}) async {
     final data = await Future.wait(
-        topCategoryIds.map((e) => wordpressRepository.category(e)));
+        topCategoryIds.map((e) => wordpressRepository.category(e)).toList());
 
     final wordPressSite = WordpressSite.fromNested(categories: data);
     throw UnimplementedError();
