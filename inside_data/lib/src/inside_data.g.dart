@@ -37,13 +37,48 @@ ContentReference _$ContentReferenceFromJson(Map<String, dynamic> json) =>
       section: json['section'] == null
           ? null
           : Section.fromJson(json['section'] as Map<String, dynamic>),
+      id: json['id'] as String,
+      contentType: _$enumDecode(_$ContentTypeEnumMap, json['contentType']),
     );
 
 Map<String, dynamic> _$ContentReferenceToJson(ContentReference instance) =>
     <String, dynamic>{
+      'id': instance.id,
+      'contentType': _$ContentTypeEnumMap[instance.contentType],
       'media': instance.media,
       'section': instance.section,
     };
+
+K _$enumDecode<K, V>(
+  Map<K, V> enumValues,
+  Object? source, {
+  K? unknownValue,
+}) {
+  if (source == null) {
+    throw ArgumentError(
+      'A value must be provided. Supported values: '
+      '${enumValues.values.join(', ')}',
+    );
+  }
+
+  return enumValues.entries.singleWhere(
+    (e) => e.value == source,
+    orElse: () {
+      if (unknownValue == null) {
+        throw ArgumentError(
+          '`$source` is not one of the supported values: '
+          '${enumValues.values.join(', ')}',
+        );
+      }
+      return MapEntry(unknownValue, enumValues.values.first);
+    },
+  ).key;
+}
+
+const _$ContentTypeEnumMap = {
+  ContentType.media: 'media',
+  ContentType.section: 'section',
+};
 
 Section _$SectionFromJson(Map<String, dynamic> json) => Section(
       content: (json['content'] as List<dynamic>)

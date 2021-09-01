@@ -16,6 +16,8 @@ class WordpressRepository {
   final Map<int, CustomEndpointCategory> _loadedCategories = {};
   final Map<int, CustomEndpointGroup> _loadedGroups = {};
   final Map<int, CustomEndpointPost> _loadedPosts = {};
+
+  /// The number of HTTP downloads in progress.
   final BehaviorSubject<int> _connections = BehaviorSubject.seeded(0);
 
   WordpressRepository({required this.wordpressDomain})
@@ -25,6 +27,7 @@ class WordpressRepository {
                 : 'https://$wordpressDomain',
             authenticator: wp.WordPressAuthenticator.JWT);
 
+  /// Load a category, with all children, recursively.
   Future<CustomEndpointCategory> category(int id) async {
     if (_loadedCategories.containsKey(id)) {
       return _loadedCategories[id]!;
@@ -38,6 +41,7 @@ class WordpressRepository {
     return _loadedCategories[id]!;
   }
 
+  /// Load all content of a series-type post.
   Future<CustomEndpointSeries> _series(CustomEndpointPost base) async {
     assert(base.isSeries);
     final id = base.id;
@@ -83,6 +87,8 @@ class WordpressRepository {
     return group;
   }
 
+  /// Load all child categories' content of category given, recursively. Loads any
+  /// series in the category.
   Future<CustomEndpointCategory> _childCategories(wp.Category category) async {
     if (_loadedCategories.containsKey(category.id)) {
       return _loadedCategories[category.id]!;
@@ -150,7 +156,7 @@ class WordpressRepository {
 
   Future<T> _withConnectionCount<T>(Future<T> get()) async {
     try {
-      await _connections.firstWhere((element) => element < 2);
+      await _connections.firstWhere((element) => element < 10);
       _connections.add(_connections.value + 1);
       return await get();
     } catch (err) {

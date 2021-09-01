@@ -44,17 +44,38 @@ class Media extends SiteDataBase {
   Map<String, dynamic> toJson() => _$MediaToJson(this);
 }
 
-/// Holds one of [Media] or [Section]. Has a value method which is the non null value.
+enum ContentType { media, section }
+
+/// Holds one of [Media] or [Section].
 @JsonSerializable()
 class ContentReference {
+  final String id;
+  final ContentType contentType;
   final Media? media;
   final Section? section;
-  final SiteDataBase value;
+  final SiteDataBase? value;
 
-  ContentReference({this.media, this.section}) : value = (media ?? section)! {
-    // 1 and only 1 must be not null.
+  ContentReference(
+      {this.media, this.section, required this.id, required this.contentType})
+      : value = media ?? section {
+    // Both datums may not have a value in one ContentReference instance.
+    assert(media == null || section == null);
+    assert(this.id.isNotEmpty);
+  }
+
+  factory ContentReference.fromId(
+          {required String id, required ContentType contentType}) =>
+      ContentReference(id: id, contentType: contentType);
+
+  factory ContentReference.fromData({required SiteDataBase data}) {
+    final media = data is Media ? data : null;
+    final section = data is Section ? data : null;
     assert((media ?? section) != null);
     assert(media == null || section == null);
+    final type = media != null ? ContentType.media : ContentType.section;
+
+    return ContentReference(
+        id: data.id, contentType: type, media: media, section: section);
   }
 
   factory ContentReference.fromJson(Map<String, dynamic> json) =>

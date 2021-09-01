@@ -88,7 +88,7 @@ SiteDataBase? parsePost(SiteDataBase post) {
       link: post.link,
       title: post.title,
       description: description,
-      content: medias.map((e) => ContentReference(media: e)).toList(),
+      content: medias.map((e) => ContentReference.fromData(data: e)).toList(),
       sort: post.sort)
     ..parent = post.parent;
 }
