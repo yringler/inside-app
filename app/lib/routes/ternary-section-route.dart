@@ -27,7 +27,7 @@ class TernarySectionRoute extends StatelessWidget {
             ? null
             : scrollToIndexRaw;
     return SectionContentList(
-        scrollIndex: scrollToIndex,
+        scrollToIndex: scrollToIndex,
         isSeperated: true,
         section: section,
         leadingWidget: Column(

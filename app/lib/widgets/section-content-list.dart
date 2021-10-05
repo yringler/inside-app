@@ -25,7 +25,7 @@ class SectionContentList extends StatelessWidget {
   /// If there is a leading widget, index is 1 too many.
   int get indexOffset => leadingWidget == null ? 0 : 1;
 
-  final int? scrollIndex;
+  final int? scrollToIndex;
 
   SectionContentList(
       {required this.section,
@@ -34,26 +34,41 @@ class SectionContentList extends StatelessWidget {
       required this.mediaBuilder,
       this.isSeperated = false,
       this.leadingWidget,
-      this.scrollIndex});
+      this.scrollToIndex});
 
   @override
   Widget build(BuildContext context) => FutureBuilder<Section>(
         future: BlocProvider.getDependency<SiteBoxes>().resolve(section!),
         builder: (context, snapShot) {
           if (snapShot.hasData && snapShot.data != null) {
+            // We need to use the controller instead of the initialScrollIndex,
+            // despite it being a worse experience (the list jumps), because
+            // the initialScrollIndex only seems to affect the initial build.
+            // See https://github.com/google/flutter.widgets/issues/212
+            final ItemScrollController scrollController = ItemScrollController();
             if (isSeperated) {
+              if (scrollToIndex != null) {
+                Timer.run(() {
+                  scrollController.jumpTo(index: scrollToIndex!);
+                });
+              }
               return ScrollablePositionedList.separated(
                 padding: EdgeInsets.symmetric(horizontal: 8),
                 itemCount: snapShot.data!.content.length + indexOffset,
                 itemBuilder: _sectionContent(snapShot.data),
                 separatorBuilder: (context, i) => Divider(),
-                initialScrollIndex: scrollIndex ?? 0,
+                itemScrollController: scrollController,
               );
             } else {
+              if (scrollToIndex != null) {
+                Timer.run(() {
+                  scrollController.jumpTo(index: scrollToIndex!);
+                });
+              }
               return ScrollablePositionedList.builder(
                 itemCount: snapShot.data!.content.length + indexOffset,
                 itemBuilder: _sectionContent(snapShot.data),
-                initialScrollIndex: scrollIndex ?? 0,
+                itemScrollController: scrollController,
               );
             }
           } else if (snapShot.hasError) {

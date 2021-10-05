@@ -64,7 +64,6 @@ class LibraryPositionService extends ChangeNotifier
   void setLastPlayingId() {
     if (sections.isNotEmpty) {
       final lastData = sections.last.data;
-      print(sections.last.data is Media);
       if (lastData is Media) {
         lastPlayingId = lastData.id;
       } else {
