@@ -20,6 +20,9 @@ class LibraryPositionService extends ChangeNotifier
   final SiteBoxes siteBoxes;
   List<SitePosition> sections = [];
 
+  /// Available only when the previous screen was the player screen
+  int? lastPlayingId;
+
   LibraryPositionService({required this.siteBoxes});
 
   /// Ensure that next to last item is parent of new item, or clear the list.
@@ -31,6 +34,8 @@ class LibraryPositionService extends ChangeNotifier
       return sections;
     }
 
+    setLastPlayingId();
+
     await _clearTo(item!);
 
     notifyListeners();
@@ -38,6 +43,7 @@ class LibraryPositionService extends ChangeNotifier
   }
 
   bool removeLast() {
+    setLastPlayingId();
     if (sections.isNotEmpty) {
       sections.removeLast();
       notifyListeners();
@@ -49,8 +55,21 @@ class LibraryPositionService extends ChangeNotifier
 
   clear() {
     if (sections.isNotEmpty) {
+      setLastPlayingId();
       sections.clear();
       notifyListeners();
+    }
+  }
+
+  void setLastPlayingId() {
+    if (sections.isNotEmpty) {
+      final lastData = sections.last.data;
+      print(sections.last.data is Media);
+      if (lastData is Media) {
+        lastPlayingId = lastData.id;
+      } else {
+        lastPlayingId = null;
+      }
     }
   }
 

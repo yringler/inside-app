@@ -16,23 +16,34 @@ class TernarySectionRoute extends StatelessWidget {
   TernarySectionRoute({required this.section});
 
   @override
-  Widget build(BuildContext context) => SectionContentList(
-      isSeperated: true,
-      section: section,
-      leadingWidget: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [InsideBreadcrumbs()],
-      ),
-      sectionBuilder: (context, section) => InsideNavigator(
-            data: section,
-            child: _tile(section)
-          ),
-      lessonBuilder: (context, lesson) => _tile(lesson),
-      mediaBuilder: (context, media) => MediaItem(
-            media: media,
-            sectionId: section!.id,
-            routeDataService: BlocProvider.getDependency<LibraryPositionService>(),
-          ));
+  Widget build(BuildContext context) {
+    final lastPlayingId =
+        BlocProvider.getDependency<LibraryPositionService>().lastPlayingId;
+    final scrollToIndexRaw = section?.content.indexWhere((element) =>
+        element.media?.id != null && element.media?.id == lastPlayingId);
+    final scrollToIndex = scrollToIndexRaw == null
+        ? scrollToIndexRaw
+        : scrollToIndexRaw < 0
+            ? null
+            : scrollToIndexRaw;
+    return SectionContentList(
+        scrollIndex: scrollToIndex,
+        isSeperated: true,
+        section: section,
+        leadingWidget: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [InsideBreadcrumbs()],
+        ),
+        sectionBuilder: (context, section) =>
+            InsideNavigator(data: section, child: _tile(section)),
+        lessonBuilder: (context, lesson) => _tile(lesson),
+        mediaBuilder: (context, media) => MediaItem(
+              media: media,
+              sectionId: section!.id,
+              routeDataService:
+                  BlocProvider.getDependency<LibraryPositionService>(),
+            ));
+  }
 
   static Widget _tile(CountableSiteDataItem data) {
     var itemWord = data.audioCount! > 1 ? 'classes' : 'class';
