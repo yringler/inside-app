@@ -62,6 +62,13 @@ class LibraryPositionService extends ChangeNotifier
   }
 
   void setLastPlayingId() {
+    // If sections _is_ empty, we still do _not_ set lastPlayingId to null.
+    // If we were to do so, then it would be null at the end of the following
+    // scenario: the player is navigated to, then the user clicks on the home
+    // button, then clicks on the player button, then navigates "up" one. In
+    // this case, when navigating up, sections will be empty. By doing nothing,
+    // lastPlayingId is set when navigating to home, and persists until sections
+    // is non-empty.
     if (sections.isNotEmpty) {
       final lastData = sections.last.data;
       if (lastData is Media) {
