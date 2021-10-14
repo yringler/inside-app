@@ -5,3 +5,5 @@ Issues labeled [blocked](https://github.com/yringler/inside-app/issues?q=is%3Ais
 which is currently undergoing a thorough rewrite, and any work done now would have to be discarded, and will be much easier after the [data update](https://github.com/yringler/inside-app/pull/89) is finished.
 
 Others, such as [accesibility](https://github.com/yringler/inside-app/issues/92), could technically be worked on now by anyone, but probably require more familiarity with the app, as well as an idea of all the accessibility stuff.
+
+Keep an eye on priority via the [Roadmap](https://github.com/yringler/inside-app/projects/1) project.
