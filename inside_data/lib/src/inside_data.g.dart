@@ -106,3 +106,17 @@ Map<String, dynamic> _$SectionToJson(Section instance) => <String, dynamic>{
       'audioCount': instance.audioCount,
       'content': instance.content,
     };
+
+SiteData _$SiteDataFromJson(Map<String, dynamic> json) => SiteData(
+      sections: (json['sections'] as List<dynamic>)
+          .map((e) => Section.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      topSectionIds: (json['topSectionIds'] as List<dynamic>)
+          .map((e) => e as int)
+          .toList(),
+    );
+
+Map<String, dynamic> _$SiteDataToJson(SiteData instance) => <String, dynamic>{
+      'sections': instance.sections,
+      'topSectionIds': instance.topSectionIds,
+    };

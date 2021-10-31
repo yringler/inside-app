@@ -138,11 +138,14 @@ abstract class SiteDataLayer {
   Future<Media> media(String id);
 }
 
+@JsonSerializable()
 class SiteData {
   final List<Section> sections;
   final List<int> topSectionIds;
 
   SiteData({required this.sections, required this.topSectionIds});
+
+  Map<String, dynamic> toJson() => _$SiteDataToJson(this);
 }
 
 /// Provides initial access to load all of site.
