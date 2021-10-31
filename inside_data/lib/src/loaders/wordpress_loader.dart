@@ -17,7 +17,9 @@ class WordpressLoader extends SiteDataLoader {
     final data = await Future.wait(
         topCategoryIds.map((e) => wordpressRepository.category(e)).toList());
 
-    final wordPressSite = WordpressSite.fromNested(categories: data);
-    throw UnimplementedError();
+    return SiteData(topSectionIds: topCategoryIds, sections: [
+      ...data.map((e) => e.toSection()),
+      ...data.map((e) => e.series).expand((e) => e).map((e) => e.toSection())
+    ]);
   }
 }

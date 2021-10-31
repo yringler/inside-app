@@ -28,16 +28,23 @@ SiteDataBase? parsePost(SiteDataBase post) {
     audio.remove();
   }
 
-  if (audios.isEmpty) {
-    return null;
-  }
-
   var description = _parseXml(xml.outerHtml);
 
   // If it doesn't have a good description, forget about it.
   // In particular, sometimes the description will be "MP3"
   if (description.length < 4) {
     description = '';
+  }
+
+  // For example, if we're parsing the basic data for a category, the category description
+  // will not have any audios in it.
+  if (audios.isEmpty) {
+    return SiteDataBase(
+        id: post.id,
+        title: post.title,
+        description: description,
+        sort: post.sort,
+        link: post.link);
   }
 
   if (audios.length == 1) {
@@ -61,7 +68,7 @@ SiteDataBase? parsePost(SiteDataBase post) {
           // ... ever, I think.
           order: sort++,
           link: post.link)
-        ?..parent = int.parse(post.id))
+        ?..parent = {post.id})
       .where((element) => element != null)
       .cast<Media>()
       .toList();

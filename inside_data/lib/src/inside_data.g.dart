@@ -16,10 +16,12 @@ Media _$MediaFromJson(Map<String, dynamic> json) => Media(
       title: json['title'] as String,
       description: json['description'] as String,
       link: json['link'] as String? ?? '',
-    )..parent = json['parent'] as int;
+      parent:
+          (json['parent'] as List<dynamic>?)?.map((e) => e as String).toSet(),
+    );
 
 Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
-      'parent': instance.parent,
+      'parent': instance.parent.toList(),
       'id': instance.id,
       'title': instance.title,
       'description': instance.description,
@@ -90,11 +92,12 @@ Section _$SectionFromJson(Map<String, dynamic> json) => Section(
       description: json['description'] as String,
       link: json['link'] as String? ?? '',
     )
-      ..parent = json['parent'] as int
+      ..parent =
+          (json['parent'] as List<dynamic>).map((e) => e as String).toSet()
       ..audioCount = json['audioCount'] as int;
 
 Map<String, dynamic> _$SectionToJson(Section instance) => <String, dynamic>{
-      'parent': instance.parent,
+      'parent': instance.parent.toList(),
       'id': instance.id,
       'title': instance.title,
       'description': instance.description,

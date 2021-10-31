@@ -3,8 +3,10 @@ import 'package:json_annotation/json_annotation.dart';
 part 'inside_data.g.dart';
 
 class SiteDataBase {
-  late int parent;
+  late Set<String> parent;
   final String id;
+
+  /// Human readable title. (Not a slug)
   String title;
   String description;
   final int sort;
@@ -17,7 +19,20 @@ class SiteDataBase {
       required this.title,
       required this.description,
       required this.sort,
-      required this.link});
+      required this.link,
+      Set<String>? parent}) {
+    if (parent != null) {
+      this.parent = parent;
+    }
+  }
+
+  SiteDataBase.copy(SiteDataBase other)
+      : id = other.id,
+        title = other.title,
+        description = other.description,
+        sort = other.sort,
+        parent = other.parent,
+        link = other.link;
 }
 
 @JsonSerializable()
@@ -32,12 +47,14 @@ class Media extends SiteDataBase {
       required int sort,
       required String title,
       required String description,
-      String link = ''})
+      String link = '',
+      Set<String>? parent})
       : super(
             id: id,
             title: title,
             description: description,
             sort: sort,
+            parent: parent,
             link: link);
 
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
@@ -53,11 +70,9 @@ class ContentReference {
   final ContentType contentType;
   final Media? media;
   final Section? section;
-  final SiteDataBase? value;
 
   ContentReference(
-      {this.media, this.section, required this.id, required this.contentType})
-      : value = media ?? section {
+      {this.media, this.section, required this.id, required this.contentType}) {
     // Both datums may not have a value in one ContentReference instance.
     assert(media == null || section == null);
     assert(this.id.isNotEmpty);
@@ -97,13 +112,18 @@ class Section extends SiteDataBase {
       required int sort,
       required String title,
       required String description,
-      required String link})
+      required String link,
+      Set<String>? parents})
       : super(
             id: id,
+            parent: parents,
             title: title,
             description: description,
             sort: sort,
             link: link);
+
+  Section.fromBase(SiteDataBase base, {required this.content})
+      : super.copy(base);
 
   factory Section.fromJson(Map<String, dynamic> json) =>
       _$SectionFromJson(json);
@@ -120,9 +140,9 @@ abstract class SiteDataLayer {
 
 class SiteData {
   final List<Section> sections;
-  final List<Media> content;
+  final List<int> topSectionIds;
 
-  SiteData({required this.sections, required this.content});
+  SiteData({required this.sections, required this.topSectionIds});
 }
 
 /// Provides initial access to load all of site.

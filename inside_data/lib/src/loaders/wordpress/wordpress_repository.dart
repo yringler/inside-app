@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:inside_data/inside_data.dart';
+import 'package:inside_data/src/loaders/wordpress/parsing_tools.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flutter_wordpress/flutter_wordpress.dart' as wp;
 import 'package:http/http.dart' as http;
@@ -72,16 +74,15 @@ class WordpressRepository {
     }
 
     final group = CustomEndpointSeries(
-        parents: {},
+        parents: base.parents,
         id: base.id,
         name: base.postName,
+        title: base.postTitle,
         description: base.postContentFiltered,
-        link: 'https://insidechassidus.org/series/${base.postName}',
+        link: 'https://$wordpressDomain/series/${base.postName}',
         posts: posts);
 
     group.sort = base.menuOrder;
-
-    group.parents.addAll(base.parents);
 
     _loadedGroups[id] = group;
     return group;
@@ -121,6 +122,9 @@ class WordpressRepository {
             params: wp.ParamsCategoryList(parent: category.id),
             fetchAll: true));
 
+    // Get child categories. Note that we don't save child category to parent category; that
+    // is handled by the child categories parents property.
+    // This prevents us from having a data structure with unknown depth.
     final customCategories =
         (await Future.wait(categories.map((e) => _childCategories(e)).toList()))
             .toList();
@@ -141,13 +145,13 @@ class WordpressRepository {
 
     final returnValue = CustomEndpointCategory(
         id: category.id ?? 0,
-        parent: category.parent ?? 0,
-        name: category.name ?? '',
+        parents: category.parent != null ? {category.parent!} : {},
+        name: category.slug ?? '',
+        title: category.name ?? '',
         description: category.description ?? '',
         link: category.link ?? '',
         posts: posts?.where((element) => element.isPost).toList() ?? [],
-        series: series,
-        categories: customCategories);
+        series: series);
 
     _loadedCategories[category.id!] = returnValue;
 
@@ -168,56 +172,22 @@ class WordpressRepository {
   }
 }
 
-class WordpressSite {
-  final List<CustomEndpointSeries> series;
-  final List<CustomEndpointCategory> categories;
-
-  WordpressSite({required this.series, required this.categories});
-
-  factory WordpressSite.fromNested(
-          {required List<CustomEndpointCategory> categories}) =>
-      WordpressSite(series: [
-        ...categories.map((e) => e.series).expand((element) => element),
-        ...categories.map((e) => _flattenSeries(e)).expand((element) => element)
-      ], categories: [
-        ...categories,
-        ...categories
-            .map((e) => _flattenCategories(e))
-            .expand((element) => element)
-      ]);
-
-  /// Recursively flattens children, does not return self.
-  /// Returning self would mean that each item would be returned twice - once as a
-  /// parent, and once as a child.
-  static List<CustomEndpointSeries> _flattenSeries(
-          CustomEndpointCategory group) =>
-      [
-        ...group.series,
-        ...[
-          for (var group in group.categories.map((e) => _flattenCategories(e)))
-            ...group
-        ].map((e) => e.series).expand((element) => element)
-      ];
-
-  /// Recursively flattens children, does not return self.
-  /// Returning self would mean that each item would be returned twice - once as a
-  /// parent, and once as a child.
-  static List<CustomEndpointCategory> _flattenCategories(
-          CustomEndpointCategory group) =>
-      [
-        ...[
-          for (var group in group.categories.map((e) => _flattenCategories(e)))
-            ...group
-        ]
-      ];
-}
-
 /// Used for the core category / series data.
 @JsonSerializable(
     fieldRename: FieldRename.snake, explicitToJson: true, createFactory: false)
 abstract class CustomEndpointGroup {
   final int id;
+
+  /// This is parents, but not from json.
+  @JsonKey(defaultValue: {})
+  final Set<int> parents;
+
+  /// Should be called slug - this might be because of JSON requirments, but even
+  /// then we can always rename it.
   final String name;
+
+  /// Human readable title.
+  final String title;
   final String description;
   int sort = 0;
   List<CustomEndpointPost> posts;
@@ -228,9 +198,20 @@ abstract class CustomEndpointGroup {
   CustomEndpointGroup(
       {required this.id,
       required this.name,
+      required this.title,
       required this.description,
       required this.link,
+      required this.parents,
       this.posts = const []});
+
+  CustomEndpointGroup.copy(CustomEndpointGroup other)
+      : this(
+            id: other.id,
+            name: other.name,
+            title: other.title,
+            description: other.description,
+            link: other.link,
+            parents: other.parents);
 
   Map<String, dynamic> toJson() => _$CustomEndpointGroupToJson(this);
 
@@ -239,24 +220,55 @@ abstract class CustomEndpointGroup {
       groups[i].sort = i + 1;
     }
   }
+
+  Section toSection() {
+    final base = parsePost(SiteDataBase(
+        id: id.toString(),
+        title: title,
+        description: description,
+        sort: sort,
+        link: link));
+
+    if (base == null) {
+      throw "to section parse post: returned null";
+    }
+
+    final sectionContent = posts
+        .map((e) => parsePost(SiteDataBase(
+            id: id.toString(),
+            title: title,
+            description: description,
+            sort: sort,
+            link: link,
+            parent: parents.map((e) => e.toString()).toSet())))
+        .where((element) => element != null)
+        .cast<SiteDataBase>()
+        .map((e) => ContentReference.fromData(data: e))
+        .toList();
+
+    return Section.fromBase(base, content: sectionContent);
+  }
 }
 
 /// A series is a custom post type which can be a parent to other posts.
 /// Sqlite-wise, it will end up being stored as a post, not a section.
+/// This class could probably be deleted at this point (now that the parents property
+/// was moved up to parent).
 @JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
 class CustomEndpointSeries extends CustomEndpointGroup {
-  @JsonKey(defaultValue: {})
-  final Set<int> parents;
   CustomEndpointSeries(
       {List<CustomEndpointPost> posts = const [],
-      required this.parents,
+      required Set<int> parents,
       required int id,
       required String name,
+      required String title,
       required String description,
       required String link})
       : super(
             id: id,
             name: name,
+            title: title,
+            parents: parents,
             description: description,
             link: link,
             posts: posts);
@@ -268,29 +280,44 @@ class CustomEndpointSeries extends CustomEndpointGroup {
 
 @JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
 class CustomEndpointCategory extends CustomEndpointGroup {
-  final int parent;
   List<CustomEndpointSeries> series;
-  List<CustomEndpointCategory> categories;
 
   CustomEndpointCategory(
-      {required this.parent,
-      this.series = const [],
-      this.categories = const [],
+      {this.series = const [],
       List<CustomEndpointPost> posts = const [],
       required int id,
+      required Set<int> parents,
       required String name,
+      required String title,
       required String description,
       required String link})
       : super(
             id: id,
             name: name,
+            title: title,
+            parents: parents,
             description: description,
             link: link,
             posts: posts);
 
+  CustomEndpointCategory.withBase(CustomEndpointGroup group,
+      {required this.series})
+      : super.copy(group);
+
   factory CustomEndpointCategory.fromJson(Map<String, dynamic> json) =>
       _$CustomEndpointCategoryFromJson(json);
   Map<String, dynamic> toJson() => _$CustomEndpointCategoryToJson(this);
+
+  Section toSection() {
+    // This takes care of basic properties
+    final base = super.toSection();
+
+    return Section.fromBase(base,
+        content: series
+            .map((e) => e.toSection())
+            .map((e) => ContentReference.fromData(data: e))
+            .toList());
+  }
 }
 
 /// A post which is returned from the custom categories and series endpoint.
@@ -303,6 +330,7 @@ class CustomEndpointPost {
   // Will be one of 'post' or 'series'
   final String postType;
   final String postTitle;
+  final String guid;
 
   /// Used to create URL
   final String postName;
@@ -330,9 +358,24 @@ class CustomEndpointPost {
       required this.postModified,
       required this.menuOrder,
       required this.postContent,
-      required this.postType});
+      required this.postType,
+      required this.guid});
 
   factory CustomEndpointPost.fromJson(Map<String, dynamic> json) =>
       _$CustomEndpointPostFromJson(json);
   Map<String, dynamic> toJson() => _$CustomEndpointPostToJson(this);
+
+  SiteDataBase? toSiteDataBase() {
+    final domain = Uri.parse(guid).host;
+    final pathPrefix = this.isSeries ? 'series/' : '';
+    final url = 'https://$domain/$pathPrefix$postName';
+    final base = parsePost(SiteDataBase(
+        id: id.toString(),
+        title: postTitle,
+        description: postContent.isNotEmpty ? postContent : postContentFiltered,
+        sort: menuOrder,
+        link: url));
+
+    return base;
+  }
 }

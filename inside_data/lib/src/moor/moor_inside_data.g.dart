@@ -140,16 +140,8 @@ class SectionTableData extends DataClass
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(
-      id.hashCode,
-      $mrjc(
-          parentId.hashCode,
-          $mrjc(
-              sort.hashCode,
-              $mrjc(
-                  redirectId.hashCode,
-                  $mrjc(title.hashCode,
-                      $mrjc(description.hashCode, count.hashCode)))))));
+  int get hashCode =>
+      Object.hash(id, parentId, sort, redirectId, title, description, count);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -495,14 +487,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(
-      id.hashCode,
-      $mrjc(
-          source.hashCode,
-          $mrjc(
-              sort.hashCode,
-              $mrjc(title.hashCode,
-                  $mrjc(description.hashCode, duration.hashCode))))));
+  int get hashCode =>
+      Object.hash(id, source, sort, title, description, duration);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -771,7 +757,7 @@ class UpdateTimeTableData extends DataClass
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode, updateTime.hashCode));
+  int get hashCode => Object.hash(id, updateTime);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
