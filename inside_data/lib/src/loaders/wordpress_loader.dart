@@ -17,9 +17,12 @@ class WordpressLoader extends SiteDataLoader {
     final data = await Future.wait(
         topCategoryIds.map((e) => wordpressRepository.category(e)).toList());
 
-    return SiteData(topSectionIds: topCategoryIds, sections: [
+    final sectionList = [
       ...data.map((e) => e.toSection()),
       ...data.map((e) => e.series).expand((e) => e).map((e) => e.toSection())
-    ]);
+    ];
+
+    return SiteData.fromList(
+        topSectionIds: topCategoryIds, sections: sectionList);
   }
 }

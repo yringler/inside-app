@@ -223,6 +223,7 @@ abstract class CustomEndpointGroup {
 
   Section toSection() {
     final base = parsePost(SiteDataBase(
+        parents: parents.map((e) => e.toString()).toSet(),
         id: id.toString(),
         title: title,
         description: description,
@@ -240,7 +241,7 @@ abstract class CustomEndpointGroup {
             description: description,
             sort: sort,
             link: link,
-            parent: parents.map((e) => e.toString()).toSet())))
+            parents: parents.map((e) => e.toString()).toSet())))
         .where((element) => element != null)
         .cast<SiteDataBase>()
         .map((e) => ContentReference.fromData(data: e))
@@ -370,6 +371,7 @@ class CustomEndpointPost {
     final pathPrefix = this.isSeries ? 'series/' : '';
     final url = 'https://$domain/$pathPrefix$postName';
     final base = parsePost(SiteDataBase(
+        parents: parents.map((e) => e.toString()).toSet(),
         id: id.toString(),
         title: postTitle,
         description: postContent.isNotEmpty ? postContent : postContentFiltered,

@@ -40,6 +40,7 @@ SiteDataBase? parsePost(SiteDataBase post) {
   // will not have any audios in it.
   if (audios.isEmpty) {
     return SiteDataBase(
+        parents: post.parents,
         id: post.id,
         title: post.title,
         description: description,
@@ -53,8 +54,8 @@ SiteDataBase? parsePost(SiteDataBase post) {
         title: post.title,
         order: post.sort,
         link: post.link,
-        id: post.id)
-      ?..parent = post.parent;
+        id: post.id,
+        parents: post.parents);
 
     return media;
   }
@@ -67,8 +68,8 @@ SiteDataBase? parsePost(SiteDataBase post) {
           // Oooh sneaky. I haven't done a sneaky post fix increment like that
           // ... ever, I think.
           order: sort++,
-          link: post.link)
-        ?..parent = {post.id})
+          link: post.link,
+          parents: {post.id}))
       .where((element) => element != null)
       .cast<Media>()
       .toList();
@@ -96,8 +97,8 @@ SiteDataBase? parsePost(SiteDataBase post) {
       title: post.title,
       description: description,
       content: medias.map((e) => ContentReference.fromData(data: e)).toList(),
-      sort: post.sort)
-    ..parent = post.parent;
+      sort: post.sort,
+      parents: post.parents);
 }
 
 Media? _toMedia(Element element,
@@ -105,6 +106,7 @@ Media? _toMedia(Element element,
     required String title,
     required int order,
     required String link,
+    required Set<String> parents,
     String? id}) {
   final audioSource = element.querySelector('audio')?.attributes['src'];
   final audioTitle = title.isNotEmpty
@@ -117,6 +119,7 @@ Media? _toMedia(Element element,
 
   return Media(
       id: id ?? audioSource!,
+      parents: parents,
       link: link,
       source: audioSource!,
       title: audioTitle ?? '',

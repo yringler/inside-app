@@ -3,7 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 part 'inside_data.g.dart';
 
 class SiteDataBase {
-  late Set<String> parent;
+  final Set<String> parents;
   final String id;
 
   /// Human readable title. (Not a slug)
@@ -20,18 +20,14 @@ class SiteDataBase {
       required this.description,
       required this.sort,
       required this.link,
-      Set<String>? parent}) {
-    if (parent != null) {
-      this.parent = parent;
-    }
-  }
+      required this.parents});
 
   SiteDataBase.copy(SiteDataBase other)
       : id = other.id,
         title = other.title,
         description = other.description,
         sort = other.sort,
-        parent = other.parent,
+        parents = other.parents,
         link = other.link;
 }
 
@@ -48,13 +44,13 @@ class Media extends SiteDataBase {
       required String title,
       required String description,
       String link = '',
-      Set<String>? parent})
+      required Set<String> parents})
       : super(
             id: id,
             title: title,
             description: description,
             sort: sort,
-            parent: parent,
+            parents: parents,
             link: link);
 
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
@@ -97,13 +93,15 @@ class ContentReference {
       _$ContentReferenceFromJson(json);
   Map<String, dynamic> toJson() => _$ContentReferenceToJson(this);
 
-  bool get isMedia => media != null;
-  bool get isSection => section != null;
+  bool get isMedia => contentType == ContentType.media;
+  bool get isSection => contentType == ContentType.section;
+  bool get hasMedia => media != null;
+  bool get hasSection => section != null;
 }
 
 @JsonSerializable()
 class Section extends SiteDataBase {
-  late int audioCount;
+  late final int audioCount;
   final List<ContentReference> content;
 
   Section(
@@ -113,10 +111,10 @@ class Section extends SiteDataBase {
       required String title,
       required String description,
       required String link,
-      Set<String>? parents})
+      required Set<String> parents})
       : super(
             id: id,
-            parent: parents,
+            parents: parents,
             title: title,
             description: description,
             sort: sort,
@@ -138,14 +136,58 @@ abstract class SiteDataLayer {
   Future<Media> media(String id);
 }
 
+/// The entire website. In one object. Ideally, this would only be used server side.
 @JsonSerializable()
 class SiteData {
-  final List<Section> sections;
+  final Map<String, Section> sections;
   final List<int> topSectionIds;
 
-  SiteData({required this.sections, required this.topSectionIds});
+  SiteData({required this.sections, required this.topSectionIds}) {
+    var processing = Map<String, int?>();
+    for (final id in sections.keys) {
+      _setAudioCount(processing, id);
+    }
+  }
+
+  SiteData.fromList(
+      {required List<Section> sections, required List<int> topSectionIds})
+      : this(
+            sections: {for (var section in sections) section.id: section},
+            topSectionIds: topSectionIds);
 
   Map<String, dynamic> toJson() => _$SiteDataToJson(this);
+
+  int _setAudioCount(Map<String, int?> processing, String sectionId) {
+    // Could either mean that we're in the middle of proccessing the section, and
+    // the navigation circles back to itself.
+    // Or, that we already finished processing the ID, and now we're processing an
+    // ancestor.
+    if (processing.containsKey(sectionId)) {
+      return processing[sectionId] ?? 0;
+    }
+
+    final section = sections[sectionId]!;
+
+    // Handle empty sections.
+    if (section.content.isEmpty) {
+      processing[sectionId] = section.audioCount = 0;
+      return 0;
+    }
+
+    // Keep track so that if this section ends up, through its children,
+    // referencing itself, we can gracefully return 0.
+    processing[sectionId] = null;
+
+    // Count how many classes are directly in this section.
+    final audioCount = section.content
+        .map((e) => e.isMedia ? 1 : _setAudioCount(processing, e.id))
+        .reduce((value, element) => value + element);
+
+    // Save the audio count.
+    processing[sectionId] = section.audioCount = audioCount;
+
+    return section.audioCount;
+  }
 }
 
 /// Provides initial access to load all of site.

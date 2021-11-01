@@ -16,12 +16,12 @@ Media _$MediaFromJson(Map<String, dynamic> json) => Media(
       title: json['title'] as String,
       description: json['description'] as String,
       link: json['link'] as String? ?? '',
-      parent:
-          (json['parent'] as List<dynamic>?)?.map((e) => e as String).toSet(),
+      parents:
+          (json['parents'] as List<dynamic>).map((e) => e as String).toSet(),
     );
 
 Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
-      'parent': instance.parent.toList(),
+      'parents': instance.parents.toList(),
       'id': instance.id,
       'title': instance.title,
       'description': instance.description,
@@ -91,13 +91,12 @@ Section _$SectionFromJson(Map<String, dynamic> json) => Section(
       title: json['title'] as String,
       description: json['description'] as String,
       link: json['link'] as String? ?? '',
-    )
-      ..parent =
-          (json['parent'] as List<dynamic>).map((e) => e as String).toSet()
-      ..audioCount = json['audioCount'] as int;
+      parents:
+          (json['parents'] as List<dynamic>).map((e) => e as String).toSet(),
+    )..audioCount = json['audioCount'] as int;
 
 Map<String, dynamic> _$SectionToJson(Section instance) => <String, dynamic>{
-      'parent': instance.parent.toList(),
+      'parents': instance.parents.toList(),
       'id': instance.id,
       'title': instance.title,
       'description': instance.description,
@@ -108,9 +107,9 @@ Map<String, dynamic> _$SectionToJson(Section instance) => <String, dynamic>{
     };
 
 SiteData _$SiteDataFromJson(Map<String, dynamic> json) => SiteData(
-      sections: (json['sections'] as List<dynamic>)
-          .map((e) => Section.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      sections: (json['sections'] as Map<String, dynamic>).map(
+        (k, e) => MapEntry(k, Section.fromJson(e as Map<String, dynamic>)),
+      ),
       topSectionIds: (json['topSectionIds'] as List<dynamic>)
           .map((e) => e as int)
           .toList(),
