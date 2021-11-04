@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:inside_data/inside_data.dart';
 import 'package:inside_data/src/loaders/wordpress/parsing_tools.dart';
@@ -19,6 +20,10 @@ class WordpressRepository {
   final Map<int, CustomEndpointGroup> _loadedGroups = {};
   final Map<int, CustomEndpointPost> _loadedPosts = {};
 
+  Map<int, CustomEndpointCategory> get categories => _loadedCategories;
+  Map<int, CustomEndpointGroup> get groups => _loadedGroups;
+  Map<int, CustomEndpointPost> get posts => _loadedPosts;
+
   /// The number of HTTP downloads in progress.
   final BehaviorSubject<int> _connections = BehaviorSubject.seeded(0);
 
@@ -30,9 +35,9 @@ class WordpressRepository {
             authenticator: wp.WordPressAuthenticator.JWT);
 
   /// Load a category, with all children, recursively.
-  Future<CustomEndpointCategory> category(int id) async {
+  Future<void> category(int id) async {
     if (_loadedCategories.containsKey(id)) {
-      return _loadedCategories[id]!;
+      return;
     }
 
     final coreResponse = await _withConnectionCount(() => http.get(
@@ -40,7 +45,7 @@ class WordpressRepository {
     final category = wp.Category.fromJson(jsonDecode(coreResponse.body));
 
     _loadedCategories[id] = await _childCategories(category);
-    return _loadedCategories[id]!;
+    return;
   }
 
   /// Load all content of a series-type post.
@@ -52,12 +57,34 @@ class WordpressRepository {
       return _loadedGroups[id]! as CustomEndpointSeries;
     }
 
-    final postsResponse = await _withConnectionCount(() => http
-        .get(Uri.parse('https://$wordpressDomain/$customApiPathSeries/$id')));
-    final posts = (jsonDecode(postsResponse.body) as Map<String, dynamic>)
-        .values
-        .map((e) => CustomEndpointPost.fromJson(e))
-        .map((e) {
+    final url = 'https://$wordpressDomain/$customApiPathSeries/$id';
+    print(url);
+    final postsResponse =
+        await _withConnectionCount(() => http.get(Uri.parse(url)));
+
+    Map<String, dynamic>? jsonResponse;
+
+    try {
+      jsonResponse = (jsonDecode(postsResponse.body) as Map<String, dynamic>);
+    } catch (err) {
+      print('Url: $url\nError: $err');
+      //exit(1);
+    }
+
+    if (jsonResponse == null) {
+      return new CustomEndpointSeries(
+          parents: base.parents,
+          id: id,
+          name: base.postName,
+          title: base.postTitle,
+          description: base.postContent.isNotEmpty
+              ? base.postContent
+              : base.postContentFiltered,
+          link: '');
+    }
+
+    final posts =
+        jsonResponse.values.map((e) => CustomEndpointPost.fromJson(e)).map((e) {
       // To have all parents accounted for, make sure to use saved if found.
       _loadedPosts[e.id] ??= e;
       if (e.menuOrder > 0) {

@@ -14,12 +14,12 @@ class WordpressLoader extends SiteDataLoader {
   @override
   Future<SiteData> load(DateTime lastLoadTime,
       {bool ensureLatest = false}) async {
-    final data = await Future.wait(
+    await Future.wait(
         topCategoryIds.map((e) => wordpressRepository.category(e)).toList());
 
     final sectionList = [
-      ...data.map((e) => e.toSection()),
-      ...data.map((e) => e.series).expand((e) => e).map((e) => e.toSection())
+      ...wordpressRepository.categories.values.map((e) => e.toSection()),
+      ...wordpressRepository.groups.values.map((e) => e.toSection()),
     ];
 
     return SiteData.fromList(

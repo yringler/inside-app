@@ -7,8 +7,9 @@ Future<void> main(List<String> args) async {
 
   const domain = 'insidechassidus.org';
   final repository = WordpressRepository(wordpressDomain: domain);
-  final data = await repository.category(id);
+  await repository.category(id);
 
   final encoder = JsonEncoder.withIndent('\t');
-  print(encoder.convert(data.toJson()));
+  print(encoder
+      .convert([...repository.categories.values, ...repository.groups.values]));
 }
