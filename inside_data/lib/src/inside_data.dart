@@ -101,7 +101,7 @@ class ContentReference {
 
 @JsonSerializable()
 class Section extends SiteDataBase {
-  late final int audioCount;
+  int audioCount = 0;
   final List<ContentReference> content;
 
   Section(
@@ -166,7 +166,13 @@ class SiteData {
       return processing[sectionId] ?? 0;
     }
 
-    final section = sections[sectionId]!;
+    final section = sections[sectionId];
+
+    // This should never happen - there's one case where we can't get data from a
+    // series, but hopefully that will be resolved soon.
+    if (section == null) {
+      return 0;
+    }
 
     // Handle empty sections.
     if (section.content.isEmpty) {

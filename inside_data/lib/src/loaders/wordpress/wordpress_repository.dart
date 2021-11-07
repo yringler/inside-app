@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:inside_data/inside_data.dart';
 import 'package:inside_data/src/loaders/wordpress/parsing_tools.dart';
@@ -58,7 +57,6 @@ class WordpressRepository {
     }
 
     final url = 'https://$wordpressDomain/$customApiPathSeries/$id';
-    print(url);
     final postsResponse =
         await _withConnectionCount(() => http.get(Uri.parse(url)));
 
@@ -249,26 +247,23 @@ abstract class CustomEndpointGroup {
   }
 
   Section toSection() {
-    final base = parsePost(SiteDataBase(
-        parents: parents.map((e) => e.toString()).toSet(),
-        id: id.toString(),
-        title: title,
-        description: description,
-        sort: sort,
-        link: link));
+    // A section doesn't have any audio in its body, so set require audio to false.
+    final base = parsePost(
+        SiteDataBase(
+            parents: parents.map((e) => e.toString()).toSet(),
+            id: id.toString(),
+            title: title,
+            description: description,
+            sort: sort,
+            link: link),
+        requireAudio: false);
 
     if (base == null) {
       throw "to section parse post: returned null";
     }
 
     final sectionContent = posts
-        .map((e) => parsePost(SiteDataBase(
-            id: id.toString(),
-            title: title,
-            description: description,
-            sort: sort,
-            link: link,
-            parents: parents.map((e) => e.toString()).toSet())))
+        .map((e) => e.toSiteDataBase())
         .where((element) => element != null)
         .cast<SiteDataBase>()
         .map((e) => ContentReference.fromData(data: e))
@@ -339,12 +334,12 @@ class CustomEndpointCategory extends CustomEndpointGroup {
   Section toSection() {
     // This takes care of basic properties
     final base = super.toSection();
+    base.content.addAll(series
+        .map((e) => e.toSection())
+        .map((e) => ContentReference.fromData(data: e))
+        .toList());
 
-    return Section.fromBase(base,
-        content: series
-            .map((e) => e.toSection())
-            .map((e) => ContentReference.fromData(data: e))
-            .toList());
+    return base;
   }
 }
 
@@ -366,6 +361,10 @@ class CustomEndpointPost {
   final String postContentFiltered;
   final String postDate;
   final String postModified;
+
+  /// Yeah, bad name. There are 2 contents returned by wordpress, takes better.
+  String get postContentContent =>
+      postContent.trim().isNotEmpty ? postContent : postContentFiltered;
 
   /// Where to position this post in list. Only set in category endpoint, not in series endpoint.
   @JsonKey(defaultValue: 0)
@@ -397,13 +396,16 @@ class CustomEndpointPost {
     final domain = Uri.parse(guid).host;
     final pathPrefix = this.isSeries ? 'series/' : '';
     final url = 'https://$domain/$pathPrefix$postName';
-    final base = parsePost(SiteDataBase(
-        parents: parents.map((e) => e.toString()).toSet(),
-        id: id.toString(),
-        title: postTitle,
-        description: postContent.isNotEmpty ? postContent : postContentFiltered,
-        sort: menuOrder,
-        link: url));
+    final base = parsePost(
+        SiteDataBase(
+            parents: parents.map((e) => e.toString()).toSet(),
+            id: id.toString(),
+            title: postTitle,
+            description:
+                postContent.isNotEmpty ? postContent : postContentFiltered,
+            sort: menuOrder,
+            link: url),
+        requireAudio: isPost);
 
     return base;
   }

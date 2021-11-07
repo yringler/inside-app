@@ -19,16 +19,18 @@ String _parseXml(String xmlString) {
 }
 
 /// Turns a post... possibly into a section, if it contains multiple media items.
-SiteDataBase? parsePost(SiteDataBase post) {
-  final xml = html.parse(post.description);
+SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
+  final xml = post.description.isNotEmpty ? html.parse(post.description) : null;
 
-  final audios = xml.querySelectorAll('.wp-block-audio');
+  final audios = xml?.querySelectorAll('.wp-block-audio');
 
-  for (final audio in audios) {
-    audio.remove();
+  if (audios != null) {
+    for (final audio in audios) {
+      audio.remove();
+    }
   }
 
-  var description = _parseXml(xml.outerHtml);
+  var description = xml != null ? _parseXml(xml.outerHtml) : '';
 
   // If it doesn't have a good description, forget about it.
   // In particular, sometimes the description will be "MP3"
@@ -38,14 +40,16 @@ SiteDataBase? parsePost(SiteDataBase post) {
 
   // For example, if we're parsing the basic data for a category, the category description
   // will not have any audios in it.
-  if (audios.isEmpty) {
-    return SiteDataBase(
-        parents: post.parents,
-        id: post.id,
-        title: post.title,
-        description: description,
-        sort: post.sort,
-        link: post.link);
+  if (audios == null || audios.isEmpty) {
+    return requireAudio
+        ? null
+        : SiteDataBase(
+            parents: post.parents,
+            id: post.id,
+            title: post.title,
+            description: description,
+            sort: post.sort,
+            link: post.link);
   }
 
   if (audios.length == 1) {
