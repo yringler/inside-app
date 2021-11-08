@@ -12,8 +12,8 @@ final encoder = JsonEncoder.withIndent('\t');
 late final File currentRawSiteFile;
 
 const numInvalidMedia = 0;
-const dataVersion = '5';
-const dropBoxFile = '/site.v$dataVersion.json.gz';
+late final String dataVersion;
+late final String dropBoxFile;
 const isDebug = false;
 late final String sourceUrl;
 
@@ -28,6 +28,8 @@ void main(List<String> arguments) async {
 
   currentRawSiteFile = File('rawsite.current.json');
   sourceUrl = isDebug ? 'http://localhost/' : env['sourceUrl']!;
+  dataVersion = env['dataVersion']!;
+  dropBoxFile = '/site.v$dataVersion.json.gz';
 
   final repository = WordpressLoader(
       topCategoryIds: topImagesInside.keys.toList(), wordpressUrl: sourceUrl);
