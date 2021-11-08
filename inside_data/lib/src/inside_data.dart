@@ -139,10 +139,15 @@ abstract class SiteDataLayer {
 /// The entire website. In one object. Ideally, this would only be used server side.
 @JsonSerializable()
 class SiteData {
+  final DateTime createdDate;
   final Map<String, Section> sections;
   final List<int> topSectionIds;
 
-  SiteData({required this.sections, required this.topSectionIds}) {
+  SiteData(
+      {required this.sections,
+      required this.topSectionIds,
+      DateTime? createdDate})
+      : this.createdDate = createdDate ?? DateTime.now() {
     var processing = Map<String, int?>();
     for (final id in sections.keys) {
       _setAudioCount(processing, id);
