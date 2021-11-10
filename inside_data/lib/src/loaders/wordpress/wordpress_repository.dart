@@ -26,11 +26,12 @@ class WordpressRepository {
   /// The number of HTTP downloads in progress.
   final BehaviorSubject<int> _connections = BehaviorSubject.seeded(0);
 
-  WordpressRepository({required this.wordpressDomain})
-      : wordPress = wp.WordPress(
-            baseUrl: wordpressDomain.contains('http')
-                ? wordpressDomain
-                : 'https://$wordpressDomain',
+  WordpressRepository({required String wordpressDomain})
+      : this.wordpressDomain = wordpressDomain.contains('https')
+            ? wordpressDomain
+            : 'https://$wordpressDomain',
+        wordPress = wp.WordPress(
+            baseUrl: wordpressDomain,
             authenticator: wp.WordPressAuthenticator.JWT);
 
   /// Load a category, with all children, recursively.
@@ -39,8 +40,8 @@ class WordpressRepository {
       return;
     }
 
-    final coreResponse = await _withConnectionCount(() => http.get(
-        Uri.parse('https://$wordpressDomain/$standardApiPath/categories/$id')));
+    final coreResponse = await _withConnectionCount(() => http
+        .get(Uri.parse('$wordpressDomain/$standardApiPath/categories/$id')));
     final category = wp.Category.fromJson(jsonDecode(coreResponse.body));
 
     _loadedCategories[id] = await _childCategories(category);
@@ -56,7 +57,7 @@ class WordpressRepository {
       return _loadedGroups[id]! as CustomEndpointSeries;
     }
 
-    final url = 'https://$wordpressDomain/$customApiPathSeries/$id';
+    final url = '$wordpressDomain/$customApiPathSeries/$id';
     final postsResponse =
         await _withConnectionCount(() => http.get(Uri.parse(url)));
 
@@ -104,7 +105,7 @@ class WordpressRepository {
         name: base.postName,
         title: base.postTitle,
         description: base.postContentFiltered,
-        link: 'https://$wordpressDomain/series/${base.postName}',
+        link: '$wordpressDomain/series/${base.postName}',
         posts: posts);
 
     group.sort = base.menuOrder;
@@ -121,7 +122,7 @@ class WordpressRepository {
     }
 
     final postsResponse = await _withConnectionCount(() => http.get(Uri.parse(
-        'https://$wordpressDomain/$customApiPathCategory/category/${category.id!}')));
+        '$wordpressDomain/$customApiPathCategory/category/${category.id!}')));
 
     List<CustomEndpointPost>? posts;
 

@@ -32,7 +32,8 @@ void main(List<String> arguments) async {
   dropBoxFile = '/site.v$dataVersion.json.gz';
 
   final repository = WordpressLoader(
-      topCategoryIds: topImagesInside.keys.toList(), wordpressUrl: sourceUrl);
+      topCategoryIds: topImagesInside.keys.take(1).toList(),
+      wordpressUrl: sourceUrl);
 
   final site = await repository.load(DateTime.now());
 
