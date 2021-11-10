@@ -32,7 +32,7 @@ void main(List<String> arguments) async {
   dropBoxFile = '/site.v$dataVersion.json.gz';
 
   final repository = WordpressLoader(
-      topCategoryIds: topImagesInside.keys.take(1).toList(),
+      topCategoryIds: topImagesInside.keys.toList(), //.take(1).toList(),
       wordpressUrl: sourceUrl);
 
   final site = await repository.load(DateTime.now());
@@ -139,7 +139,9 @@ List<Media> _getClassList(SiteData site) {
       .expand((element) => element.section!.content)
       // This will throw if a nested section contains a section.
       // That's a no-no; only one level of recursion is allowed.
-      .map((e) => e.media!)
+      .map((e) => e.media)
+      .where((element) => element != null)
+      .map((e) => e!)
       .toList();
 
   final regularMedia = siteContent
@@ -178,7 +180,9 @@ void _setSiteDuration(SiteData site) {
         media.length = Duration(milliseconds: duration[media.source]!);
       } else if (mediaSection != null) {
         // Throw if nested section has itself more deeply nested content.
-        for (final media in mediaSection.content.map((e) => e.media!)) {
+        for (final media in mediaSection.content
+            .where((element) => element.media != null)
+            .map((e) => e.media!)) {
           if (duration[media.source] != null) {
             media.length = Duration(milliseconds: duration[media.source]!);
           }

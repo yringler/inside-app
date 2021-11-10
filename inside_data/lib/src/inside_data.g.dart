@@ -113,9 +113,13 @@ SiteData _$SiteDataFromJson(Map<String, dynamic> json) => SiteData(
       topSectionIds: (json['topSectionIds'] as List<dynamic>)
           .map((e) => e as int)
           .toList(),
+      createdDate: json['createdDate'] == null
+          ? null
+          : DateTime.parse(json['createdDate'] as String),
     );
 
 Map<String, dynamic> _$SiteDataToJson(SiteData instance) => <String, dynamic>{
+      'createdDate': instance.createdDate.toIso8601String(),
       'sections': instance.sections,
       'topSectionIds': instance.topSectionIds,
     };

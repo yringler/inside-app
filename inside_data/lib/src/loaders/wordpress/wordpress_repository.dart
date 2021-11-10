@@ -27,12 +27,13 @@ class WordpressRepository {
   final BehaviorSubject<int> _connections = BehaviorSubject.seeded(0);
 
   WordpressRepository({required String wordpressDomain})
-      : this.wordpressDomain = wordpressDomain.contains('https')
-            ? wordpressDomain
-            : 'https://$wordpressDomain',
+      : this.wordpressDomain = _ensureHttps(wordpressDomain),
         wordPress = wp.WordPress(
-            baseUrl: wordpressDomain,
+            baseUrl: _ensureHttps(wordpressDomain),
             authenticator: wp.WordPressAuthenticator.JWT);
+
+  static String _ensureHttps(String url) =>
+      url.contains('http') ? url : 'https://$url';
 
   /// Load a category, with all children, recursively.
   Future<void> category(int id) async {
@@ -40,8 +41,14 @@ class WordpressRepository {
       return;
     }
 
-    final coreResponse = await _withConnectionCount(() => http
-        .get(Uri.parse('$wordpressDomain/$standardApiPath/categories/$id')));
+    final url = '$wordpressDomain/$standardApiPath/categories/$id';
+    final coreResponse =
+        await _withConnectionCount(() => http.get(Uri.parse(url)), url);
+
+    if (coreResponse == null) {
+      return;
+    }
+
     final category = wp.Category.fromJson(jsonDecode(coreResponse.body));
 
     _loadedCategories[id] = await _childCategories(category);
@@ -59,15 +66,17 @@ class WordpressRepository {
 
     final url = '$wordpressDomain/$customApiPathSeries/$id';
     final postsResponse =
-        await _withConnectionCount(() => http.get(Uri.parse(url)));
+        await _withConnectionCount(() => http.get(Uri.parse(url)), url);
 
     Map<String, dynamic>? jsonResponse;
 
-    try {
-      jsonResponse = (jsonDecode(postsResponse.body) as Map<String, dynamic>);
-    } catch (err) {
-      print('Url: $url\nError: $err');
-      //exit(1);
+    if (postsResponse != null) {
+      try {
+        jsonResponse = (jsonDecode(postsResponse.body) as Map<String, dynamic>);
+      } catch (err) {
+        print('Url: $url\nError: $err');
+        //exit(1);
+      }
     }
 
     if (jsonResponse == null) {
@@ -121,12 +130,14 @@ class WordpressRepository {
       return _loadedCategories[category.id]!;
     }
 
-    final postsResponse = await _withConnectionCount(() => http.get(Uri.parse(
-        '$wordpressDomain/$customApiPathCategory/category/${category.id!}')));
+    final url =
+        '$wordpressDomain/$customApiPathCategory/category/${category.id!}';
+    final postsResponse =
+        await _withConnectionCount(() => http.get(Uri.parse(url)), url);
 
     List<CustomEndpointPost>? posts;
 
-    if (postsResponse.body.trim().isNotEmpty) {
+    if (postsResponse != null && postsResponse.body.trim().isNotEmpty) {
       posts = (jsonDecode(postsResponse.body) as Map<String, dynamic>)
           .values
           .map((e) => CustomEndpointPost.fromJson(e))
@@ -143,19 +154,25 @@ class WordpressRepository {
       }).toList();
     }
 
-    final categories = await _withConnectionCount(() =>
-        wordPress.fetchCategories(
-            params: wp.ParamsCategoryList(parent: category.id),
-            fetchAll: true));
+    // query for children of category causes error if there aren't any children.
+    try {
+      final categories = await _withConnectionCount(
+          () => wordPress.fetchCategories(
+              params: wp.ParamsCategoryList(parent: category.id),
+              fetchAll: true),
+          'Fetch categories with parent: ${category.id}');
 
-    // Get child categories. Note that we don't save child category to parent category; that
-    // is handled by the child categories parents property.
-    // This prevents us from having a data structure with unknown depth.
-    final customCategories =
-        (await Future.wait(categories.map((e) => _childCategories(e)).toList()))
+      if (categories != null) {
+        // Get child categories. Note that we don't save child category to parent category; that
+        // is handled by the child categories parents property.
+        // This prevents us from having a data structure with unknown depth.
+        final customCategories = (await Future.wait(
+                categories.map((e) => _childCategories(e)).toList()))
             .toList();
 
-    CustomEndpointGroup.setSort(customCategories);
+        CustomEndpointGroup.setSort(customCategories);
+      }
+    } catch (_) {}
 
     List<CustomEndpointSeries> series = posts != null
         ? (await Future.wait(
@@ -184,14 +201,18 @@ class WordpressRepository {
     return returnValue;
   }
 
-  Future<T> _withConnectionCount<T>(Future<T> get()) async {
+  static const int maxConnections = 8;
+  Future<T?> _withConnectionCount<T>(
+      Future<T> get(), String description) async {
     try {
-      await _connections.firstWhere((element) => element < 10);
+      while (_connections.value > maxConnections) {
+        await _connections.firstWhere((element) => element < maxConnections);
+      }
       _connections.add(_connections.value + 1);
+
       return await get();
     } catch (err) {
-      print('error: $err');
-      throw err;
+      print('error: $err\nat: $description\n');
     } finally {
       _connections.add(_connections.value - 1);
     }
