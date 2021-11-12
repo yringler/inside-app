@@ -6,21 +6,21 @@ import 'package:drift/drift.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
-part 'moor_inside_data.g.dart';
+part 'drift_inside_data.g.dart';
 
-/// A media can have many parents, either other "media"s or sections
 class MediaParentsTable extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get mediaId => text()();
-  TextColumn get parentMedia => text().nullable()();
-  TextColumn get parentSection => text().nullable()();
+  TextColumn get parentSection => text()();
 }
 
-/// Called media table, because that's the most common and concrete usage. But more generally,
-/// this is really a content table, and can also hold a "media parent", which is not a section,
-/// it's kind of like a section which is content focused, and only contains other media, not
-/// other sections.
-/// (This corresponds to a custom post type which can be the parent of other posts.)
+class SectionParentsTable extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get sectionId => text()();
+  TextColumn get parentSection => text()();
+}
+
+/// Contains a single media/post
 class MediaTable extends Table {
   /// The post ID if the class is it's own post. Otherwise, taken from media source.
   TextColumn get id => text()();
@@ -38,14 +38,14 @@ class MediaTable extends Table {
 }
 
 class SectionTable extends Table {
-  IntColumn get id => integer()();
-  TextColumn get parentId => text()();
+  TextColumn get id => text()();
   IntColumn get sort => integer()();
 
   /// A section can only have a single parent, but some sections kind of are
   /// in two places. So there's a placeholder section which redirects to the
   /// real section.
-  TextColumn get redirectId => text()();
+  /// NOTE: This is not yet used.
+  TextColumn get redirectId => text().nullable()();
 
   TextColumn get title => text().nullable()();
   TextColumn get description => text().nullable()();
@@ -74,7 +74,13 @@ LazyDatabase _openConnection() {
   });
 }
 
-@DriftDatabase(tables: [SectionTable, MediaTable, UpdateTimeTable])
+@DriftDatabase(tables: [
+  SectionTable,
+  MediaTable,
+  UpdateTimeTable,
+  MediaParentsTable,
+  SectionParentsTable
+])
 class InsideDatabase extends _$InsideDatabase {
   InsideDatabase() : super(_openConnection());
 
@@ -82,15 +88,33 @@ class InsideDatabase extends _$InsideDatabase {
   int get schemaVersion => 1;
 }
 
-class MoorInsideData extends SiteDataLayer {
+class DriftInsideData extends SiteDataLayer {
   final SiteDataLoader loader;
+  final InsideDatabase database;
 
-  MoorInsideData({required this.loader});
+  DriftInsideData({required this.loader, required this.database});
 
   @override
-  Future<void> init() {
-    // TODO: implement init
-    throw UnimplementedError();
+  Future<void> init() async {
+    var lastUpdate =
+        await database.select(database.updateTimeTable).getSingleOrNull();
+
+    if (lastUpdate == null) {
+      var data = await loader.load(DateTime.fromMillisecondsSinceEpoch(0));
+
+      await database.transaction(() async {
+        await addToDatabase(data);
+      });
+    } else {
+      loader
+          .load(DateTime.fromMillisecondsSinceEpoch(lastUpdate.updateTime),
+              ensureLatest: true)
+          .then((value) {
+        database.transaction(() async {
+          await addToDatabase(value);
+        });
+      });
+    }
   }
 
   @override
@@ -109,5 +133,29 @@ class MoorInsideData extends SiteDataLayer {
   Future<List<Section>> topLevel() {
     // TODO: implement topLevel
     throw UnimplementedError();
+  }
+
+  Future<void> addToDatabase(SiteData data) async {
+    await database.batch((batch) {
+      final sections = data.sections.values
+          .map((value) => SectionTableCompanion.insert(
+              sort: value.sort,
+              count: value.audioCount,
+              description: Value.ofNullable(value.description),
+              id: value.id,
+              title: Value.ofNullable(value.title)))
+          .toList();
+
+      final sectionParents = data.sections.values
+          .map((section) => section.parents.map((parent) =>
+              SectionParentsTableCompanion.insert(
+                  sectionId: section.id, parentSection: parent)))
+          .expand((element) => element)
+          .toList();
+    });
+
+    await database.into(database.updateTimeTable).insert(
+        UpdateTimeTableCompanion(id: Value.ofNullable(0)),
+        mode: InsertMode.insertOrReplace);
   }
 }

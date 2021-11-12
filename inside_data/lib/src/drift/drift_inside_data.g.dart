@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'moor_inside_data.dart';
+part of 'drift_inside_data.dart';
 
 // **************************************************************************
 // MoorGenerator
@@ -9,38 +9,34 @@ part of 'moor_inside_data.dart';
 // ignore_for_file: unnecessary_brace_in_string_interps, unnecessary_this
 class SectionTableData extends DataClass
     implements Insertable<SectionTableData> {
-  final int id;
-  final String parentId;
+  final String id;
   final int sort;
 
   /// A section can only have a single parent, but some sections kind of are
   /// in two places. So there's a placeholder section which redirects to the
   /// real section.
-  final String redirectId;
+  /// NOTE: This is not yet used.
+  final String? redirectId;
   final String? title;
   final String? description;
   final int count;
   SectionTableData(
       {required this.id,
-      required this.parentId,
       required this.sort,
-      required this.redirectId,
+      this.redirectId,
       this.title,
       this.description,
       required this.count});
-  factory SectionTableData.fromData(
-      Map<String, dynamic> data, GeneratedDatabase db,
+  factory SectionTableData.fromData(Map<String, dynamic> data,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
     return SectionTableData(
-      id: const IntType()
+      id: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
-      parentId: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}parent_id'])!,
       sort: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}sort'])!,
       redirectId: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}redirect_id'])!,
+          .mapFromDatabaseResponse(data['${effectivePrefix}redirect_id']),
       title: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}title']),
       description: const StringType()
@@ -52,10 +48,11 @@ class SectionTableData extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['parent_id'] = Variable<String>(parentId);
+    map['id'] = Variable<String>(id);
     map['sort'] = Variable<int>(sort);
-    map['redirect_id'] = Variable<String>(redirectId);
+    if (!nullToAbsent || redirectId != null) {
+      map['redirect_id'] = Variable<String?>(redirectId);
+    }
     if (!nullToAbsent || title != null) {
       map['title'] = Variable<String?>(title);
     }
@@ -69,9 +66,10 @@ class SectionTableData extends DataClass
   SectionTableCompanion toCompanion(bool nullToAbsent) {
     return SectionTableCompanion(
       id: Value(id),
-      parentId: Value(parentId),
       sort: Value(sort),
-      redirectId: Value(redirectId),
+      redirectId: redirectId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(redirectId),
       title:
           title == null && nullToAbsent ? const Value.absent() : Value(title),
       description: description == null && nullToAbsent
@@ -85,10 +83,9 @@ class SectionTableData extends DataClass
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return SectionTableData(
-      id: serializer.fromJson<int>(json['id']),
-      parentId: serializer.fromJson<String>(json['parentId']),
+      id: serializer.fromJson<String>(json['id']),
       sort: serializer.fromJson<int>(json['sort']),
-      redirectId: serializer.fromJson<String>(json['redirectId']),
+      redirectId: serializer.fromJson<String?>(json['redirectId']),
       title: serializer.fromJson<String?>(json['title']),
       description: serializer.fromJson<String?>(json['description']),
       count: serializer.fromJson<int>(json['count']),
@@ -98,10 +95,9 @@ class SectionTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'parentId': serializer.toJson<String>(parentId),
+      'id': serializer.toJson<String>(id),
       'sort': serializer.toJson<int>(sort),
-      'redirectId': serializer.toJson<String>(redirectId),
+      'redirectId': serializer.toJson<String?>(redirectId),
       'title': serializer.toJson<String?>(title),
       'description': serializer.toJson<String?>(description),
       'count': serializer.toJson<int>(count),
@@ -109,8 +105,7 @@ class SectionTableData extends DataClass
   }
 
   SectionTableData copyWith(
-          {int? id,
-          String? parentId,
+          {String? id,
           int? sort,
           String? redirectId,
           String? title,
@@ -118,7 +113,6 @@ class SectionTableData extends DataClass
           int? count}) =>
       SectionTableData(
         id: id ?? this.id,
-        parentId: parentId ?? this.parentId,
         sort: sort ?? this.sort,
         redirectId: redirectId ?? this.redirectId,
         title: title ?? this.title,
@@ -129,7 +123,6 @@ class SectionTableData extends DataClass
   String toString() {
     return (StringBuffer('SectionTableData(')
           ..write('id: $id, ')
-          ..write('parentId: $parentId, ')
           ..write('sort: $sort, ')
           ..write('redirectId: $redirectId, ')
           ..write('title: $title, ')
@@ -141,13 +134,12 @@ class SectionTableData extends DataClass
 
   @override
   int get hashCode =>
-      Object.hash(id, parentId, sort, redirectId, title, description, count);
+      Object.hash(id, sort, redirectId, title, description, count);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SectionTableData &&
           other.id == this.id &&
-          other.parentId == this.parentId &&
           other.sort == this.sort &&
           other.redirectId == this.redirectId &&
           other.title == this.title &&
@@ -156,16 +148,14 @@ class SectionTableData extends DataClass
 }
 
 class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
-  final Value<int> id;
-  final Value<String> parentId;
+  final Value<String> id;
   final Value<int> sort;
-  final Value<String> redirectId;
+  final Value<String?> redirectId;
   final Value<String?> title;
   final Value<String?> description;
   final Value<int> count;
   const SectionTableCompanion({
     this.id = const Value.absent(),
-    this.parentId = const Value.absent(),
     this.sort = const Value.absent(),
     this.redirectId = const Value.absent(),
     this.title = const Value.absent(),
@@ -173,29 +163,25 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
     this.count = const Value.absent(),
   });
   SectionTableCompanion.insert({
-    this.id = const Value.absent(),
-    required String parentId,
+    required String id,
     required int sort,
-    required String redirectId,
+    this.redirectId = const Value.absent(),
     this.title = const Value.absent(),
     this.description = const Value.absent(),
     required int count,
-  })  : parentId = Value(parentId),
+  })  : id = Value(id),
         sort = Value(sort),
-        redirectId = Value(redirectId),
         count = Value(count);
   static Insertable<SectionTableData> custom({
-    Expression<int>? id,
-    Expression<String>? parentId,
+    Expression<String>? id,
     Expression<int>? sort,
-    Expression<String>? redirectId,
+    Expression<String?>? redirectId,
     Expression<String?>? title,
     Expression<String?>? description,
     Expression<int>? count,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (parentId != null) 'parent_id': parentId,
       if (sort != null) 'sort': sort,
       if (redirectId != null) 'redirect_id': redirectId,
       if (title != null) 'title': title,
@@ -205,16 +191,14 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
   }
 
   SectionTableCompanion copyWith(
-      {Value<int>? id,
-      Value<String>? parentId,
+      {Value<String>? id,
       Value<int>? sort,
-      Value<String>? redirectId,
+      Value<String?>? redirectId,
       Value<String?>? title,
       Value<String?>? description,
       Value<int>? count}) {
     return SectionTableCompanion(
       id: id ?? this.id,
-      parentId: parentId ?? this.parentId,
       sort: sort ?? this.sort,
       redirectId: redirectId ?? this.redirectId,
       title: title ?? this.title,
@@ -227,16 +211,13 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (parentId.present) {
-      map['parent_id'] = Variable<String>(parentId.value);
+      map['id'] = Variable<String>(id.value);
     }
     if (sort.present) {
       map['sort'] = Variable<int>(sort.value);
     }
     if (redirectId.present) {
-      map['redirect_id'] = Variable<String>(redirectId.value);
+      map['redirect_id'] = Variable<String?>(redirectId.value);
     }
     if (title.present) {
       map['title'] = Variable<String?>(title.value);
@@ -254,7 +235,6 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
   String toString() {
     return (StringBuffer('SectionTableCompanion(')
           ..write('id: $id, ')
-          ..write('parentId: $parentId, ')
           ..write('sort: $sort, ')
           ..write('redirectId: $redirectId, ')
           ..write('title: $title, ')
@@ -271,12 +251,8 @@ class $SectionTableTable extends SectionTable
   final String? _alias;
   $SectionTableTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
-  late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
+  late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
       'id', aliasedName, false,
-      typeName: 'INTEGER', requiredDuringInsert: false);
-  final VerificationMeta _parentIdMeta = const VerificationMeta('parentId');
-  late final GeneratedColumn<String?> parentId = GeneratedColumn<String?>(
-      'parent_id', aliasedName, false,
       typeName: 'TEXT', requiredDuringInsert: true);
   final VerificationMeta _sortMeta = const VerificationMeta('sort');
   late final GeneratedColumn<int?> sort = GeneratedColumn<int?>(
@@ -284,8 +260,8 @@ class $SectionTableTable extends SectionTable
       typeName: 'INTEGER', requiredDuringInsert: true);
   final VerificationMeta _redirectIdMeta = const VerificationMeta('redirectId');
   late final GeneratedColumn<String?> redirectId = GeneratedColumn<String?>(
-      'redirect_id', aliasedName, false,
-      typeName: 'TEXT', requiredDuringInsert: true);
+      'redirect_id', aliasedName, true,
+      typeName: 'TEXT', requiredDuringInsert: false);
   final VerificationMeta _titleMeta = const VerificationMeta('title');
   late final GeneratedColumn<String?> title = GeneratedColumn<String?>(
       'title', aliasedName, true,
@@ -301,7 +277,7 @@ class $SectionTableTable extends SectionTable
       typeName: 'INTEGER', requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, parentId, sort, redirectId, title, description, count];
+      [id, sort, redirectId, title, description, count];
   @override
   String get aliasedName => _alias ?? 'section_table';
   @override
@@ -313,12 +289,8 @@ class $SectionTableTable extends SectionTable
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('parent_id')) {
-      context.handle(_parentIdMeta,
-          parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta));
     } else if (isInserting) {
-      context.missing(_parentIdMeta);
+      context.missing(_idMeta);
     }
     if (data.containsKey('sort')) {
       context.handle(
@@ -331,8 +303,6 @@ class $SectionTableTable extends SectionTable
           _redirectIdMeta,
           redirectId.isAcceptableOrUnknown(
               data['redirect_id']!, _redirectIdMeta));
-    } else if (isInserting) {
-      context.missing(_redirectIdMeta);
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -357,7 +327,7 @@ class $SectionTableTable extends SectionTable
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   SectionTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return SectionTableData.fromData(data, _db,
+    return SectionTableData.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -384,9 +354,7 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
       this.title,
       this.description,
       required this.duration});
-  factory MediaTableData.fromData(
-      Map<String, dynamic> data, GeneratedDatabase db,
-      {String? prefix}) {
+  factory MediaTableData.fromData(Map<String, dynamic> data, {String? prefix}) {
     final effectivePrefix = prefix ?? '';
     return MediaTableData(
       id: const StringType()
@@ -682,7 +650,7 @@ class $MediaTableTable extends MediaTable
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   MediaTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return MediaTableData.fromData(data, _db,
+    return MediaTableData.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -699,8 +667,7 @@ class UpdateTimeTableData extends DataClass
   /// Last time DB was updated, in milliseconds since epoch.
   final int updateTime;
   UpdateTimeTableData({required this.id, required this.updateTime});
-  factory UpdateTimeTableData.fromData(
-      Map<String, dynamic> data, GeneratedDatabase db,
+  factory UpdateTimeTableData.fromData(Map<String, dynamic> data,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
     return UpdateTimeTableData(
@@ -861,7 +828,7 @@ class $UpdateTimeTableTable extends UpdateTimeTable
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   UpdateTimeTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return UpdateTimeTableData.fromData(data, _db,
+    return UpdateTimeTableData.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -871,15 +838,451 @@ class $UpdateTimeTableTable extends UpdateTimeTable
   }
 }
 
+class MediaParentsTableData extends DataClass
+    implements Insertable<MediaParentsTableData> {
+  final int id;
+  final String mediaId;
+  final String parentSection;
+  MediaParentsTableData(
+      {required this.id, required this.mediaId, required this.parentSection});
+  factory MediaParentsTableData.fromData(Map<String, dynamic> data,
+      {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return MediaParentsTableData(
+      id: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      mediaId: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}media_id'])!,
+      parentSection: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}parent_section'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['media_id'] = Variable<String>(mediaId);
+    map['parent_section'] = Variable<String>(parentSection);
+    return map;
+  }
+
+  MediaParentsTableCompanion toCompanion(bool nullToAbsent) {
+    return MediaParentsTableCompanion(
+      id: Value(id),
+      mediaId: Value(mediaId),
+      parentSection: Value(parentSection),
+    );
+  }
+
+  factory MediaParentsTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MediaParentsTableData(
+      id: serializer.fromJson<int>(json['id']),
+      mediaId: serializer.fromJson<String>(json['mediaId']),
+      parentSection: serializer.fromJson<String>(json['parentSection']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'mediaId': serializer.toJson<String>(mediaId),
+      'parentSection': serializer.toJson<String>(parentSection),
+    };
+  }
+
+  MediaParentsTableData copyWith(
+          {int? id, String? mediaId, String? parentSection}) =>
+      MediaParentsTableData(
+        id: id ?? this.id,
+        mediaId: mediaId ?? this.mediaId,
+        parentSection: parentSection ?? this.parentSection,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('MediaParentsTableData(')
+          ..write('id: $id, ')
+          ..write('mediaId: $mediaId, ')
+          ..write('parentSection: $parentSection')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, mediaId, parentSection);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MediaParentsTableData &&
+          other.id == this.id &&
+          other.mediaId == this.mediaId &&
+          other.parentSection == this.parentSection);
+}
+
+class MediaParentsTableCompanion
+    extends UpdateCompanion<MediaParentsTableData> {
+  final Value<int> id;
+  final Value<String> mediaId;
+  final Value<String> parentSection;
+  const MediaParentsTableCompanion({
+    this.id = const Value.absent(),
+    this.mediaId = const Value.absent(),
+    this.parentSection = const Value.absent(),
+  });
+  MediaParentsTableCompanion.insert({
+    this.id = const Value.absent(),
+    required String mediaId,
+    required String parentSection,
+  })  : mediaId = Value(mediaId),
+        parentSection = Value(parentSection);
+  static Insertable<MediaParentsTableData> custom({
+    Expression<int>? id,
+    Expression<String>? mediaId,
+    Expression<String>? parentSection,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (mediaId != null) 'media_id': mediaId,
+      if (parentSection != null) 'parent_section': parentSection,
+    });
+  }
+
+  MediaParentsTableCompanion copyWith(
+      {Value<int>? id, Value<String>? mediaId, Value<String>? parentSection}) {
+    return MediaParentsTableCompanion(
+      id: id ?? this.id,
+      mediaId: mediaId ?? this.mediaId,
+      parentSection: parentSection ?? this.parentSection,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (mediaId.present) {
+      map['media_id'] = Variable<String>(mediaId.value);
+    }
+    if (parentSection.present) {
+      map['parent_section'] = Variable<String>(parentSection.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaParentsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('mediaId: $mediaId, ')
+          ..write('parentSection: $parentSection')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MediaParentsTableTable extends MediaParentsTable
+    with TableInfo<$MediaParentsTableTable, MediaParentsTableData> {
+  final GeneratedDatabase _db;
+  final String? _alias;
+  $MediaParentsTableTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
+      'id', aliasedName, false,
+      typeName: 'INTEGER',
+      requiredDuringInsert: false,
+      defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  final VerificationMeta _mediaIdMeta = const VerificationMeta('mediaId');
+  late final GeneratedColumn<String?> mediaId = GeneratedColumn<String?>(
+      'media_id', aliasedName, false,
+      typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _parentSectionMeta =
+      const VerificationMeta('parentSection');
+  late final GeneratedColumn<String?> parentSection = GeneratedColumn<String?>(
+      'parent_section', aliasedName, false,
+      typeName: 'TEXT', requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, mediaId, parentSection];
+  @override
+  String get aliasedName => _alias ?? 'media_parents_table';
+  @override
+  String get actualTableName => 'media_parents_table';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<MediaParentsTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('media_id')) {
+      context.handle(_mediaIdMeta,
+          mediaId.isAcceptableOrUnknown(data['media_id']!, _mediaIdMeta));
+    } else if (isInserting) {
+      context.missing(_mediaIdMeta);
+    }
+    if (data.containsKey('parent_section')) {
+      context.handle(
+          _parentSectionMeta,
+          parentSection.isAcceptableOrUnknown(
+              data['parent_section']!, _parentSectionMeta));
+    } else if (isInserting) {
+      context.missing(_parentSectionMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MediaParentsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return MediaParentsTableData.fromData(data,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $MediaParentsTableTable createAlias(String alias) {
+    return $MediaParentsTableTable(_db, alias);
+  }
+}
+
+class SectionParentsTableData extends DataClass
+    implements Insertable<SectionParentsTableData> {
+  final int id;
+  final String sectionId;
+  final String parentSection;
+  SectionParentsTableData(
+      {required this.id, required this.sectionId, required this.parentSection});
+  factory SectionParentsTableData.fromData(Map<String, dynamic> data,
+      {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return SectionParentsTableData(
+      id: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      sectionId: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}section_id'])!,
+      parentSection: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}parent_section'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['section_id'] = Variable<String>(sectionId);
+    map['parent_section'] = Variable<String>(parentSection);
+    return map;
+  }
+
+  SectionParentsTableCompanion toCompanion(bool nullToAbsent) {
+    return SectionParentsTableCompanion(
+      id: Value(id),
+      sectionId: Value(sectionId),
+      parentSection: Value(parentSection),
+    );
+  }
+
+  factory SectionParentsTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SectionParentsTableData(
+      id: serializer.fromJson<int>(json['id']),
+      sectionId: serializer.fromJson<String>(json['sectionId']),
+      parentSection: serializer.fromJson<String>(json['parentSection']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'sectionId': serializer.toJson<String>(sectionId),
+      'parentSection': serializer.toJson<String>(parentSection),
+    };
+  }
+
+  SectionParentsTableData copyWith(
+          {int? id, String? sectionId, String? parentSection}) =>
+      SectionParentsTableData(
+        id: id ?? this.id,
+        sectionId: sectionId ?? this.sectionId,
+        parentSection: parentSection ?? this.parentSection,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('SectionParentsTableData(')
+          ..write('id: $id, ')
+          ..write('sectionId: $sectionId, ')
+          ..write('parentSection: $parentSection')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, sectionId, parentSection);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SectionParentsTableData &&
+          other.id == this.id &&
+          other.sectionId == this.sectionId &&
+          other.parentSection == this.parentSection);
+}
+
+class SectionParentsTableCompanion
+    extends UpdateCompanion<SectionParentsTableData> {
+  final Value<int> id;
+  final Value<String> sectionId;
+  final Value<String> parentSection;
+  const SectionParentsTableCompanion({
+    this.id = const Value.absent(),
+    this.sectionId = const Value.absent(),
+    this.parentSection = const Value.absent(),
+  });
+  SectionParentsTableCompanion.insert({
+    this.id = const Value.absent(),
+    required String sectionId,
+    required String parentSection,
+  })  : sectionId = Value(sectionId),
+        parentSection = Value(parentSection);
+  static Insertable<SectionParentsTableData> custom({
+    Expression<int>? id,
+    Expression<String>? sectionId,
+    Expression<String>? parentSection,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sectionId != null) 'section_id': sectionId,
+      if (parentSection != null) 'parent_section': parentSection,
+    });
+  }
+
+  SectionParentsTableCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? sectionId,
+      Value<String>? parentSection}) {
+    return SectionParentsTableCompanion(
+      id: id ?? this.id,
+      sectionId: sectionId ?? this.sectionId,
+      parentSection: parentSection ?? this.parentSection,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (sectionId.present) {
+      map['section_id'] = Variable<String>(sectionId.value);
+    }
+    if (parentSection.present) {
+      map['parent_section'] = Variable<String>(parentSection.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SectionParentsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('sectionId: $sectionId, ')
+          ..write('parentSection: $parentSection')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SectionParentsTableTable extends SectionParentsTable
+    with TableInfo<$SectionParentsTableTable, SectionParentsTableData> {
+  final GeneratedDatabase _db;
+  final String? _alias;
+  $SectionParentsTableTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
+      'id', aliasedName, false,
+      typeName: 'INTEGER',
+      requiredDuringInsert: false,
+      defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  final VerificationMeta _sectionIdMeta = const VerificationMeta('sectionId');
+  late final GeneratedColumn<String?> sectionId = GeneratedColumn<String?>(
+      'section_id', aliasedName, false,
+      typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _parentSectionMeta =
+      const VerificationMeta('parentSection');
+  late final GeneratedColumn<String?> parentSection = GeneratedColumn<String?>(
+      'parent_section', aliasedName, false,
+      typeName: 'TEXT', requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, sectionId, parentSection];
+  @override
+  String get aliasedName => _alias ?? 'section_parents_table';
+  @override
+  String get actualTableName => 'section_parents_table';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<SectionParentsTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('section_id')) {
+      context.handle(_sectionIdMeta,
+          sectionId.isAcceptableOrUnknown(data['section_id']!, _sectionIdMeta));
+    } else if (isInserting) {
+      context.missing(_sectionIdMeta);
+    }
+    if (data.containsKey('parent_section')) {
+      context.handle(
+          _parentSectionMeta,
+          parentSection.isAcceptableOrUnknown(
+              data['parent_section']!, _parentSectionMeta));
+    } else if (isInserting) {
+      context.missing(_parentSectionMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SectionParentsTableData map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    return SectionParentsTableData.fromData(data,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $SectionParentsTableTable createAlias(String alias) {
+    return $SectionParentsTableTable(_db, alias);
+  }
+}
+
 abstract class _$InsideDatabase extends GeneratedDatabase {
   _$InsideDatabase(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
   late final $SectionTableTable sectionTable = $SectionTableTable(this);
   late final $MediaTableTable mediaTable = $MediaTableTable(this);
   late final $UpdateTimeTableTable updateTimeTable =
       $UpdateTimeTableTable(this);
+  late final $MediaParentsTableTable mediaParentsTable =
+      $MediaParentsTableTable(this);
+  late final $SectionParentsTableTable sectionParentsTable =
+      $SectionParentsTableTable(this);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [sectionTable, mediaTable, updateTimeTable];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+        sectionTable,
+        mediaTable,
+        updateTimeTable,
+        mediaParentsTable,
+        sectionParentsTable
+      ];
 }
