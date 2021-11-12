@@ -131,7 +131,7 @@ class Section extends SiteDataBase {
 /// Provides access to site data.
 abstract class SiteDataLayer {
   Future<void> init();
-  List<Section> topLevel();
+  Future<List<Section>> topLevel();
   Future<Section> section(String id);
   Future<Media> media(String id);
 }

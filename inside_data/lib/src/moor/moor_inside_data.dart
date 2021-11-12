@@ -106,7 +106,7 @@ class MoorInsideData extends SiteDataLayer {
   }
 
   @override
-  List<Section> topLevel() {
+  Future<List<Section>> topLevel() {
     // TODO: implement topLevel
     throw UnimplementedError();
   }
