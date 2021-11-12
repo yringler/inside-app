@@ -83,7 +83,7 @@ class SectionTableData extends DataClass
 
   factory SectionTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return SectionTableData(
       id: serializer.fromJson<int>(json['id']),
       parentId: serializer.fromJson<String>(json['parentId']),
@@ -96,7 +96,7 @@ class SectionTableData extends DataClass
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'parentId': serializer.toJson<String>(parentId),
@@ -435,7 +435,7 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
 
   factory MediaTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return MediaTableData(
       id: serializer.fromJson<String>(json['id']),
       source: serializer.fromJson<String>(json['source']),
@@ -447,7 +447,7 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'source': serializer.toJson<String>(source),
@@ -727,7 +727,7 @@ class UpdateTimeTableData extends DataClass
 
   factory UpdateTimeTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return UpdateTimeTableData(
       id: serializer.fromJson<int>(json['id']),
       updateTime: serializer.fromJson<int>(json['updateTime']),
@@ -735,7 +735,7 @@ class UpdateTimeTableData extends DataClass
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'updateTime': serializer.toJson<int>(updateTime),

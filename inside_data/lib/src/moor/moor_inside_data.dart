@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:inside_data/inside_data.dart';
-import 'package:moor/ffi.dart';
-import 'package:moor/moor.dart';
+import 'package:drift/native.dart';
+import 'package:drift/drift.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -70,11 +70,11 @@ LazyDatabase _openConnection() {
     // for your app.
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'insidedata.sqlite'));
-    return VmDatabase(file);
+    return NativeDatabase(file);
   });
 }
 
-@UseMoor(tables: [SectionTable, MediaTable, UpdateTimeTable])
+@DriftDatabase(tables: [SectionTable, MediaTable, UpdateTimeTable])
 class InsideDatabase extends _$InsideDatabase {
   InsideDatabase() : super(_openConnection());
 
