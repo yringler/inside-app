@@ -346,14 +346,14 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   final String? description;
 
   /// How long the class is, in milliseconds.
-  final int duration;
+  final int? duration;
   MediaTableData(
       {required this.id,
       required this.source,
       required this.sort,
       this.title,
       this.description,
-      required this.duration});
+      this.duration});
   factory MediaTableData.fromData(Map<String, dynamic> data, {String? prefix}) {
     final effectivePrefix = prefix ?? '';
     return MediaTableData(
@@ -368,7 +368,7 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
       description: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}description']),
       duration: const IntType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}duration'])!,
+          .mapFromDatabaseResponse(data['${effectivePrefix}duration']),
     );
   }
   @override
@@ -383,7 +383,9 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String?>(description);
     }
-    map['duration'] = Variable<int>(duration);
+    if (!nullToAbsent || duration != null) {
+      map['duration'] = Variable<int?>(duration);
+    }
     return map;
   }
 
@@ -397,7 +399,9 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
-      duration: Value(duration),
+      duration: duration == null && nullToAbsent
+          ? const Value.absent()
+          : Value(duration),
     );
   }
 
@@ -410,7 +414,7 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
       sort: serializer.fromJson<int>(json['sort']),
       title: serializer.fromJson<String?>(json['title']),
       description: serializer.fromJson<String?>(json['description']),
-      duration: serializer.fromJson<int>(json['duration']),
+      duration: serializer.fromJson<int?>(json['duration']),
     );
   }
   @override
@@ -422,7 +426,7 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
       'sort': serializer.toJson<int>(sort),
       'title': serializer.toJson<String?>(title),
       'description': serializer.toJson<String?>(description),
-      'duration': serializer.toJson<int>(duration),
+      'duration': serializer.toJson<int?>(duration),
     };
   }
 
@@ -475,7 +479,7 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
   final Value<int> sort;
   final Value<String?> title;
   final Value<String?> description;
-  final Value<int> duration;
+  final Value<int?> duration;
   const MediaTableCompanion({
     this.id = const Value.absent(),
     this.source = const Value.absent(),
@@ -490,18 +494,17 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
     required int sort,
     this.title = const Value.absent(),
     this.description = const Value.absent(),
-    required int duration,
+    this.duration = const Value.absent(),
   })  : id = Value(id),
         source = Value(source),
-        sort = Value(sort),
-        duration = Value(duration);
+        sort = Value(sort);
   static Insertable<MediaTableData> custom({
     Expression<String>? id,
     Expression<String>? source,
     Expression<int>? sort,
     Expression<String?>? title,
     Expression<String?>? description,
-    Expression<int>? duration,
+    Expression<int?>? duration,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -519,7 +522,7 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
       Value<int>? sort,
       Value<String?>? title,
       Value<String?>? description,
-      Value<int>? duration}) {
+      Value<int?>? duration}) {
     return MediaTableCompanion(
       id: id ?? this.id,
       source: source ?? this.source,
@@ -549,7 +552,7 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
       map['description'] = Variable<String?>(description.value);
     }
     if (duration.present) {
-      map['duration'] = Variable<int>(duration.value);
+      map['duration'] = Variable<int?>(duration.value);
     }
     return map;
   }
@@ -596,8 +599,8 @@ class $MediaTableTable extends MediaTable
       typeName: 'TEXT', requiredDuringInsert: false);
   final VerificationMeta _durationMeta = const VerificationMeta('duration');
   late final GeneratedColumn<int?> duration = GeneratedColumn<int?>(
-      'duration', aliasedName, false,
-      typeName: 'INTEGER', requiredDuringInsert: true);
+      'duration', aliasedName, true,
+      typeName: 'INTEGER', requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
       [id, source, sort, title, description, duration];
@@ -640,8 +643,6 @@ class $MediaTableTable extends MediaTable
     if (data.containsKey('duration')) {
       context.handle(_durationMeta,
           duration.isAcceptableOrUnknown(data['duration']!, _durationMeta));
-    } else if (isInserting) {
-      context.missing(_durationMeta);
     }
     return context;
   }

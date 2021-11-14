@@ -31,7 +31,7 @@ class MediaTable extends Table {
   TextColumn get description => text().nullable()();
 
   /// How long the class is, in milliseconds.
-  IntColumn get duration => integer()();
+  IntColumn get duration => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -57,10 +57,13 @@ class SectionTable extends Table {
 
 /// Yes, an entire table. To store last upate time. Sue me.
 class UpdateTimeTable extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  IntColumn get id => integer().withDefault(const Constant(0))();
 
   /// Last time DB was updated, in milliseconds since epoch.
   IntColumn get updateTime => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 LazyDatabase _openConnection() {
@@ -86,6 +89,63 @@ class InsideDatabase extends _$InsideDatabase {
 
   @override
   int get schemaVersion => 1;
+
+  Future<void> addSections(List<Section> sections) {
+    final sectionCompanions = sections
+        .map((value) => SectionTableCompanion.insert(
+            sort: value.sort,
+            count: value.audioCount,
+            description: Value.ofNullable(value.description),
+            id: value.id,
+            title: Value.ofNullable(value.title)))
+        .toList();
+
+    final sectionParents = sections
+        .map((section) => section.parents.map((parent) =>
+            SectionParentsTableCompanion.insert(
+                sectionId: section.id, parentSection: parent)))
+        .expand((element) => element)
+        .toList();
+
+    return batch((batch) {
+      batch.insertAll(sectionTable, sectionCompanions);
+      batch.insertAll(sectionParentsTable, sectionParents);
+    });
+  }
+
+  Future<void> addMedia(List<Media> medias) {
+    final mediaCompanions = medias
+        .map((e) => MediaTableCompanion.insert(
+            id: e.id,
+            source: e.source,
+            sort: e.sort,
+            duration: Value.ofNullable(e.length?.inMilliseconds),
+            description: Value.ofNullable(e.description),
+            title: Value.ofNullable(e.title)))
+        .toList();
+
+    final mediaParents = medias
+        .map((media) => media.parents.map((parent) =>
+            MediaParentsTableCompanion.insert(
+                mediaId: media.id, parentSection: parent)))
+        .expand((element) => element)
+        .toList();
+
+    return batch((batch) {
+      batch.insertAll(mediaTable, mediaCompanions);
+      batch.insertAll(mediaParentsTable, mediaParents);
+    });
+  }
+
+  Future<void> setUpdateTime(DateTime time) => into(updateTimeTable).insert(
+      UpdateTimeTableCompanion.insert(updateTime: time.millisecondsSinceEpoch));
+
+  Future<DateTime?> getUpdateTime() async {
+    final row = await select(updateTimeTable).getSingleOrNull();
+    return row == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(row.updateTime);
+  }
 }
 
 class DriftInsideData extends SiteDataLayer {
@@ -136,26 +196,10 @@ class DriftInsideData extends SiteDataLayer {
   }
 
   Future<void> addToDatabase(SiteData data) async {
-    await database.batch((batch) {
-      final sections = data.sections.values
-          .map((value) => SectionTableCompanion.insert(
-              sort: value.sort,
-              count: value.audioCount,
-              description: Value.ofNullable(value.description),
-              id: value.id,
-              title: Value.ofNullable(value.title)))
-          .toList();
-
-      final sectionParents = data.sections.values
-          .map((section) => section.parents.map((parent) =>
-              SectionParentsTableCompanion.insert(
-                  sectionId: section.id, parentSection: parent)))
-          .expand((element) => element)
-          .toList();
-    });
-
-    await database.into(database.updateTimeTable).insert(
-        UpdateTimeTableCompanion(id: Value.ofNullable(0)),
-        mode: InsertMode.insertOrReplace);
+    // Might be faster to run all at the same time with Future.wait, but that might
+    // be a bit much for an older phone, and probably won't make much diffirence in time.
+    await database.addSections(data.sections.values.toList());
+    await database.addMedia(data.medias.toList());
+    await database.setUpdateTime(data.createdDate);
   }
 }

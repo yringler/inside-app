@@ -97,6 +97,7 @@ class ContentReference {
   bool get isSection => contentType == ContentType.section;
   bool get hasMedia => media != null;
   bool get hasSection => section != null;
+  bool get hasValue => hasMedia || hasSection;
 }
 
 @JsonSerializable()
@@ -143,6 +144,19 @@ class SiteData {
   final Map<String, Section> sections;
   final List<int> topSectionIds;
 
+  /// All medias, extracted from [sections].
+  Iterable<Media> get medias => sections.values
+      .map((e) => e.content)
+      .expand((element) => element)
+      .map((e) => [
+            if (e.hasMedia) e.media!,
+            if (e.hasSection)
+              ...e.section!.content
+                  .where((element) => element.hasMedia)
+                  .map((e) => e.media!)
+          ])
+      .expand((element) => element);
+
   SiteData(
       {required this.sections,
       required this.topSectionIds,
@@ -154,11 +168,27 @@ class SiteData {
     }
   }
 
+  /// Create site data from list of sections. We support one level of recursion - a section can be in a section,
+  /// but no more than that.
+  /// This corresponds to a wordpress section, which can be in a category.
+  /// But a nested category is only connected to its parent via the childs parent property,
+  /// and must be in the first level of [sections].
   SiteData.fromList(
       {required List<Section> sections, required List<int> topSectionIds})
-      : this(
-            sections: {for (var section in sections) section.id: section},
-            topSectionIds: topSectionIds);
+      : this(sections: {
+          for (var section in sections
+              .map((e) => [
+                    e,
+                    ...e.content
+                        .where((element) =>
+                            element.isSection && element.section != null)
+                        .map((e) => e.section!)
+                        .toList()
+                  ])
+              .expand((element) => element)
+              .toSet())
+            section.id: section
+        }, topSectionIds: topSectionIds);
 
   Map<String, dynamic> toJson() => _$SiteDataToJson(this);
 
