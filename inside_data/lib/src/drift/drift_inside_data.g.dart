@@ -17,6 +17,7 @@ class SectionTableData extends DataClass
   /// real section.
   /// NOTE: This is not yet used.
   final String? redirectId;
+  final String link;
   final String? title;
   final String? description;
   final int count;
@@ -24,6 +25,7 @@ class SectionTableData extends DataClass
       {required this.id,
       required this.sort,
       this.redirectId,
+      required this.link,
       this.title,
       this.description,
       required this.count});
@@ -37,6 +39,8 @@ class SectionTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}sort'])!,
       redirectId: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}redirect_id']),
+      link: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}link'])!,
       title: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}title']),
       description: const StringType()
@@ -53,6 +57,7 @@ class SectionTableData extends DataClass
     if (!nullToAbsent || redirectId != null) {
       map['redirect_id'] = Variable<String?>(redirectId);
     }
+    map['link'] = Variable<String>(link);
     if (!nullToAbsent || title != null) {
       map['title'] = Variable<String?>(title);
     }
@@ -70,6 +75,7 @@ class SectionTableData extends DataClass
       redirectId: redirectId == null && nullToAbsent
           ? const Value.absent()
           : Value(redirectId),
+      link: Value(link),
       title:
           title == null && nullToAbsent ? const Value.absent() : Value(title),
       description: description == null && nullToAbsent
@@ -86,6 +92,7 @@ class SectionTableData extends DataClass
       id: serializer.fromJson<String>(json['id']),
       sort: serializer.fromJson<int>(json['sort']),
       redirectId: serializer.fromJson<String?>(json['redirectId']),
+      link: serializer.fromJson<String>(json['link']),
       title: serializer.fromJson<String?>(json['title']),
       description: serializer.fromJson<String?>(json['description']),
       count: serializer.fromJson<int>(json['count']),
@@ -98,6 +105,7 @@ class SectionTableData extends DataClass
       'id': serializer.toJson<String>(id),
       'sort': serializer.toJson<int>(sort),
       'redirectId': serializer.toJson<String?>(redirectId),
+      'link': serializer.toJson<String>(link),
       'title': serializer.toJson<String?>(title),
       'description': serializer.toJson<String?>(description),
       'count': serializer.toJson<int>(count),
@@ -108,6 +116,7 @@ class SectionTableData extends DataClass
           {String? id,
           int? sort,
           String? redirectId,
+          String? link,
           String? title,
           String? description,
           int? count}) =>
@@ -115,6 +124,7 @@ class SectionTableData extends DataClass
         id: id ?? this.id,
         sort: sort ?? this.sort,
         redirectId: redirectId ?? this.redirectId,
+        link: link ?? this.link,
         title: title ?? this.title,
         description: description ?? this.description,
         count: count ?? this.count,
@@ -125,6 +135,7 @@ class SectionTableData extends DataClass
           ..write('id: $id, ')
           ..write('sort: $sort, ')
           ..write('redirectId: $redirectId, ')
+          ..write('link: $link, ')
           ..write('title: $title, ')
           ..write('description: $description, ')
           ..write('count: $count')
@@ -134,7 +145,7 @@ class SectionTableData extends DataClass
 
   @override
   int get hashCode =>
-      Object.hash(id, sort, redirectId, title, description, count);
+      Object.hash(id, sort, redirectId, link, title, description, count);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -142,6 +153,7 @@ class SectionTableData extends DataClass
           other.id == this.id &&
           other.sort == this.sort &&
           other.redirectId == this.redirectId &&
+          other.link == this.link &&
           other.title == this.title &&
           other.description == this.description &&
           other.count == this.count);
@@ -151,6 +163,7 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
   final Value<String> id;
   final Value<int> sort;
   final Value<String?> redirectId;
+  final Value<String> link;
   final Value<String?> title;
   final Value<String?> description;
   final Value<int> count;
@@ -158,6 +171,7 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
     this.id = const Value.absent(),
     this.sort = const Value.absent(),
     this.redirectId = const Value.absent(),
+    this.link = const Value.absent(),
     this.title = const Value.absent(),
     this.description = const Value.absent(),
     this.count = const Value.absent(),
@@ -166,16 +180,19 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
     required String id,
     required int sort,
     this.redirectId = const Value.absent(),
+    required String link,
     this.title = const Value.absent(),
     this.description = const Value.absent(),
     required int count,
   })  : id = Value(id),
         sort = Value(sort),
+        link = Value(link),
         count = Value(count);
   static Insertable<SectionTableData> custom({
     Expression<String>? id,
     Expression<int>? sort,
     Expression<String?>? redirectId,
+    Expression<String>? link,
     Expression<String?>? title,
     Expression<String?>? description,
     Expression<int>? count,
@@ -184,6 +201,7 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
       if (id != null) 'id': id,
       if (sort != null) 'sort': sort,
       if (redirectId != null) 'redirect_id': redirectId,
+      if (link != null) 'link': link,
       if (title != null) 'title': title,
       if (description != null) 'description': description,
       if (count != null) 'count': count,
@@ -194,6 +212,7 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
       {Value<String>? id,
       Value<int>? sort,
       Value<String?>? redirectId,
+      Value<String>? link,
       Value<String?>? title,
       Value<String?>? description,
       Value<int>? count}) {
@@ -201,6 +220,7 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
       id: id ?? this.id,
       sort: sort ?? this.sort,
       redirectId: redirectId ?? this.redirectId,
+      link: link ?? this.link,
       title: title ?? this.title,
       description: description ?? this.description,
       count: count ?? this.count,
@@ -218,6 +238,9 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
     }
     if (redirectId.present) {
       map['redirect_id'] = Variable<String?>(redirectId.value);
+    }
+    if (link.present) {
+      map['link'] = Variable<String>(link.value);
     }
     if (title.present) {
       map['title'] = Variable<String?>(title.value);
@@ -237,6 +260,7 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
           ..write('id: $id, ')
           ..write('sort: $sort, ')
           ..write('redirectId: $redirectId, ')
+          ..write('link: $link, ')
           ..write('title: $title, ')
           ..write('description: $description, ')
           ..write('count: $count')
@@ -262,6 +286,10 @@ class $SectionTableTable extends SectionTable
   late final GeneratedColumn<String?> redirectId = GeneratedColumn<String?>(
       'redirect_id', aliasedName, true,
       typeName: 'TEXT', requiredDuringInsert: false);
+  final VerificationMeta _linkMeta = const VerificationMeta('link');
+  late final GeneratedColumn<String?> link = GeneratedColumn<String?>(
+      'link', aliasedName, false,
+      typeName: 'TEXT', requiredDuringInsert: true);
   final VerificationMeta _titleMeta = const VerificationMeta('title');
   late final GeneratedColumn<String?> title = GeneratedColumn<String?>(
       'title', aliasedName, true,
@@ -277,7 +305,7 @@ class $SectionTableTable extends SectionTable
       typeName: 'INTEGER', requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, sort, redirectId, title, description, count];
+      [id, sort, redirectId, link, title, description, count];
   @override
   String get aliasedName => _alias ?? 'section_table';
   @override
@@ -303,6 +331,12 @@ class $SectionTableTable extends SectionTable
           _redirectIdMeta,
           redirectId.isAcceptableOrUnknown(
               data['redirect_id']!, _redirectIdMeta));
+    }
+    if (data.containsKey('link')) {
+      context.handle(
+          _linkMeta, link.isAcceptableOrUnknown(data['link']!, _linkMeta));
+    } else if (isInserting) {
+      context.missing(_linkMeta);
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -794,7 +828,7 @@ class $UpdateTimeTableTable extends UpdateTimeTable
       'id', aliasedName, false,
       typeName: 'INTEGER',
       requiredDuringInsert: false,
-      defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
+      defaultValue: const Constant(0));
   final VerificationMeta _updateTimeMeta = const VerificationMeta('updateTime');
   late final GeneratedColumn<int?> updateTime = GeneratedColumn<int?>(
       'update_time', aliasedName, false,

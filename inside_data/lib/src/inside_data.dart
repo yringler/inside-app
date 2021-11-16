@@ -237,5 +237,5 @@ abstract class SiteDataLoader {
   /// If no data, load will load data, and trigger to prepare updates for next time.
   /// If [ensureLatest] is true, will ensure that latest data is used now (instead of
   /// just being prepared to use next time).
-  Future<SiteData> load(DateTime lastLoadTime, {bool ensureLatest = false});
+  Future<SiteData?> load(DateTime lastLoadTime, {bool ensureLatest = false});
 }

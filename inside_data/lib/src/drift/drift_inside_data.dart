@@ -47,6 +47,8 @@ class SectionTable extends Table {
   /// NOTE: This is not yet used.
   TextColumn get redirectId => text().nullable()();
 
+  TextColumn get link => text()();
+
   TextColumn get title => text().nullable()();
   TextColumn get description => text().nullable()();
   IntColumn get count => integer()();
@@ -93,6 +95,7 @@ class InsideDatabase extends _$InsideDatabase {
   Future<void> addSections(List<Section> sections) {
     final sectionCompanions = sections
         .map((value) => SectionTableCompanion.insert(
+            link: value.link,
             sort: value.sort,
             count: value.audioCount,
             description: Value.ofNullable(value.description),
@@ -137,6 +140,75 @@ class InsideDatabase extends _$InsideDatabase {
     });
   }
 
+  Future<Media> media(String id) async {
+    final query = (select(mediaTable)..where((tbl) => tbl.id.equals(id))).join([
+      leftOuterJoin(
+          mediaParentsTable, mediaParentsTable.mediaId.equalsExp(mediaTable.id))
+    ]);
+
+    final queryValue = await query.get();
+
+    final parents = queryValue
+        .map((e) => e.readTableOrNull(mediaParentsTable))
+        .where((element) => element != null)
+        .map((e) => e!.parentSection)
+        .toSet();
+    final media = queryValue.single.readTable(mediaTable);
+
+    // TODO: should title and description be nullable?
+
+    return Media(
+        source: media.source,
+        id: id,
+        sort: media.sort,
+        title: media.title ?? '',
+        description: media.description ?? '',
+        parents: parents);
+  }
+
+  /// Will load section and any child media or child sections.
+  /// Will not load any media or sections of child sections.
+  Future<Section?> section(String id) async {
+    final baseSectionQuery =
+        (select(sectionTable)..where((tbl) => tbl.id.equals(id))).join([
+      leftOuterJoin(sectionParentsTable,
+          sectionParentsTable.sectionId.equalsExp(sectionTable.id)),
+    ]);
+
+    final baseSectionQueryValue = await baseSectionQuery.get();
+    final baseSectionRow = baseSectionQueryValue
+        .map((e) => e.readTableOrNull(sectionTable))
+        .where((element) => element != null)
+        .first!;
+    final parents = baseSectionQueryValue
+        .map((e) => e.readTableOrNull(sectionParentsTable))
+        .where((element) => element != null)
+        .map((e) => e!.parentSection)
+        .toSet();
+    final base = SiteDataBase(
+        id: id,
+        title: baseSectionRow.title ?? '',
+        description: baseSectionRow.description ?? '',
+        sort: baseSectionRow.sort,
+        link: baseSectionRow.link,
+        parents: parents);
+
+    // Query for child sections
+    final childSectionsQuery = (select(sectionParentsTable)
+          ..where((tbl) => tbl.parentSection.equals(id)))
+        .join([
+      innerJoin(sectionTable,
+          sectionTable.id.equalsExp(sectionParentsTable.sectionId))
+    ]);
+
+    // Query for media.
+    final mediaQuery = (select(mediaParentsTable)
+          ..where((tbl) => tbl.parentSection.equals(id)))
+        .join([
+      innerJoin(mediaTable, mediaTable.id.equalsExp(mediaParentsTable.mediaId))
+    ]);
+  }
+
   Future<void> setUpdateTime(DateTime time) => into(updateTimeTable).insert(
       UpdateTimeTableCompanion.insert(updateTime: time.millisecondsSinceEpoch));
 
@@ -156,24 +228,26 @@ class DriftInsideData extends SiteDataLayer {
 
   @override
   Future<void> init() async {
-    var lastUpdate =
-        await database.select(database.updateTimeTable).getSingleOrNull();
+    var lastUpdate = await database.getUpdateTime();
 
     if (lastUpdate == null) {
       var data = await loader.load(DateTime.fromMillisecondsSinceEpoch(0));
+
+      if (data == null) {
+        throw "Data could not be loaded";
+      }
 
       await database.transaction(() async {
         await addToDatabase(data);
       });
     } else {
-      loader
-          .load(DateTime.fromMillisecondsSinceEpoch(lastUpdate.updateTime),
-              ensureLatest: true)
-          .then((value) {
+      var data = await loader.load(lastUpdate, ensureLatest: false);
+
+      if (data != null) {
         database.transaction(() async {
-          await addToDatabase(value);
+          await addToDatabase(data);
         });
-      });
+      }
     }
   }
 

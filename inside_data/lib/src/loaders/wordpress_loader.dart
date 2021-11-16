@@ -18,7 +18,7 @@ class WordpressLoader extends SiteDataLoader {
   /// the entire site.
   /// This may change, see comment on [WordpressLoader].
   @override
-  Future<SiteData> load(DateTime lastLoadTime,
+  Future<SiteData?> load(DateTime lastLoadTime,
       {bool ensureLatest = false}) async {
     await Future.wait(
         topCategoryIds.map((e) => wordpressRepository.category(e)).toList());

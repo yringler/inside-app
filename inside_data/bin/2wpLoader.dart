@@ -11,5 +11,5 @@ Future<void> main(List<String> args) async {
   final data = await repository.load(DateTime.now().add(Duration(minutes: 1)));
 
   final encoder = JsonEncoder.withIndent('\t');
-  print(encoder.convert(data.toJson()));
+  print(encoder.convert(data!.toJson()));
 }
