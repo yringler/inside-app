@@ -85,7 +85,9 @@ LazyDatabase _openConnection() {
   UpdateTimeTable,
   MediaParentsTable,
   SectionParentsTable
-])
+], include: {
+  'inside.drift'
+})
 class InsideDatabase extends _$InsideDatabase {
   InsideDatabase() : super(_openConnection());
 
