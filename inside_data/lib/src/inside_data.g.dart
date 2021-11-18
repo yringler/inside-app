@@ -93,6 +93,7 @@ Section _$SectionFromJson(Map<String, dynamic> json) => Section(
       link: json['link'] as String? ?? '',
       parents:
           (json['parents'] as List<dynamic>).map((e) => e as String).toSet(),
+      loadedContent: json['loadedContent'] as bool? ?? true,
     )..audioCount = json['audioCount'] as int;
 
 Map<String, dynamic> _$SectionToJson(Section instance) => <String, dynamic>{
@@ -104,6 +105,7 @@ Map<String, dynamic> _$SectionToJson(Section instance) => <String, dynamic>{
       'link': instance.link,
       'audioCount': instance.audioCount,
       'content': instance.content,
+      'loadedContent': instance.loadedContent,
     };
 
 SiteData _$SiteDataFromJson(Map<String, dynamic> json) => SiteData(

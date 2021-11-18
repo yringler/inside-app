@@ -18,8 +18,7 @@ class WordpressLoader extends SiteDataLoader {
   /// the entire site.
   /// This may change, see comment on [WordpressLoader].
   @override
-  Future<SiteData?> load(DateTime lastLoadTime,
-      {bool ensureLatest = false}) async {
+  Future<SiteData> initialLoad() async {
     await Future.wait(
         topCategoryIds.map((e) => wordpressRepository.category(e)).toList());
 
@@ -30,5 +29,13 @@ class WordpressLoader extends SiteDataLoader {
 
     return SiteData.fromList(
         topSectionIds: topCategoryIds, sections: sectionList);
+  }
+
+  /// For now, this loader is only meant to be called server side, and only meant to
+  /// load the full site, so only [initialLoad] should be used.
+  @override
+  Future<SiteData?> load(DateTime lastLoadTime, {bool ensureLatest = false}) {
+    // TODO: implement load
+    throw UnimplementedError();
   }
 }

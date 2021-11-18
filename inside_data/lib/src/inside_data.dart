@@ -29,6 +29,8 @@ class SiteDataBase {
         sort = other.sort,
         parents = other.parents,
         link = other.link;
+
+  int compareTo(SiteDataBase other) => this.sort.compareTo(other.sort);
 }
 
 @JsonSerializable()
@@ -98,12 +100,22 @@ class ContentReference {
   bool get hasMedia => media != null;
   bool get hasSection => section != null;
   bool get hasValue => hasMedia || hasSection;
+  SiteDataBase? get value => media ?? section;
+
+  int compareTo(ContentReference other) =>
+      this.hasValue && other.hasValue ? this.value!.compareTo(other.value!) : 0;
 }
 
 @JsonSerializable()
 class Section extends SiteDataBase {
   int audioCount = 0;
   final List<ContentReference> content;
+
+  /// If content of section was loaded, or just the section base data.
+  /// For example, loading a section might load all parent sections, but not ad infinitum -
+  /// it will only load the basic data (title etc) of its child sections.
+  /// TODO: should [content] be nullable? Diffirent way of handling this?
+  final bool loadedContent;
 
   Section(
       {required this.content,
@@ -112,7 +124,8 @@ class Section extends SiteDataBase {
       required String title,
       required String description,
       required String link,
-      required Set<String> parents})
+      required Set<String> parents,
+      this.loadedContent = true})
       : super(
             id: id,
             parents: parents,
@@ -121,7 +134,8 @@ class Section extends SiteDataBase {
             sort: sort,
             link: link);
 
-  Section.fromBase(SiteDataBase base, {required this.content})
+  Section.fromBase(SiteDataBase base,
+      {required this.content, this.loadedContent = true})
       : super.copy(base);
 
   factory Section.fromJson(Map<String, dynamic> json) =>
@@ -133,8 +147,8 @@ class Section extends SiteDataBase {
 abstract class SiteDataLayer {
   Future<void> init();
   Future<List<Section>> topLevel();
-  Future<Section> section(String id);
-  Future<Media> media(String id);
+  Future<Section?> section(String id);
+  Future<Media?> media(String id);
 }
 
 /// The entire website. In one object. Ideally, this would only be used server side.
@@ -192,6 +206,9 @@ class SiteData {
 
   Map<String, dynamic> toJson() => _$SiteDataToJson(this);
 
+  factory SiteData.fromJson(Map<String, dynamic> json) =>
+      _$SiteDataFromJson(json);
+
   int _setAudioCount(Map<String, int?> processing, String sectionId) {
     // Could either mean that we're in the middle of proccessing the section, and
     // the navigation circles back to itself.
@@ -234,8 +251,11 @@ class SiteData {
 /// Provides initial access to load all of site.
 /// After the whole site is loaded, it is copied into a data layer.
 abstract class SiteDataLoader {
-  /// If no data, load will load data, and trigger to prepare updates for next time.
-  /// If [ensureLatest] is true, will ensure that latest data is used now (instead of
-  /// just being prepared to use next time).
+  /// Called when there is no data in the in app DB. Take data from quickest possible source,
+  /// eg pre-loaded resources.
+  Future<SiteData> initialLoad();
+
+  /// Will load data now if it is readily available, and check for updates for next time.
+  /// Will use updated data now if [ensureLatest] is set to true.
   Future<SiteData?> load(DateTime lastLoadTime, {bool ensureLatest = false});
 }

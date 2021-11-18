@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:inside_data/inside_data.dart';
 import 'package:drift/native.dart';
 import 'package:drift/drift.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:inside_data/src/safePaths.dart';
 import 'package:path/path.dart' as p;
 
 part 'drift_inside_data.g.dart';
@@ -89,7 +89,10 @@ LazyDatabase _openConnection() {
   'inside.drift'
 })
 class InsideDatabase extends _$InsideDatabase {
-  InsideDatabase() : super(_openConnection());
+  /// Optionally pass in a [database] (this is mostly intended for unit testing, to pass
+  /// in an in memory database).
+  InsideDatabase({NativeDatabase? database})
+      : super(database ?? _openConnection());
 
   @override
   int get schemaVersion => 1;
@@ -142,7 +145,7 @@ class InsideDatabase extends _$InsideDatabase {
     });
   }
 
-  Future<Media> media(String id) async {
+  Future<Media?> media(String id) async {
     final query = (select(mediaTable)..where((tbl) => tbl.id.equals(id))).join([
       leftOuterJoin(
           mediaParentsTable, mediaParentsTable.mediaId.equalsExp(mediaTable.id))
@@ -150,12 +153,17 @@ class InsideDatabase extends _$InsideDatabase {
 
     final queryValue = await query.get();
 
+    if (queryValue.isEmpty) {
+      return null;
+    }
+
     final parents = queryValue
         .map((e) => e.readTableOrNull(mediaParentsTable))
         .where((element) => element != null)
         .map((e) => e!.parentSection)
         .toSet();
-    final media = queryValue.single.readTable(mediaTable);
+
+    final media = queryValue.first.readTable(mediaTable);
 
     // TODO: should title and description be nullable?
 
@@ -181,7 +189,12 @@ class InsideDatabase extends _$InsideDatabase {
     final baseSectionRow = baseSectionQueryValue
         .map((e) => e.readTableOrNull(sectionTable))
         .where((element) => element != null)
-        .first!;
+        .first;
+
+    if (baseSectionRow == null) {
+      return null;
+    }
+
     final parents = baseSectionQueryValue
         .map((e) => e.readTableOrNull(sectionParentsTable))
         .where((element) => element != null)
@@ -202,6 +215,20 @@ class InsideDatabase extends _$InsideDatabase {
       innerJoin(sectionTable,
           sectionTable.id.equalsExp(sectionParentsTable.sectionId))
     ]);
+    final childSectionsValue = await childSectionsQuery.get();
+    final childSections = childSectionsValue
+        .map((e) => e.readTable(sectionTable))
+        .map((e) => ContentReference.fromData(
+            data: Section(
+                loadedContent: false,
+                content: [],
+                id: e.id,
+                sort: e.sort,
+                title: e.title ?? '',
+                description: e.description ?? '',
+                link: e.link,
+                parents: {id})))
+        .toList();
 
     // Query for media.
     final mediaQuery = (select(mediaParentsTable)
@@ -209,6 +236,21 @@ class InsideDatabase extends _$InsideDatabase {
         .join([
       innerJoin(mediaTable, mediaTable.id.equalsExp(mediaParentsTable.mediaId))
     ]);
+    final mediaValue = await mediaQuery.get();
+    final media = mediaValue
+        .map((e) => e.readTable(mediaTable))
+        .map((e) => ContentReference.fromData(
+            data: Media(
+                source: e.source,
+                id: e.id,
+                sort: e.sort,
+                title: e.title ?? "'",
+                description: e.description ?? '',
+                parents: {id})))
+        .toList();
+
+    return Section.fromBase(base,
+        content: [...media, ...childSections]..sort());
   }
 
   Future<void> setUpdateTime(DateTime time) => into(updateTimeTable).insert(
@@ -225,19 +267,17 @@ class InsideDatabase extends _$InsideDatabase {
 class DriftInsideData extends SiteDataLayer {
   final SiteDataLoader loader;
   final InsideDatabase database;
+  final List<String> topIds;
 
-  DriftInsideData({required this.loader, required this.database});
+  DriftInsideData(
+      {required this.loader, required this.database, required this.topIds});
 
   @override
   Future<void> init() async {
     var lastUpdate = await database.getUpdateTime();
 
     if (lastUpdate == null) {
-      var data = await loader.load(DateTime.fromMillisecondsSinceEpoch(0));
-
-      if (data == null) {
-        throw "Data could not be loaded";
-      }
+      var data = await loader.initialLoad();
 
       await database.transaction(() async {
         await addToDatabase(data);
@@ -254,22 +294,14 @@ class DriftInsideData extends SiteDataLayer {
   }
 
   @override
-  Future<Media> media(String id) {
-    // TODO: implement media
-    throw UnimplementedError();
-  }
+  Future<Media?> media(String id) => database.media(id);
 
   @override
-  Future<Section> section(String id) {
-    // TODO: implement section
-    throw UnimplementedError();
-  }
+  Future<Section?> section(String id) => database.section(id);
 
   @override
-  Future<List<Section>> topLevel() {
-    // TODO: implement topLevel
-    throw UnimplementedError();
-  }
+  Future<List<Section>> topLevel() =>
+      Future.wait(topIds.map((e) async => (await database.section(e))!));
 
   Future<void> addToDatabase(SiteData data) async {
     // Might be faster to run all at the same time with Future.wait, but that might
