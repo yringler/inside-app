@@ -40,7 +40,7 @@ ContentReference _$ContentReferenceFromJson(Map<String, dynamic> json) =>
           ? null
           : Section.fromJson(json['section'] as Map<String, dynamic>),
       id: json['id'] as String,
-      contentType: _$enumDecode(_$ContentTypeEnumMap, json['contentType']),
+      contentType: $enumDecode(_$ContentTypeEnumMap, json['contentType']),
     );
 
 Map<String, dynamic> _$ContentReferenceToJson(ContentReference instance) =>
@@ -50,32 +50,6 @@ Map<String, dynamic> _$ContentReferenceToJson(ContentReference instance) =>
       'media': instance.media,
       'section': instance.section,
     };
-
-K _$enumDecode<K, V>(
-  Map<K, V> enumValues,
-  Object? source, {
-  K? unknownValue,
-}) {
-  if (source == null) {
-    throw ArgumentError(
-      'A value must be provided. Supported values: '
-      '${enumValues.values.join(', ')}',
-    );
-  }
-
-  return enumValues.entries.singleWhere(
-    (e) => e.value == source,
-    orElse: () {
-      if (unknownValue == null) {
-        throw ArgumentError(
-          '`$source` is not one of the supported values: '
-          '${enumValues.values.join(', ')}',
-        );
-      }
-      return MapEntry(unknownValue, enumValues.values.first);
-    },
-  ).key;
-}
 
 const _$ContentTypeEnumMap = {
   ContentType.media: 'media',
@@ -90,7 +64,7 @@ Section _$SectionFromJson(Map<String, dynamic> json) => Section(
       sort: json['sort'] as int,
       title: json['title'] as String,
       description: json['description'] as String,
-      link: json['link'] as String? ?? '',
+      link: json['link'] as String,
       parents:
           (json['parents'] as List<dynamic>).map((e) => e as String).toSet(),
       loadedContent: json['loadedContent'] as bool? ?? true,
