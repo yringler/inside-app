@@ -23,13 +23,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const TestJsonLoader(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+class TestJsonLoader extends StatelessWidget {
+  const TestJsonLoader({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -40,7 +40,7 @@ class MyHomePage extends StatelessWidget {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
-        return const Text('hi');
+        return Text('Returned ${snapshot.data!}');
       });
 
   Future<String> _future() async {
@@ -55,6 +55,46 @@ class MyHomePage extends StatelessWidget {
     assert(secondSite?.sections != null);
     assert((secondSite?.sections.length ?? 0) > 10);
 
-    return 'blah';
+    return secondSite!.sections.values.first.title;
+  }
+}
+
+class TestDriftLoader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => FutureBuilder(
+      future: _future(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Text('Returned ${snapshot.data!}');
+      });
+
+  Future<String> _future() async {
+    await JsonLoader.init(
+        resourceName: 'assets/site.json', assetBundle: rootBundle);
+
+    final loader = JsonLoader();
+
+    var drift = DriftInsideData(
+        loader: loader,
+        topIds: topImagesInside.keys.map((e) => e.toString()).toList());
+
+    await drift.init();
+
+    var basic = (await drift.section('773'))!;
+    assert(basic.description.isNotEmpty && basic.content.length > 4);
+    await loader.load(DateTime.fromMillisecondsSinceEpoch(0),
+        ensureLatest: true);
+
+    // This is a clumsy API - to get latest data, call init? Again? After loading data in
+    // another API?
+    await drift.init();
+
+    var full = await (drift.topLevel());
+    assert(full.length ==
+        full.where((element) => element.content.length > 5).length);
+
+    return full.first.description;
   }
 }

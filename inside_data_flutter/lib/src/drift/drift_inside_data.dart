@@ -270,7 +270,8 @@ class DriftInsideData extends SiteDataLayer {
   final List<String> topIds;
 
   DriftInsideData(
-      {required this.loader, required this.database, required this.topIds});
+      {required this.loader, required this.topIds, InsideDatabase? database})
+      : database = database ?? InsideDatabase();
 
   @override
   Future<void> init() async {
