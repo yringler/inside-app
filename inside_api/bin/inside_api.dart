@@ -35,7 +35,7 @@ void main(List<String> arguments) async {
       topCategoryIds: topImagesInside.keys.toList(), //.take(1).toList(),
       wordpressUrl: sourceUrl);
 
-  final site = await repository.load(DateTime.now());
+  final site = await repository.initialLoad();
 
   final classListFile = File(env['classListFile']!);
   final classList = _getClassList(site);

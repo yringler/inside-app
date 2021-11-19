@@ -10,9 +10,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  drift: ^1.0.0
-  path_provider: ^2.0.2
-  sqlite3_flutter_libs: ^0.5.0
   flutter_wordpress:
     git:
       #url: https://github.com/dreamsoftin/flutter_wordpress
@@ -27,7 +24,8 @@ dev_dependencies:
   build_runner: ^2.1.0
   json_serializable: ^6.0.1
   drift_dev: ^1.0.0
-  test: ^1.19.3
+  flutter_test:
+    sdk: flutter
   mockito: ^5.0.16
 # dependency_overrides:
 #   meta: 1.7.0
