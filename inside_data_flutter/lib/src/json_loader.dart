@@ -55,10 +55,6 @@ class JsonLoader extends SiteDataLoader {
       }
     }
 
-    if (!ensureLatest) {
-      _tryPrepareUpdate(lastLoadTime);
-    }
-
     return site;
   }
 

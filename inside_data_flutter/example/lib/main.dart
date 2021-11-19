@@ -49,8 +49,8 @@ class MyHomePage extends StatelessWidget {
     final loader = JsonLoader();
     await loader.initialLoad();
     await loader.load(DateTime.fromMillisecondsSinceEpoch(0));
-    final secondSite =
-        await loader.load(DateTime.fromMillisecondsSinceEpoch(0));
+    final secondSite = await loader.load(DateTime.fromMillisecondsSinceEpoch(0),
+        ensureLatest: true);
     assert(secondSite != null);
     assert(secondSite?.sections != null);
     assert((secondSite?.sections.length ?? 0) > 10);

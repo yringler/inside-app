@@ -255,7 +255,7 @@ abstract class SiteDataLoader {
   /// eg pre-loaded resources.
   Future<SiteData> initialLoad();
 
-  /// Will load data now if it is readily available, and check for updates for next time.
-  /// Will use updated data now if [ensureLatest] is set to true.
+  /// Will load data now if it is readily available.
+  /// Will check for and return latest data if [ensureLatest] is set to true.
   Future<SiteData?> load(DateTime lastLoadTime, {bool ensureLatest = false});
 }
