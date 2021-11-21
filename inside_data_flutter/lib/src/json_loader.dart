@@ -14,11 +14,11 @@ class JsonLoader extends SiteDataLoader {
   static const dataVersion = 5;
 
   /// Path to JSON that was downloaded, ready to be used at next app start up.
-  static late final String _jsonPath;
+  static late String _jsonPath;
 
   /// Path to JSON that was copied over from app resources, ready to be used for initial
   /// app load.
-  static late final String _jsonResourcePath;
+  static late String _jsonResourcePath;
 
   static Future<void> init(
       {required String resourceName, required AssetBundle assetBundle}) async {

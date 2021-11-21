@@ -98,7 +98,7 @@ class InsideDatabase extends _$InsideDatabase {
   @override
   int get schemaVersion => 1;
 
-  Future<void> addSections(List<Section> sections) {
+  Future<void> addSections(Iterable<Section> sections) async {
     final sectionCompanions = sections
         .map((value) => SectionTableCompanion.insert(
             link: value.link,
@@ -109,6 +109,9 @@ class InsideDatabase extends _$InsideDatabase {
             title: Value(value.title)))
         .toList();
 
+    assert(sectionCompanions.map((e) => e.id).toSet().length ==
+        sectionCompanions.length);
+
     final sectionParents = sections
         .map((section) => section.parents.map((parent) =>
             SectionParentsTableCompanion.insert(
@@ -116,15 +119,22 @@ class InsideDatabase extends _$InsideDatabase {
         .expand((element) => element)
         .toList();
 
-    return batch((batch) {
-      batch.insertAll(sectionTable, sectionCompanions,
-          mode: InsertMode.insertOrReplace);
-      batch.insertAll(sectionParentsTable, sectionParents,
-          mode: InsertMode.insertOrReplace);
-    });
+    for (var sectionCompanionGroups in groupsOf(sectionCompanions, 100)) {
+      await batch((batch) {
+        batch.insertAll(sectionTable, sectionCompanionGroups,
+            mode: InsertMode.insertOrReplace);
+      });
+    }
+
+    for (var sectionParentsGroups in groupsOf(sectionParents, 100)) {
+      await batch((batch) {
+        batch.insertAll(sectionParentsTable, sectionParentsGroups,
+            mode: InsertMode.insertOrReplace);
+      });
+    }
   }
 
-  Future<void> addMedia(List<Media> medias) {
+  Future<void> addMedia(Iterable<Media> medias) async {
     final mediaCompanions = medias
         .map((e) => MediaTableCompanion.insert(
             id: e.id,
@@ -142,12 +152,22 @@ class InsideDatabase extends _$InsideDatabase {
         .expand((element) => element)
         .toList();
 
-    return batch((batch) {
-      batch.insertAll(mediaTable, mediaCompanions,
-          mode: InsertMode.insertOrReplace);
-      batch.insertAll(mediaParentsTable, mediaParents,
-          mode: InsertMode.insertOrReplace);
-    });
+    assert(mediaCompanions.map((e) => e.id).toSet().length ==
+        mediaCompanions.length);
+
+    for (var mediaGroups in groupsOf(mediaCompanions, 100)) {
+      await batch((batch) {
+        batch.insertAll(mediaTable, mediaGroups,
+            mode: InsertMode.insertOrReplace);
+      });
+    }
+
+    for (var parentGroups in groupsOf(mediaParents, 100)) {
+      await batch((batch) {
+        batch.insertAll(mediaParentsTable, parentGroups,
+            mode: InsertMode.insertOrReplace);
+      });
+    }
   }
 
   Future<Media?> media(String id) async {
@@ -319,10 +339,23 @@ class DriftInsideData extends SiteDataLayer {
   Future<void> addToDatabase(SiteData data) async {
     // Might be faster to run all at the same time with Future.wait, but that might
     // be a bit much for an older phone, and probably won't make much diffirence in time.
-    await database.addSections(data.sections.values.toList());
-    await database.addMedia(data.medias.toList());
+    await database.addSections(data.sections.values.toSet());
+    await database.addMedia(data.medias.toSet());
     if (data.createdDate != null) {
       await database.setUpdateTime(data.createdDate!);
     }
   }
+}
+
+Iterable<List<T>> groupsOf<T>(List<T> list, int groupSize) sync* {
+  yield list;
+
+  // int start = 0;
+  // for (; start + groupSize <= list.length; start += groupSize) {
+  //   yield list.sublist(start, start + groupSize);
+  // }
+
+  // if (start + groupSize > list.length) {
+  //   yield list.sublist(start);
+  // }
 }

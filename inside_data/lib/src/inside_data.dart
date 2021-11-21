@@ -133,6 +133,8 @@ class Section extends SiteDataBase {
   /// TODO: should [content] be nullable? Diffirent way of handling this?
   final bool loadedContent;
 
+  int? _hashcode;
+
   Section(
       {required this.content,
       required String id,
@@ -157,6 +159,18 @@ class Section extends SiteDataBase {
   factory Section.fromJson(Map<String, dynamic> json) =>
       _$SectionFromJson(json);
   Map<String, dynamic> toJson() => _$SectionToJson(this);
+
+  @override
+  bool operator ==(other) {
+    if (other is! Section) {
+      return false;
+    }
+
+    return id == other.id && title == other.title;
+  }
+
+  @override
+  int get hashCode => _hashcode ??= [id, title].join('').hashCode;
 }
 
 /// Provides access to site data.
