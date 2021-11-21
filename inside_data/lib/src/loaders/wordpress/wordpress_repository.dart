@@ -91,6 +91,23 @@ class WordpressRepository {
           link: '');
     }
 
+    final group = CustomEndpointSeries(
+        parents: base.parents,
+        id: base.id,
+        name: base.postName,
+        title: base.postTitle,
+        description: base.postContentFiltered,
+        link: '$wordpressDomain/series/${base.postName}',
+        posts: _usePosts(jsonResponse, id));
+
+    group.sort = base.menuOrder;
+
+    _loadedGroups[id] = group;
+    return group;
+  }
+
+  List<CustomEndpointPost> _usePosts(
+      Map<String, dynamic> jsonResponse, int id) {
     final posts =
         jsonResponse.values.map((e) => CustomEndpointPost.fromJson(e)).map((e) {
       // To have all parents accounted for, make sure to use saved if found.
@@ -107,20 +124,7 @@ class WordpressRepository {
         posts[i].menuOrder = i;
       }
     }
-
-    final group = CustomEndpointSeries(
-        parents: base.parents,
-        id: base.id,
-        name: base.postName,
-        title: base.postTitle,
-        description: base.postContentFiltered,
-        link: '$wordpressDomain/series/${base.postName}',
-        posts: posts);
-
-    group.sort = base.menuOrder;
-
-    _loadedGroups[id] = group;
-    return group;
+    return posts;
   }
 
   /// Load all child categories' content of category given, recursively. Loads any
@@ -138,20 +142,7 @@ class WordpressRepository {
     List<CustomEndpointPost>? posts;
 
     if (postsResponse != null && postsResponse.body.trim().isNotEmpty) {
-      posts = (jsonDecode(postsResponse.body) as Map<String, dynamic>)
-          .values
-          .map((e) => CustomEndpointPost.fromJson(e))
-          .map((e) {
-        // To have all parents accounted for, make sure to use saved if found.
-        _loadedPosts[e.id] ??= e;
-        if (e.menuOrder > 0) {
-          _loadedPosts[e.id]!.menuOrder = e.menuOrder;
-        }
-        if (category.id != null) {
-          _loadedPosts[e.id]!.parents.add(category.id!);
-        }
-        return _loadedPosts[e.id]!;
-      }).toList();
+      posts = _usePosts(jsonDecode(postsResponse.body), category.id!);
     }
 
     // query for children of category causes error if there aren't any children.

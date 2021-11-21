@@ -435,6 +435,10 @@ class $SectionParentsTableTable extends SectionParentsTable
 }
 
 class MediaTableData extends DataClass implements Insertable<MediaTableData> {
+  /// In case there are multiple medias with same [source] and no post ID, this prevents
+  /// unique constraint errors.
+  final int pk;
+
   /// The post ID if the class is it's own post. Otherwise, taken from media source.
   final String id;
   final String source;
@@ -445,7 +449,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   /// How long the class is, in milliseconds.
   final int? duration;
   MediaTableData(
-      {required this.id,
+      {required this.pk,
+      required this.id,
       required this.source,
       required this.sort,
       this.title,
@@ -454,6 +459,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   factory MediaTableData.fromData(Map<String, dynamic> data, {String? prefix}) {
     final effectivePrefix = prefix ?? '';
     return MediaTableData(
+      pk: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}pk'])!,
       id: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
       source: const StringType()
@@ -471,6 +478,7 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['pk'] = Variable<int>(pk);
     map['id'] = Variable<String>(id);
     map['source'] = Variable<String>(source);
     map['sort'] = Variable<int>(sort);
@@ -488,6 +496,7 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
 
   MediaTableCompanion toCompanion(bool nullToAbsent) {
     return MediaTableCompanion(
+      pk: Value(pk),
       id: Value(id),
       source: Value(source),
       sort: Value(sort),
@@ -506,6 +515,7 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MediaTableData(
+      pk: serializer.fromJson<int>(json['pk']),
       id: serializer.fromJson<String>(json['id']),
       source: serializer.fromJson<String>(json['source']),
       sort: serializer.fromJson<int>(json['sort']),
@@ -518,6 +528,7 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'pk': serializer.toJson<int>(pk),
       'id': serializer.toJson<String>(id),
       'source': serializer.toJson<String>(source),
       'sort': serializer.toJson<int>(sort),
@@ -528,13 +539,15 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   }
 
   MediaTableData copyWith(
-          {String? id,
+          {int? pk,
+          String? id,
           String? source,
           int? sort,
           String? title,
           String? description,
           int? duration}) =>
       MediaTableData(
+        pk: pk ?? this.pk,
         id: id ?? this.id,
         source: source ?? this.source,
         sort: sort ?? this.sort,
@@ -545,6 +558,7 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   @override
   String toString() {
     return (StringBuffer('MediaTableData(')
+          ..write('pk: $pk, ')
           ..write('id: $id, ')
           ..write('source: $source, ')
           ..write('sort: $sort, ')
@@ -557,11 +571,12 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
 
   @override
   int get hashCode =>
-      Object.hash(id, source, sort, title, description, duration);
+      Object.hash(pk, id, source, sort, title, description, duration);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is MediaTableData &&
+          other.pk == this.pk &&
           other.id == this.id &&
           other.source == this.source &&
           other.sort == this.sort &&
@@ -571,6 +586,7 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
 }
 
 class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
+  final Value<int> pk;
   final Value<String> id;
   final Value<String> source;
   final Value<int> sort;
@@ -578,6 +594,7 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
   final Value<String?> description;
   final Value<int?> duration;
   const MediaTableCompanion({
+    this.pk = const Value.absent(),
     this.id = const Value.absent(),
     this.source = const Value.absent(),
     this.sort = const Value.absent(),
@@ -586,6 +603,7 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
     this.duration = const Value.absent(),
   });
   MediaTableCompanion.insert({
+    this.pk = const Value.absent(),
     required String id,
     required String source,
     required int sort,
@@ -596,6 +614,7 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
         source = Value(source),
         sort = Value(sort);
   static Insertable<MediaTableData> custom({
+    Expression<int>? pk,
     Expression<String>? id,
     Expression<String>? source,
     Expression<int>? sort,
@@ -604,6 +623,7 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
     Expression<int?>? duration,
   }) {
     return RawValuesInsertable({
+      if (pk != null) 'pk': pk,
       if (id != null) 'id': id,
       if (source != null) 'source': source,
       if (sort != null) 'sort': sort,
@@ -614,13 +634,15 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
   }
 
   MediaTableCompanion copyWith(
-      {Value<String>? id,
+      {Value<int>? pk,
+      Value<String>? id,
       Value<String>? source,
       Value<int>? sort,
       Value<String?>? title,
       Value<String?>? description,
       Value<int?>? duration}) {
     return MediaTableCompanion(
+      pk: pk ?? this.pk,
       id: id ?? this.id,
       source: source ?? this.source,
       sort: sort ?? this.sort,
@@ -633,6 +655,9 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (pk.present) {
+      map['pk'] = Variable<int>(pk.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -657,6 +682,7 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
   @override
   String toString() {
     return (StringBuffer('MediaTableCompanion(')
+          ..write('pk: $pk, ')
           ..write('id: $id, ')
           ..write('source: $source, ')
           ..write('sort: $sort, ')
@@ -673,6 +699,12 @@ class $MediaTableTable extends MediaTable
   final GeneratedDatabase _db;
   final String? _alias;
   $MediaTableTable(this._db, [this._alias]);
+  final VerificationMeta _pkMeta = const VerificationMeta('pk');
+  late final GeneratedColumn<int?> pk = GeneratedColumn<int?>(
+      'pk', aliasedName, false,
+      typeName: 'INTEGER',
+      requiredDuringInsert: false,
+      defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
   final VerificationMeta _idMeta = const VerificationMeta('id');
   late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
       'id', aliasedName, false,
@@ -700,7 +732,7 @@ class $MediaTableTable extends MediaTable
       typeName: 'INTEGER', requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, source, sort, title, description, duration];
+      [pk, id, source, sort, title, description, duration];
   @override
   String get aliasedName => _alias ?? 'media_table';
   @override
@@ -710,6 +742,9 @@ class $MediaTableTable extends MediaTable
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('pk')) {
+      context.handle(_pkMeta, pk.isAcceptableOrUnknown(data['pk']!, _pkMeta));
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -745,7 +780,7 @@ class $MediaTableTable extends MediaTable
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {pk};
   @override
   MediaTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
     return MediaTableData.fromData(data,

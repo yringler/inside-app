@@ -95,7 +95,7 @@ SiteData _$SiteDataFromJson(Map<String, dynamic> json) => SiteData(
     );
 
 Map<String, dynamic> _$SiteDataToJson(SiteData instance) => <String, dynamic>{
-      'createdDate': instance.createdDate.toIso8601String(),
+      'createdDate': instance.createdDate?.toIso8601String(),
       'sections': instance.sections,
       'topSectionIds': instance.topSectionIds,
     };

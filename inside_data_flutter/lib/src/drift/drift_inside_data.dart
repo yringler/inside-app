@@ -22,6 +22,10 @@ class SectionParentsTable extends Table {
 
 /// Contains a single media/post
 class MediaTable extends Table {
+  /// In case there are multiple medias with same [source] and no post ID, this prevents
+  /// unique constraint errors.
+  IntColumn get pk => integer().autoIncrement()();
+
   /// The post ID if the class is it's own post. Otherwise, taken from media source.
   TextColumn get id => text()();
 
@@ -32,9 +36,6 @@ class MediaTable extends Table {
 
   /// How long the class is, in milliseconds.
   IntColumn get duration => integer().nullable()();
-
-  @override
-  Set<Column> get primaryKey => {id};
 }
 
 class SectionTable extends Table {
@@ -103,9 +104,9 @@ class InsideDatabase extends _$InsideDatabase {
             link: value.link,
             sort: value.sort,
             count: value.audioCount,
-            description: Value.ofNullable(value.description),
+            description: Value(value.description),
             id: value.id,
-            title: Value.ofNullable(value.title)))
+            title: Value(value.title)))
         .toList();
 
     final sectionParents = sections
@@ -116,8 +117,10 @@ class InsideDatabase extends _$InsideDatabase {
         .toList();
 
     return batch((batch) {
-      batch.insertAll(sectionTable, sectionCompanions);
-      batch.insertAll(sectionParentsTable, sectionParents);
+      batch.insertAll(sectionTable, sectionCompanions,
+          mode: InsertMode.insertOrReplace);
+      batch.insertAll(sectionParentsTable, sectionParents,
+          mode: InsertMode.insertOrReplace);
     });
   }
 
@@ -127,9 +130,9 @@ class InsideDatabase extends _$InsideDatabase {
             id: e.id,
             source: e.source,
             sort: e.sort,
-            duration: Value.ofNullable(e.length?.inMilliseconds),
-            description: Value.ofNullable(e.description),
-            title: Value.ofNullable(e.title)))
+            duration: Value(e.length?.inMilliseconds),
+            description: Value(e.description),
+            title: Value(e.title)))
         .toList();
 
     final mediaParents = medias
@@ -140,8 +143,10 @@ class InsideDatabase extends _$InsideDatabase {
         .toList();
 
     return batch((batch) {
-      batch.insertAll(mediaTable, mediaCompanions);
-      batch.insertAll(mediaParentsTable, mediaParents);
+      batch.insertAll(mediaTable, mediaCompanions,
+          mode: InsertMode.insertOrReplace);
+      batch.insertAll(mediaParentsTable, mediaParents,
+          mode: InsertMode.insertOrReplace);
     });
   }
 
@@ -186,14 +191,16 @@ class InsideDatabase extends _$InsideDatabase {
     ]);
 
     final baseSectionQueryValue = await baseSectionQuery.get();
-    final baseSectionRow = baseSectionQueryValue
+    final baseSectionRows = baseSectionQueryValue
         .map((e) => e.readTableOrNull(sectionTable))
         .where((element) => element != null)
-        .first;
+        .toList();
 
-    if (baseSectionRow == null) {
+    if (baseSectionRows.isEmpty) {
       return null;
     }
+
+    final baseSectionRow = baseSectionRows.first!;
 
     final parents = baseSectionQueryValue
         .map((e) => e.readTableOrNull(sectionParentsTable))
@@ -254,7 +261,9 @@ class InsideDatabase extends _$InsideDatabase {
   }
 
   Future<void> setUpdateTime(DateTime time) => into(updateTimeTable).insert(
-      UpdateTimeTableCompanion.insert(updateTime: time.millisecondsSinceEpoch));
+      UpdateTimeTableCompanion.insert(
+          id: const Value(0), updateTime: time.millisecondsSinceEpoch),
+      mode: InsertMode.insertOrReplace);
 
   Future<DateTime?> getUpdateTime() async {
     final row = await select(updateTimeTable).getSingleOrNull();
@@ -284,7 +293,7 @@ class DriftInsideData extends SiteDataLayer {
         await addToDatabase(data);
       });
     } else {
-      var data = await loader.load(lastUpdate, ensureLatest: false);
+      var data = await loader.load(lastUpdate);
 
       if (data != null) {
         database.transaction(() async {
@@ -309,6 +318,8 @@ class DriftInsideData extends SiteDataLayer {
     // be a bit much for an older phone, and probably won't make much diffirence in time.
     await database.addSections(data.sections.values.toList());
     await database.addMedia(data.medias.toList());
-    await database.setUpdateTime(data.createdDate);
+    if (data.createdDate != null) {
+      await database.setUpdateTime(data.createdDate!);
+    }
   }
 }

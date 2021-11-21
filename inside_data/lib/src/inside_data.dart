@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'inside_data.g.dart';
 
-class SiteDataBase {
+class SiteDataBase implements Comparable {
   final Set<String> parents;
   final String id;
 
@@ -30,11 +30,13 @@ class SiteDataBase {
         parents = other.parents,
         link = other.link;
 
-  int compareTo(SiteDataBase other) => this.sort.compareTo(other.sort);
+  @override
+  int compareTo(other) => this.sort.compareTo(other.sort);
 }
 
 @JsonSerializable()
-class Media extends SiteDataBase {
+class Media extends SiteDataBase implements Comparable {
+  int? _hashcode;
   final String source;
   Duration? length;
 
@@ -57,13 +59,25 @@ class Media extends SiteDataBase {
 
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
   Map<String, dynamic> toJson() => _$MediaToJson(this);
+
+  @override
+  bool operator ==(other) {
+    if (other is! Media) {
+      return false;
+    }
+
+    return source == other.source && id == other.id;
+  }
+
+  @override
+  int get hashCode => _hashcode ??= [id, source].join('').hashCode;
 }
 
 enum ContentType { media, section }
 
 /// Holds one of [Media] or [Section].
 @JsonSerializable()
-class ContentReference {
+class ContentReference implements Comparable {
   final String id;
   final ContentType contentType;
   final Media? media;
@@ -102,8 +116,10 @@ class ContentReference {
   bool get hasValue => hasMedia || hasSection;
   SiteDataBase? get value => media ?? section;
 
-  int compareTo(ContentReference other) =>
-      this.hasValue && other.hasValue ? this.value!.compareTo(other.value!) : 0;
+  int compareTo(other) =>
+      other is ContentReference && this.hasValue && other.hasValue
+          ? this.value!.compareTo(other.value!)
+          : 0;
 }
 
 @JsonSerializable()
@@ -154,7 +170,7 @@ abstract class SiteDataLayer {
 /// The entire website. In one object. Ideally, this would only be used server side.
 @JsonSerializable()
 class SiteData {
-  final DateTime createdDate;
+  final DateTime? createdDate;
   final Map<String, Section> sections;
   final List<int> topSectionIds;
 
@@ -169,13 +185,11 @@ class SiteData {
                   .where((element) => element.hasMedia)
                   .map((e) => e.media!)
           ])
-      .expand((element) => element);
+      .expand((element) => element)
+      .toSet();
 
   SiteData(
-      {required this.sections,
-      required this.topSectionIds,
-      DateTime? createdDate})
-      : this.createdDate = createdDate ?? DateTime.now() {
+      {required this.sections, required this.topSectionIds, this.createdDate}) {
     var processing = Map<String, int?>();
     for (final id in sections.keys) {
       _setAudioCount(processing, id);
@@ -256,6 +270,11 @@ abstract class SiteDataLoader {
   Future<SiteData> initialLoad();
 
   /// Will load data now if it is readily available.
-  /// Will check for and return latest data if [ensureLatest] is set to true.
-  Future<SiteData?> load(DateTime lastLoadTime, {bool ensureLatest = false});
+  /// Must be prepared first by call to [load].
+  /// The prepared data will be deleted after retrieved via this method.
+  Future<SiteData?> load(DateTime lastLoadTime);
+
+  /// Prepares update to be retrieved by call to [load].
+  /// Note that prepared data is deleted after [load] is called.
+  Future<void> prepareUpdate(DateTime lastLoadTime);
 }

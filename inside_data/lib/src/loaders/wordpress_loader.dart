@@ -35,7 +35,11 @@ class WordpressLoader extends SiteDataLoader {
   /// load the full site, so only [initialLoad] should be used.
   @override
   Future<SiteData?> load(DateTime lastLoadTime, {bool ensureLatest = false}) {
-    // TODO: implement load
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> prepareUpdate(DateTime lastLoadTime) {
     throw UnimplementedError();
   }
 }

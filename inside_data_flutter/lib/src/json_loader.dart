@@ -28,23 +28,18 @@ class JsonLoader extends SiteDataLoader {
     _jsonResourcePath =
         p.join((await getApplicationSupportDirectory()).path, 'resource.json');
 
-    _copyResourceToFile(resourceName, assetBundle: assetBundle);
+    await _copyResourceToFile(resourceName, assetBundle: assetBundle);
   }
 
   /// If a JSON file was already downloaded and saved, loads it and returns, and deletes the file.
   /// Otherwise, checks for updates and downloads for next time in background.
   @override
-  Future<SiteData?> load(DateTime lastLoadTime,
-      {final bool ensureLatest = false}) async {
+  Future<SiteData?> load(DateTime lastLoadTime) async {
     final jsonFile = File(_jsonPath);
-
-    if (ensureLatest) {
-      await _tryPrepareUpdate(lastLoadTime);
-    }
 
     SiteData? site;
 
-    if (await jsonFile.exists() && jsonFile.lengthSync() > 10) {
+    if (jsonFile.existsSync() && jsonFile.lengthSync() > 10) {
       site = _parseJson(await jsonFile.readAsString());
 
       // Now that we've used the JSON file, delete it. We don't need it anymore.
@@ -63,7 +58,31 @@ class JsonLoader extends SiteDataLoader {
   Future<SiteData> initialLoad() async {
     load(DateTime.fromMillisecondsSinceEpoch(0));
 
-    return _parseJson(await File(_jsonResourcePath).readAsString());
+    final resourceFile = File(_jsonResourcePath);
+
+    assert(resourceFile.existsSync());
+
+    return _parseJson(await resourceFile.readAsString());
+  }
+
+  @override
+  Future<void> prepareUpdate(DateTime lastLoadTime) async {
+    final request = Request(
+        'GET',
+        Uri.parse(
+            'https://inside-api-go-2.herokuapp.com/check?date=${lastLoadTime.millisecondsSinceEpoch}&v=$dataVersion'));
+
+    try {
+      final response = await request.send();
+
+      if (response.statusCode == HttpStatus.ok) {
+        final jsonFile = File(_jsonPath);
+        await jsonFile
+            .writeAsBytes(GZipCodec().decode(await response.stream.toBytes()));
+      }
+    } catch (ex) {
+      print(ex);
+    }
   }
 
   static SiteData _parseJson(String jsonText) {
@@ -86,24 +105,5 @@ class JsonLoader extends SiteDataLoader {
 
     final json = await assetBundle.loadString(resourceName, cache: false);
     await resource.writeAsString(json);
-  }
-
-  /// Download data update, for use next time data is loaded.
-  static Future<void> _tryPrepareUpdate(DateTime lastUpdate) async {
-    final request = Request(
-        'GET',
-        Uri.parse(
-            'https://inside-api-go-2.herokuapp.com/check?date=${lastUpdate.millisecondsSinceEpoch}&v=$dataVersion'));
-
-    try {
-      final response = await request.send();
-
-      if (response.statusCode == HttpStatus.ok) {
-        await File(_jsonPath)
-            .writeAsBytes(GZipCodec().decode(await response.stream.toBytes()));
-      }
-    } catch (ex) {
-      print(ex);
-    }
   }
 }

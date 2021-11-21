@@ -8,8 +8,7 @@ Future<void> main(List<String> args) async {
   const domain = 'insidechassidus.org';
   final repository =
       WordpressLoader(topCategoryIds: [id], wordpressUrl: domain);
-  final data = await repository.load(DateTime.now().add(Duration(minutes: 1)));
-
+  final data = await repository.initialLoad();
   final encoder = JsonEncoder.withIndent('\t');
-  print(encoder.convert(data!.toJson()));
+  print(encoder.convert(data.toJson()));
 }

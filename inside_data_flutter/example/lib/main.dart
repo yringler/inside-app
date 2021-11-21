@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const TestJsonLoader(title: 'Flutter Demo Home Page'),
+      home: TestDriftLoader(),
     );
   }
 }
@@ -49,8 +49,10 @@ class TestJsonLoader extends StatelessWidget {
     final loader = JsonLoader();
     await loader.initialLoad();
     await loader.load(DateTime.fromMillisecondsSinceEpoch(0));
-    final secondSite = await loader.load(DateTime.fromMillisecondsSinceEpoch(0),
-        ensureLatest: true);
+    await loader.prepareUpdate(DateTime.fromMillisecondsSinceEpoch(0));
+
+    final secondSite =
+        await loader.load(DateTime.fromMillisecondsSinceEpoch(0));
     assert(secondSite != null);
     assert(secondSite?.sections != null);
     assert((secondSite?.sections.length ?? 0) > 10);
@@ -83,9 +85,8 @@ class TestDriftLoader extends StatelessWidget {
     await drift.init();
 
     var basic = (await drift.section('773'))!;
-    assert(basic.description.isNotEmpty && basic.content.length > 4);
-    await loader.load(DateTime.fromMillisecondsSinceEpoch(0),
-        ensureLatest: true);
+    assert(basic.link.isNotEmpty && basic.content.length > 4);
+    await loader.prepareUpdate(DateTime.fromMillisecondsSinceEpoch(0));
 
     // This is a clumsy API - to get latest data, call init? Again? After loading data in
     // another API?
@@ -93,7 +94,7 @@ class TestDriftLoader extends StatelessWidget {
 
     var full = await (drift.topLevel());
     assert(full.length ==
-        full.where((element) => element.content.length > 5).length);
+        full.where((element) => element.content.length > 2).length);
 
     return full.first.description;
   }
