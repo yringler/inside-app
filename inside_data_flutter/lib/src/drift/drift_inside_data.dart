@@ -260,10 +260,13 @@ class InsideDatabase extends _$InsideDatabase {
         content: [...media, ...childSections]..sort());
   }
 
-  Future<void> setUpdateTime(DateTime time) => into(updateTimeTable).insert(
-      UpdateTimeTableCompanion.insert(
-          id: const Value(0), updateTime: time.millisecondsSinceEpoch),
-      mode: InsertMode.insertOrReplace);
+  Future<void> setUpdateTime(DateTime time) async {
+    await delete(updateTimeTable).go();
+    await into(updateTimeTable).insert(
+        UpdateTimeTableCompanion.insert(
+            id: const Value(0), updateTime: time.millisecondsSinceEpoch),
+        mode: InsertMode.insertOrReplace);
+  }
 
   Future<DateTime?> getUpdateTime() async {
     final row = await select(updateTimeTable).getSingleOrNull();
