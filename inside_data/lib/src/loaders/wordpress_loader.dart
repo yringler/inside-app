@@ -28,7 +28,9 @@ class WordpressLoader extends SiteDataLoader {
     ];
 
     return SiteData.fromList(
-        topSectionIds: topCategoryIds, sections: sectionList);
+        topSectionIds: topCategoryIds,
+        sections: sectionList,
+        createdDate: DateTime.now());
   }
 
   /// For now, this loader is only meant to be called server side, and only meant to

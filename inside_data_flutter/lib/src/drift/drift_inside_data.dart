@@ -250,6 +250,7 @@ class InsideDatabase extends _$InsideDatabase {
         .map((e) => e.readTable(sectionTable))
         .map((e) => ContentReference.fromData(
             data: Section(
+                audioCount: e.count,
                 loadedContent: false,
                 content: [],
                 id: e.id,
@@ -280,6 +281,7 @@ class InsideDatabase extends _$InsideDatabase {
         .toList();
 
     return Section.fromBase(base,
+        audioCount: baseSectionRow.count,
         content: [...media, ...childSections]..sort());
   }
 
@@ -347,9 +349,7 @@ class DriftInsideData extends SiteDataLayer {
     // be a bit much for an older phone, and probably won't make much diffirence in time.
     await database.addSections(data.sections.values.toSet());
     await database.addMedia(data.medias.toSet());
-    if (data.createdDate != null) {
-      await database.setUpdateTime(data.createdDate!);
-    }
+    await database.setUpdateTime(data.createdDate);
   }
 
   @override

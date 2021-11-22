@@ -55,6 +55,14 @@ class LibraryPositionService extends ChangeNotifier
 
   /// Clear the saved list, and reset to the given item and all of its parents.
   Future<void> _clearTo(SiteDataBase item) async {
+    if (item is Section && item.content.isEmpty) {
+      // A query of a section does not return child content IDs, so in router get
+      // that info.
+      // TODO: I don't think the query will ever return null? Maybe a better
+      // behaviour if does.
+      item = await siteBoxes.section(item.id) ?? item;
+    }
+
     sections.clear();
     sections.add(SitePosition(data: item, level: 0));
 

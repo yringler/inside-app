@@ -282,7 +282,8 @@ abstract class CustomEndpointGroup {
         .map((e) => ContentReference.fromData(data: e))
         .toList();
 
-    return Section.fromBase(base, content: sectionContent);
+    // This is one place where we set audio count to 0, because at this point we don't have the whole site yet...
+    return Section.fromBase(base, content: sectionContent, audioCount: 0);
   }
 }
 

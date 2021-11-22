@@ -17,6 +17,7 @@ class SiteDataBase implements Comparable {
 
   String? get firstParent => hasParent ? parents.first : null;
   bool get hasParent => parents.isNotEmpty;
+  bool hasParentId(String id) => parents.contains(id);
 
   SiteDataBase(
       {required this.id,
@@ -128,7 +129,7 @@ class ContentReference implements Comparable {
 
 @JsonSerializable()
 class Section extends SiteDataBase {
-  int audioCount = 0;
+  int audioCount;
   final List<ContentReference> content;
 
   /// If content of section was loaded, or just the section base data.
@@ -147,6 +148,7 @@ class Section extends SiteDataBase {
       required String description,
       required String link,
       required Set<String> parents,
+      required this.audioCount,
       this.loadedContent = true})
       : super(
             id: id,
@@ -157,7 +159,9 @@ class Section extends SiteDataBase {
             link: link);
 
   Section.fromBase(SiteDataBase base,
-      {required this.content, this.loadedContent = true})
+      {required this.content,
+      required this.audioCount,
+      this.loadedContent = true})
       : super.copy(base);
 
   factory Section.fromJson(Map<String, dynamic> json) =>
@@ -191,7 +195,7 @@ abstract class SiteDataLayer {
 /// The entire website. In one object. Ideally, this would only be used server side.
 @JsonSerializable()
 class SiteData {
-  final DateTime? createdDate;
+  final DateTime createdDate;
   final Map<String, Section> sections;
   final List<int> topSectionIds;
 
@@ -210,10 +214,12 @@ class SiteData {
       .toSet();
 
   SiteData(
-      {required this.sections, required this.topSectionIds, this.createdDate}) {
+      {required this.sections,
+      required this.topSectionIds,
+      required this.createdDate}) {
     var processing = Map<String, int?>();
     for (final id in sections.keys) {
-      _setAudioCount(processing, id);
+      _setAudioCount(processing, id, sections);
     }
   }
 
@@ -223,7 +229,9 @@ class SiteData {
   /// But a nested category is only connected to its parent via the childs parent property,
   /// and must be in the first level of [sections].
   SiteData.fromList(
-      {required List<Section> sections, required List<int> topSectionIds})
+      {required List<Section> sections,
+      required List<int> topSectionIds,
+      required DateTime createdDate})
       : this(sections: {
           for (var section in sections
               .map((e) => [
@@ -237,14 +245,15 @@ class SiteData {
               .expand((element) => element)
               .toSet())
             section.id: section
-        }, topSectionIds: topSectionIds);
+        }, topSectionIds: topSectionIds, createdDate: createdDate);
 
   Map<String, dynamic> toJson() => _$SiteDataToJson(this);
 
   factory SiteData.fromJson(Map<String, dynamic> json) =>
       _$SiteDataFromJson(json);
 
-  int _setAudioCount(Map<String, int?> processing, String sectionId) {
+  int _setAudioCount(Map<String, int?> processing, String sectionId,
+      Map<String, Section> sections) {
     // Could either mean that we're in the middle of proccessing the section, and
     // the navigation circles back to itself.
     // Or, that we already finished processing the ID, and now we're processing an
@@ -261,8 +270,12 @@ class SiteData {
       return 0;
     }
 
+    final childSections = sections.entries
+        .where((element) => element.value.hasParentId(sectionId))
+        .toList();
+
     // Handle empty sections.
-    if (section.content.isEmpty) {
+    if (section.content.isEmpty && childSections.isEmpty) {
       processing[sectionId] = section.audioCount = 0;
       return 0;
     }
@@ -272,12 +285,22 @@ class SiteData {
     processing[sectionId] = null;
 
     // Count how many classes are directly in this section.
-    final audioCount = section.content
-        .map((e) => e.isMedia ? 1 : _setAudioCount(processing, e.id))
-        .reduce((value, element) => value + element);
+    final directAudioCount = section.content.isEmpty
+        ? 0
+        : section.content
+            .map((e) =>
+                e.isMedia ? 1 : _setAudioCount(processing, e.id, sections))
+            .reduce((value, element) => value + element);
+
+    final childSectionAudioCount = childSections.isEmpty
+        ? 0
+        : childSections
+            .map((e) => _setAudioCount(processing, e.key, sections))
+            .reduce((value, element) => value + element);
 
     // Save the audio count.
-    processing[sectionId] = section.audioCount = audioCount;
+    processing[sectionId] =
+        section.audioCount = directAudioCount + childSectionAudioCount;
 
     return section.audioCount;
   }

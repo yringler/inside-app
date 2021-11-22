@@ -96,6 +96,7 @@ SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
   }
 
   return Section(
+      audioCount: medias.length,
       id: post.id,
       link: post.link,
       title: post.title,

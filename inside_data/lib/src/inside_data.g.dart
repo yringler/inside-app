@@ -67,8 +67,9 @@ Section _$SectionFromJson(Map<String, dynamic> json) => Section(
       link: json['link'] as String,
       parents:
           (json['parents'] as List<dynamic>).map((e) => e as String).toSet(),
+      audioCount: json['audioCount'] as int,
       loadedContent: json['loadedContent'] as bool? ?? true,
-    )..audioCount = json['audioCount'] as int;
+    );
 
 Map<String, dynamic> _$SectionToJson(Section instance) => <String, dynamic>{
       'parents': instance.parents.toList(),
@@ -89,13 +90,11 @@ SiteData _$SiteDataFromJson(Map<String, dynamic> json) => SiteData(
       topSectionIds: (json['topSectionIds'] as List<dynamic>)
           .map((e) => e as int)
           .toList(),
-      createdDate: json['createdDate'] == null
-          ? null
-          : DateTime.parse(json['createdDate'] as String),
+      createdDate: DateTime.parse(json['createdDate'] as String),
     );
 
 Map<String, dynamic> _$SiteDataToJson(SiteData instance) => <String, dynamic>{
-      'createdDate': instance.createdDate?.toIso8601String(),
+      'createdDate': instance.createdDate.toIso8601String(),
       'sections': instance.sections,
       'topSectionIds': instance.topSectionIds,
     };
