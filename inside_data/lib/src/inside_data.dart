@@ -185,7 +185,7 @@ abstract class SiteDataLayer {
   Future<Media?> media(String id);
   Future<DateTime?> lastUpdate();
 
-  String? getImageFor(String id) => topImagesInside[id];
+  String? getImageFor(String id) => topImagesInside[int.tryParse(id)];
 }
 
 /// The entire website. In one object. Ideally, this would only be used server side.
