@@ -1,8 +1,8 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_breadcrumb_menu/flutter_breadcrumb_menu.dart';
-import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
+import 'package:inside_data_flutter/inside_data_flutter.dart';
 
 class InsideBreadcrumbs extends StatelessWidget {
   @override
@@ -13,7 +13,7 @@ class InsideBreadcrumbs extends StatelessWidget {
       return Container();
     }
 
-    return Breadcrumb<SiteDataItem>(
+    return Breadcrumb<SiteDataBase>(
       breads: [
         for (var position in service.sections)
           Bread(label: getLabel(position.data!), route: position.data)
@@ -22,5 +22,5 @@ class InsideBreadcrumbs extends StatelessWidget {
     );
   }
 
-  getLabel(SiteDataItem data) => data.title!.trim().split(' ').take(5).join(' ');
+  getLabel(SiteDataBase data) => data.title.trim().split(' ').take(5).join(' ');
 }

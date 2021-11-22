@@ -21,14 +21,16 @@ class JsonLoader extends SiteDataLoader {
   static late String _jsonResourcePath;
 
   static Future<void> init(
-      {required String resourceName, required AssetBundle assetBundle}) async {
+      {AssetBundle? assetBundle, String? resourceName}) async {
     WidgetsFlutterBinding.ensureInitialized();
     _jsonPath =
         p.join((await getApplicationSupportDirectory()).path, 'update.json');
     _jsonResourcePath =
         p.join((await getApplicationSupportDirectory()).path, 'resource.json');
 
-    await _copyResourceToFile(resourceName, assetBundle: assetBundle);
+    if (resourceName != null && assetBundle != null) {
+      await _copyResourceToFile(resourceName, assetBundle: assetBundle);
+    }
   }
 
   /// If a JSON file was already downloaded and saved, loads it and returns, and deletes the file.

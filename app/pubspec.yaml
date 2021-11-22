@@ -47,11 +47,8 @@ dependencies:
       git:
         url: https://github.com/yringler/flutter-breadcrumb-menu
         ref: 524b010b16d72513515668fb0587e7a7be23ad43
-  inside_api:
-      git:
-        url: https://github.com/yringler/inside-api.git
-        ref: b078fb98be7b19e55d51345daccae4f1fed9927c
-   # path: ../inside-api
+  inside_data_flutter:
+    path: ../inside_data_flutter    
   just_audio_handlers:
     path:
       ../just_audio_handlers

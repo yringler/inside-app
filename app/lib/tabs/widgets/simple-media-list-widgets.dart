@@ -1,15 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/routes/player-route/index.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
+import 'package:inside_data_flutter/inside_data_flutter.dart';
 
 class MediaListTabRoute extends ChangeNotifier implements IRoutDataService {
   Media? media;
 
   @override
-  setActiveItem(SiteDataItem? data) {
+  setActiveItem(SiteDataBase? data) {
     assert(data is Media);
     this.media = data as Media?;
     notifyListeners();
@@ -87,7 +87,7 @@ class MediaListTabState extends State<MediaListTab> {
       backButtonDispatcher: Router.of(context)
           .backButtonDispatcher!
           .createChildBackButtonDispatcher()
-            ..takePriority(),
+        ..takePriority(),
       routerDelegate: MediaListTabNavigator(
           navigatorKey: widget.navigatorKey,
           state: widget.mediaTabRoute,
@@ -107,9 +107,7 @@ class ChosenDataList extends StatelessWidget {
   final IRoutDataService routeDataService;
 
   ChosenDataList(
-      {this.data,
-      required this.emptyMessage,
-      required this.routeDataService});
+      {this.data, required this.emptyMessage, required this.routeDataService});
 
   @override
   Widget build(BuildContext context) {

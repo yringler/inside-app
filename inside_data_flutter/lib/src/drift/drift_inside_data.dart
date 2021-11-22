@@ -345,6 +345,9 @@ class DriftInsideData extends SiteDataLayer {
       await database.setUpdateTime(data.createdDate!);
     }
   }
+
+  @override
+  Future<DateTime?> lastUpdate() => database.getUpdateTime();
 }
 
 Iterable<List<T>> groupsOf<T>(List<T> list, int groupSize) sync* {

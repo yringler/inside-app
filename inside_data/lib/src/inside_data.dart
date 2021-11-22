@@ -1,3 +1,4 @@
+import 'package:inside_data/inside_data.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'inside_data.g.dart';
@@ -13,6 +14,9 @@ class SiteDataBase implements Comparable {
 
   /// A URL to site where this content can be seen.
   final String link;
+
+  String? get firstParent => hasParent ? parents.first : null;
+  bool get hasParent => parents.isNotEmpty;
 
   SiteDataBase(
       {required this.id,
@@ -179,6 +183,9 @@ abstract class SiteDataLayer {
   Future<List<Section>> topLevel();
   Future<Section?> section(String id);
   Future<Media?> media(String id);
+  Future<DateTime?> lastUpdate();
+
+  String? getImageFor(String id) => topImagesInside[id];
 }
 
 /// The entire website. In one object. Ideally, this would only be used server side.

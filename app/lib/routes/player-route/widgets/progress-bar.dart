@@ -1,8 +1,8 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/util/duration-helpers.dart';
+import 'package:inside_data_flutter/inside_data_flutter.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 
 typedef Widget ProgressStreamBuilder(Duration state);
@@ -21,7 +21,7 @@ class ProgressBar extends StatelessWidget {
     // the position that you're at.
 
     return FutureBuilder<Duration>(
-      future: positionManager.get(media!.source!),
+      future: positionManager.get(media!.source),
       initialData: Duration.zero,
       builder: (context, snapshot) => _progressBar(mediaManager, snapshot.data),
     );
@@ -30,7 +30,7 @@ class ProgressBar extends StatelessWidget {
   Widget _progressBar(AudioHandler handler, Duration? start) {
     final stream = getPositionStateWithPersisted(
         handler, BlocProvider.getDependency<PositionSaver>(),
-        mediaId: media!.source!);
+        mediaId: media!.source);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -49,12 +49,13 @@ class ProgressBar extends StatelessWidget {
         _stateDurationStreamBuilder(stream,
             inactiveBuilder: (_) => _time(start),
             builder: (data) => _time(data)),
-        // Show time remaining in class.
-        _stateDurationStreamBuilder(
-            getPositionStateFiltered(handler, media!.source!)
-                .map((event) => event.state.position),
-            inactiveBuilder: (_) => _time(media!.length - start!),
-            builder: (position) => _time(media!.length - position))
+        if (media!.length != null)
+          // Show time remaining in class.
+          _stateDurationStreamBuilder(
+              getPositionStateFiltered(handler, media!.source)
+                  .map((event) => event.state.position),
+              inactiveBuilder: (_) => _time(media!.length! - start!),
+              builder: (position) => _time(media!.length! - position))
       ],
     );
   }
@@ -62,7 +63,7 @@ class ProgressBar extends StatelessWidget {
   Widget _slider(AudioHandler handler,
       {Duration? start, required Stream<Duration> stream}) {
     final positionSaver = BlocProvider.getDependency<PositionSaver>();
-    final maxSliderValue = media!.length.inMilliseconds.toDouble();
+    final maxSliderValue = media!.length?.inMilliseconds.toDouble() ?? 0;
 
     if (maxSliderValue == 0) {
       return Container(child: Slider(onChanged: null, value: 0, max: 0));

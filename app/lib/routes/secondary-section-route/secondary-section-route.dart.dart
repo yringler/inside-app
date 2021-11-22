@@ -1,12 +1,12 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/widgets/index.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/widgets/inside-breadcrumbs.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
 import 'package:inside_chassidus/widgets/media-list/media-item.dart';
 import 'package:inside_chassidus/widgets/section-content-list.dart';
+import 'package:inside_data_flutter/inside_data_flutter.dart';
 
 /// Displays contents of a site section. All subsections and lessons.
 class SecondarySectionRoute extends StatelessWidget {
@@ -26,7 +26,8 @@ class SecondarySectionRoute extends StatelessWidget {
         mediaBuilder: (context, media) => MediaItem(
           media: media,
           sectionId: section!.id,
-          routeDataService: BlocProvider.getDependency<LibraryPositionService>(),
+          routeDataService:
+              BlocProvider.getDependency<LibraryPositionService>(),
         ),
       );
 }

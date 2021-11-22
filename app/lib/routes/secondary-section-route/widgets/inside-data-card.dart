@@ -1,10 +1,10 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/widgets/informative-text-painter.dart';
+import 'package:inside_data_flutter/inside_data_flutter.dart';
 
 class InsideDataCard extends StatefulWidget {
-  final CountableSiteDataItem insideData;
+  final Section insideData;
 
   InsideDataCard({required this.insideData});
 
@@ -24,8 +24,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _title(context),
-                  if (widget.insideData.description?.trim().isNotEmpty ??
-                      false)
+                  if (widget.insideData.description?.trim().isNotEmpty ?? false)
                     _description()
                 ],
               ),
