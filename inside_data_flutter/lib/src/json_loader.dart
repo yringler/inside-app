@@ -20,13 +20,16 @@ class JsonLoader extends SiteDataLoader {
   /// app load.
   static late String _jsonResourcePath;
 
+  static Future<String> getJsonFolder() async =>
+      (await getApplicationSupportDirectory()).path;
+
   static Future<void> init(
-      {AssetBundle? assetBundle, String? resourceName}) async {
-    WidgetsFlutterBinding.ensureInitialized();
-    _jsonPath =
-        p.join((await getApplicationSupportDirectory()).path, 'update.json');
-    _jsonResourcePath =
-        p.join((await getApplicationSupportDirectory()).path, 'resource.json');
+      {AssetBundle? assetBundle,
+      String? resourceName,
+      String? jsonFolder}) async {
+    jsonFolder ??= await getJsonFolder();
+    _jsonPath = p.join(jsonFolder, 'update.json');
+    _jsonResourcePath = p.join(jsonFolder, 'resource.json');
 
     if (resourceName != null && assetBundle != null) {
       await _copyResourceToFile(resourceName, assetBundle: assetBundle);

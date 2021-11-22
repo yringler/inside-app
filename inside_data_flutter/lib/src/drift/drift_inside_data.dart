@@ -69,13 +69,13 @@ class UpdateTimeTable extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-LazyDatabase _openConnection() {
+LazyDatabase _openConnection({String? folder}) {
   // the LazyDatabase util lets us find the right location for the file async.
   return LazyDatabase(() async {
     // put the database file, called db.sqlite here, into the documents folder
     // for your app.
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'insidedata.sqlite'));
+    folder ??= await InsideDatabase.getFileFolder();
+    final file = File(p.join(folder!, 'insidedata.sqlite'));
     return NativeDatabase(file);
   });
 }
@@ -90,10 +90,13 @@ LazyDatabase _openConnection() {
   'inside.drift'
 })
 class InsideDatabase extends _$InsideDatabase {
+  static Future<String> getFileFolder() async =>
+      (await getApplicationSupportDirectory()).path;
+
   /// Optionally pass in a [database] (this is mostly intended for unit testing, to pass
   /// in an in memory database).
-  InsideDatabase({NativeDatabase? database})
-      : super(database ?? _openConnection());
+  InsideDatabase({NativeDatabase? database, String? folder})
+      : super(database ?? _openConnection(folder: folder));
 
   @override
   int get schemaVersion => 1;
@@ -302,8 +305,11 @@ class DriftInsideData extends SiteDataLayer {
   final List<String> topIds;
 
   DriftInsideData(
-      {required this.loader, required this.topIds, InsideDatabase? database})
-      : database = database ?? InsideDatabase();
+      {required this.loader,
+      required this.topIds,
+      InsideDatabase? database,
+      String? dbFolder})
+      : database = database ?? InsideDatabase(folder: dbFolder);
 
   @override
   Future<void> init() async {

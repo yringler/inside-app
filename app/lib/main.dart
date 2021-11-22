@@ -327,7 +327,8 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   await JsonLoader.init(
       resourceName: 'assets/site.json', assetBundle: rootBundle);
 
-  await compute(_ensureDataLoaded, []);
+  await compute(_ensureDataLoaded,
+      [await JsonLoader.getJsonFolder(), await InsideDatabase.getFileFolder()]);
 
   final siteData = DriftInsideData(
       loader: loader,
@@ -338,11 +339,18 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
 
 /// Make sure that there is data loaded in to hive. Return true if there is data.
 Future<bool> _ensureDataLoaded(List<dynamic> args) async {
-  JsonLoader.init();
+  final jsonFolder = args[0] as String;
+  final dbFolder = args[1] as String;
+
+  JsonLoader.init(jsonFolder: jsonFolder);
+
   final siteData = DriftInsideData(
+      dbFolder: dbFolder,
       loader: JsonLoader(),
       topIds: topImagesInside.keys.map((e) => e.toString()).toList());
+
   await siteData.init();
+
   return true;
 }
 
