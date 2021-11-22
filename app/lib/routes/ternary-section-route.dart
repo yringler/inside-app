@@ -34,6 +34,10 @@ class TernarySectionRoute extends StatelessWidget {
           ));
 
   static Widget _tile(Section data) {
+    // Clumsy way to hide classes. TODO: improve
+    if (data.audioCount == 0) {
+      return Container();
+    }
     var itemWord = data.audioCount > 1 ? 'classes' : 'class';
 
     return ListTile(
