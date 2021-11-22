@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart';
+import 'package:inside_api/inside_api.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:process_run/process_run.dart' as process;
 
@@ -84,25 +85,11 @@ Future<void> _updateLatestLocalCloud(SiteData site) async {
     await _uploadToDropbox(site);
     if (!isDebug) {
       print('notifying...');
-      await _notifyApiOfLatest(site.createdDate);
+      await notifyApiOfLatest(site.createdDate, dataVersion);
     } else {
       print('in debug mode');
     }
     print('done');
-  }
-}
-
-/// Tell API what the newest version of data is.
-Future<void> _notifyApiOfLatest(DateTime date) async {
-  var request = Request(
-      'GET',
-      Uri.parse(env['updateUrlWithAuth']! +
-          '&date=${date.millisecondsSinceEpoch}&v=$dataVersion'));
-
-  final response = await request.send();
-
-  if (response.statusCode != HttpStatus.noContent) {
-    File('.errorlog').writeAsStringSync('Error! Setting failed');
   }
 }
 

@@ -345,11 +345,21 @@ class DriftInsideData extends SiteDataLayer {
       Future.wait(topIds.map((e) async => (await database.section(e))!));
 
   Future<void> addToDatabase(SiteData data) async {
-    // Might be faster to run all at the same time with Future.wait, but that might
-    // be a bit much for an older phone, and probably won't make much diffirence in time.
-    await database.addSections(data.sections.values.toSet());
-    await database.addMedia(data.medias.toSet());
-    await database.setUpdateTime(data.createdDate);
+    await database.transaction(() async {
+      // A bug was observed that, when new site data is added, it isn't replacing the records, it's adding.
+      // So, clear the database.
+      // When we add partial updates, we'll have to take a more granular approach.
+      if (data.sections.length > 100 || data.medias.length > 100) {
+        await Future.wait(
+            database.allTables.map((e) => database.delete(e).go()));
+      }
+
+      // Might be faster to run all at the same time with Future.wait, but that might
+      // be a bit much for an older phone, and probably won't make much diffirence in time.
+      await database.addSections(data.sections.values.toSet());
+      await database.addMedia(data.medias.toSet());
+      await database.setUpdateTime(data.createdDate);
+    });
   }
 
   @override
