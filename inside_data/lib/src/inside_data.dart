@@ -221,6 +221,19 @@ class SiteData {
     for (final id in sections.keys) {
       _setAudioCount(processing, id, sections);
     }
+
+    /*
+     * I think this fixes cases where a main section ends up referncing itself and
+     * gets count set to 0?
+     * Or it does nothing, and something else fixed the problem I was looking at.
+     * Either way, it's easier to leave it then see if it's needed. TODO: that.
+     */
+
+    processing.clear();
+
+    for (final id in sections.keys) {
+      _setAudioCount(processing, id, sections);
+    }
   }
 
   /// Create site data from list of sections. We support one level of recursion - a section can be in a section,

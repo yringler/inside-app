@@ -98,7 +98,7 @@ class WordpressRepository {
         title: base.postTitle,
         description: base.postContentFiltered,
         link: '$wordpressDomain/series/${base.postName}',
-        posts: _usePosts(jsonResponse, id));
+        posts: await _usePosts(jsonResponse, id));
 
     group.sort = base.menuOrder;
 
@@ -106,10 +106,12 @@ class WordpressRepository {
     return group;
   }
 
-  List<CustomEndpointPost> _usePosts(
-      Map<String, dynamic> jsonResponse, int id) {
-    final posts =
-        jsonResponse.values.map((e) => CustomEndpointPost.fromJson(e)).map((e) {
+  Future<List<CustomEndpointPost>> _usePosts(
+      Map<String, dynamic> jsonResponse, int id) async {
+    final allPostTypes =
+        jsonResponse.values.map((e) => CustomEndpointPost.fromJson(e)).toList();
+
+    final posts = allPostTypes.where((element) => element.isPost).map((e) {
       // To have all parents accounted for, make sure to use saved if found.
       _loadedPosts[e.id] ??= e;
       if (e.menuOrder > 0) {
@@ -119,9 +121,21 @@ class WordpressRepository {
       return _loadedPosts[e.id]!;
     }).toList();
 
-    for (int i = 0; i < posts.length; i++) {
-      if (posts[i].menuOrder == 0) {
-        posts[i].menuOrder = i;
+    final series = await Future.wait(allPostTypes
+        .where((element) => element.isSeries)
+        .map((e) => _series(e))
+        .toList());
+
+    for (var s in series) {
+      s.parents.add(id);
+    }
+
+    for (int i = 0; i < allPostTypes.length; i++) {
+      var raw = allPostTypes[i];
+      if (raw.isPost && raw.menuOrder == 0) {
+        posts.firstWhere((element) => element.id == raw.id).menuOrder = i;
+      } else if (raw.isSeries && raw.menuOrder == 0) {
+        series.firstWhere((element) => element.id == raw.id).sort = i;
       }
     }
     return posts;
@@ -142,7 +156,7 @@ class WordpressRepository {
     List<CustomEndpointPost>? posts;
 
     if (postsResponse != null && postsResponse.body.trim().isNotEmpty) {
-      posts = _usePosts(jsonDecode(postsResponse.body), category.id!);
+      posts = await _usePosts(jsonDecode(postsResponse.body), category.id!);
     }
 
     // query for children of category causes error if there aren't any children.
