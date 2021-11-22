@@ -35,7 +35,7 @@ class PlayButton extends StatelessWidget {
 
           if (media != null) {
             BlocProvider.getDependency<ChosenClassService>()
-                .set(source: media!, isRecent: true);
+                .set(source: media, isRecent: true);
           }
         };
         var icon = Icons.play_circle_filled;

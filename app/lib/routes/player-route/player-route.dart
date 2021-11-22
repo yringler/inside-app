@@ -50,7 +50,7 @@ class PlayerRoute extends StatelessWidget {
                         icon: Icon(
                           icon,
                         )),
-                    audioSource: media.source!,
+                    audioSource: media.source,
                     downloader: BlocProvider.getDependency<AudioDownloader>(),
                   )
                 ],
@@ -122,7 +122,7 @@ class PlayerRoute extends StatelessWidget {
 
     return [
       Text(
-        media.title?.isNotEmpty ?? false ? media.title! : lesson.title!,
+        media.title.isNotEmpty ? media.title : lesson.title,
         style: Theme.of(context).textTheme.headline6,
       )
     ];
@@ -147,7 +147,7 @@ class PlayerRoute extends StatelessWidget {
     final chosenService = BlocProvider.getDependency<ChosenClassService>();
 
     return chosenService.isFavoriteValueListenableBuilder(
-      media.source!,
+      media.source,
       builder: (context, isFavorite) => Center(
         child: IconButton(
           iconSize: Theme.of(context).iconTheme.size!,

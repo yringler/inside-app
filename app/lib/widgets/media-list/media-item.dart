@@ -30,7 +30,7 @@ class MediaItem extends StatelessWidget {
 
     subtitle = textIfNotEmpty(media!.description, maxLines: 1) as Text?;
 
-    if (title?.isEmpty ?? true) {
+    if (title.isEmpty) {
       title = fallbackTitle;
     }
 

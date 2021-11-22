@@ -70,7 +70,7 @@ class ProgressBar extends StatelessWidget {
     }
 
     final onChanged = (double newProgress) => positionSaver.set(
-        media!.source!, Duration(milliseconds: newProgress.round()),
+        media!.source, Duration(milliseconds: newProgress.round()),
         handler: handler);
 
     return Container(

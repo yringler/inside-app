@@ -126,10 +126,10 @@ class ChosenDataList extends StatelessWidget {
           final item = data![index];
 
           return ListTile(
-            title: Text(item.media!.title!),
-            subtitle: item.media!.description != null
+            title: Text(item.media!.title),
+            subtitle: item.media!.description.isNotEmpty
                 ? Text(
-                    item.media!.description!,
+                    item.media!.description,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   )

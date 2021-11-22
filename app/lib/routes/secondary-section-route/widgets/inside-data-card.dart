@@ -24,7 +24,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _title(context),
-                  if (widget.insideData.description?.trim().isNotEmpty ?? false)
+                  if (widget.insideData.description.trim().isNotEmpty)
                     _description()
                 ],
               ),
@@ -40,13 +40,13 @@ class _InsideDataCardData extends State<InsideDataCard> {
               .bodyText2!
               .merge(TextStyle(fontSize: 12)),
         ),
-        Text(widget.insideData.title?.trim() ?? '',
+        Text(widget.insideData.title.trim(),
             style: Theme.of(context).textTheme.headline6)
       ]);
 
   Widget _description() => LayoutBuilder(builder: (context, constraints) {
         final descriptionPainter = InformativeTextPainter(
-            widget.insideData.description?.trim(),
+            widget.insideData.description.trim(),
             maxLines: 3,
             maxWidth: constraints.maxWidth,
             style: Theme.of(context).textTheme.bodyText2);
@@ -78,7 +78,7 @@ class _InsideDataCardData extends State<InsideDataCard> {
               expanded: Container(
                 margin: EdgeInsets.only(top: 7),
                 child: Text(
-                  widget.insideData.description?.trim() ?? '',
+                  widget.insideData.description.trim(),
                 ),
               ))),
     );

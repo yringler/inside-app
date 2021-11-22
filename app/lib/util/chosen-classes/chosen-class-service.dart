@@ -42,7 +42,7 @@ class ChosenClassService {
             isRecent: isRecent ?? chosen?.isRecent ?? false,
             modifiedDate: DateTime.now()));
 
-    final newClass = classes!.get(source.source!.toHiveId())!;
+    final newClass = classes!.get(source.source.toHiveId())!;
     if (!newClass.isRecent! && !newClass.isFavorite!) {
       await newClass.delete();
     }
