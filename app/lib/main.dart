@@ -337,6 +337,8 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   return siteData;
 }
 
+/// NOTE: This is expected to be run in another isolate.
+/// Do not connect to DB on main isolate before this returns.
 /// Make sure that there is data loaded in to hive. Return true if there is data.
 Future<bool> _ensureDataLoaded(List<dynamic> args) async {
   final jsonFolder = args[0] as String;
@@ -350,6 +352,8 @@ Future<bool> _ensureDataLoaded(List<dynamic> args) async {
       topIds: topImagesInside.keys.map((e) => e.toString()).toList());
 
   await siteData.init();
+
+  await siteData.database.close();
 
   return true;
 }

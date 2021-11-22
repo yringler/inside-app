@@ -327,7 +327,7 @@ class DriftInsideData extends SiteDataLayer {
       var data = await loader.load(lastUpdate);
 
       if (data != null) {
-        database.transaction(() async {
+        await database.transaction(() async {
           await addToDatabase(data);
         });
       }
