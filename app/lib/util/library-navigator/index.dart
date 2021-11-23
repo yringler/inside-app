@@ -1,12 +1,11 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_api/models.dart';
-import 'package:inside_chassidus/routes/lesson-route/index.dart';
 import 'package:inside_chassidus/routes/player-route/index.dart';
 import 'package:inside_chassidus/routes/primary-section-route.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/index.dart';
 import 'package:inside_chassidus/routes/ternary-section-route.dart';
 import 'package:inside_chassidus/util/library-navigator/library-position-service.dart';
+import 'package:inside_data_flutter/inside_data_flutter.dart';
 export 'package:inside_chassidus/util/library-navigator/library-position-service.dart';
 
 class LibraryNavigator extends RouterDelegate
@@ -50,19 +49,20 @@ class LibraryNavigator extends RouterDelegate
     // fire untill it's all set up.)
     if (book.level == 0 && book.data is Section) {
       return SecondarySectionRoute(
-        section: book.data as Section?,
+        section: book.data as Section,
       );
     }
 
     switch (book.data.runtimeType) {
       case Section:
         return TernarySectionRoute(
-          section: book.data as Section?,
+          section: book.data as Section,
         );
-      case MediaSection:
-        return LessonRoute(
-          lesson: book.data as MediaSection,
-        );
+      // TODO: implement lesson route? Remove it?
+      // case MediaSection:
+      //   return LessonRoute(
+      //     lesson: book.data as MediaSection,
+      //   );
       case Media:
         return PlayerRoute(media: book.data as Media);
     }

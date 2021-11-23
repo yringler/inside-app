@@ -8,8 +8,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:inside_api/models.dart';
-import 'package:inside_api/site-service.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:inside_chassidus/blocs/is-player-buttons-showing.dart';
 import 'package:inside_chassidus/tabs/favorites-tab.dart';
@@ -19,9 +17,9 @@ import 'package:inside_chassidus/tabs/recent-tab.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
+import 'package:inside_data_flutter/inside_data_flutter.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart';
 import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
 
@@ -46,8 +44,9 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  final siteBoxes = await (getBoxes());
-  final chosenService = await ChosenClassService.create();
+  final loader = JsonLoader();
+  final siteBoxes = await getBoxes(loader);
+  final chosenService = await ChosenClassService.create(siteBoxes);
   final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
   final PositionSaver positionSaver = HivePositionSaver();
@@ -86,9 +85,10 @@ void main() async {
     Bloc((i) => IsPlayerButtonsShowingBloc())
   ], child: AppRouterWidget()));
 
-  await siteBoxes.tryPrepareUpdate();
-
   MyApp.analytics.logAppOpen();
+
+  // Download the data file for use for next time.
+  await loader.prepareUpdate((await siteBoxes.lastUpdate())!);
 }
 
 /// Wraps the app in a root router.
@@ -323,33 +323,38 @@ class MyAppState extends State<MyApp> {
 
 /// Ensure that any source JSON is parsed and loaded in to hive, return
 /// open boxes.
-Future<SiteBoxes> getBoxes() async {
-  final boxPath = await getApplicationDocumentsDirectory();
-  final servicePath = '${boxPath.path}/siteservice_hive';
+Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
+  await JsonLoader.init(
+      resourceName: 'assets/site.json', assetBundle: rootBundle);
 
-  final hasData = await compute(_ensureDataLoaded, [servicePath]);
+  await compute(_ensureDataLoaded,
+      [await JsonLoader.getJsonFolder(), await InsideDatabase.getFileFolder()]);
 
-  // Only load the huge json file if we don't already have the data.
-  if (!hasData) {
-    // Assume that the data bundled with the app is of the correct version.
-    final rawData = await rootBundle.loadString('assets/site.json');
-    await compute(_ensureDataLoaded, [servicePath, rawData]);
-  }
+  final siteData = DriftInsideData(
+      loader: loader,
+      topIds: topImagesInside.keys.map((e) => e.toString()).toList());
 
-  return (await getSiteBoxesWithData(hivePath: servicePath))!;
+  return siteData;
 }
 
+/// NOTE: This is expected to be run in another isolate.
+/// Do not connect to DB on main isolate before this returns.
 /// Make sure that there is data loaded in to hive. Return true if there is data.
 Future<bool> _ensureDataLoaded(List<dynamic> args) async {
-  final path = args[0] as String;
-  final boxes = await getSiteBoxesWithData(
-      hivePath: path, rawData: args.length == 2 ? args.last as String : null);
+  final jsonFolder = args[0] as String;
+  final dbFolder = args[1] as String;
 
-  if (boxes == null) {
-    return false;
-  }
+  JsonLoader.init(jsonFolder: jsonFolder);
 
-  await boxes.hive!.close();
+  final siteData = DriftInsideData(
+      dbFolder: dbFolder,
+      loader: JsonLoader(),
+      topIds: topImagesInside.keys.map((e) => e.toString()).toList());
+
+  await siteData.init();
+
+  await siteData.database.close();
+
   return true;
 }
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inside_api/models.dart';
-import 'package:inside_api/site-service.dart';
+import 'package:inside_data_flutter/inside_data_flutter.dart';
 
 /// A class which hold route data, and allows it to be set.
 /// This is useful when a widget can be a part of a couple diffirent routes, and
@@ -8,7 +7,7 @@ import 'package:inside_api/site-service.dart';
 ///
 /// For example, the media player classes.
 abstract class IRoutDataService {
-  void setActiveItem(SiteDataItem? data);
+  void setActiveItem(SiteDataBase? data);
 }
 
 /// Supports setting a new active section.
@@ -17,7 +16,7 @@ abstract class IRoutDataService {
 /// a thin abstraction around the page stack for the router
 class LibraryPositionService extends ChangeNotifier
     implements IRoutDataService {
-  final SiteBoxes siteBoxes;
+  final SiteDataLayer siteBoxes;
   List<SitePosition> sections = [];
 
   LibraryPositionService({required this.siteBoxes});
@@ -26,7 +25,7 @@ class LibraryPositionService extends ChangeNotifier
   /// If new parent isn't in list, replace the list with it and its ancestors.
   /// Make note that they were never navigated to (and so shouldn't show up
   /// e.g. when user hits back button)
-  Future<List<SitePosition>> setActiveItem(SiteDataItem? item) async {
+  Future<List<SitePosition>> setActiveItem(SiteDataBase? item) async {
     if (sections.isNotEmpty && sections.last.data == item) {
       return sections;
     }
@@ -55,7 +54,15 @@ class LibraryPositionService extends ChangeNotifier
   }
 
   /// Clear the saved list, and reset to the given item and all of its parents.
-  Future<void> _clearTo(SiteDataItem item) async {
+  Future<void> _clearTo(SiteDataBase item) async {
+    if (item is Section && item.content.isEmpty) {
+      // A query of a section does not return child content IDs, so in router get
+      // that info.
+      // TODO: I don't think the query will ever return null? Maybe a better
+      // behaviour if does.
+      item = await siteBoxes.section(item.id) ?? item;
+    }
+
     sections.clear();
     sections.add(SitePosition(data: item, level: 0));
 
@@ -63,28 +70,16 @@ class LibraryPositionService extends ChangeNotifier
     // back button won't get you there), but they are used for explicit navigation
     // (e.g. clicking a parent section button), and to provide context to a class.
     var lastItemAdded = item;
-    while ((lastItemAdded.closestSectionId ?? 0) != 0) {
+    while (lastItemAdded.hasParent) {
       final parentSection =
-          await (this.siteBoxes.sections!.get(lastItemAdded.closestSectionId));
+          await (this.siteBoxes.section(lastItemAdded.firstParent!));
 
       if (parentSection == null) {
         print('parent is null');
         break;
       }
 
-      if (lastItemAdded is Media &&
-          lastItemAdded.closestSectionId != lastItemAdded.parentId) {
-        final mediaSectionId = lastItemAdded.parentId;
-        final parentMediaSection = parentSection.content
-            .firstWhere((content) => content.mediaSection?.id == mediaSectionId)
-            .mediaSection;
-        sections.insert(
-            0,
-            SitePosition(
-                data: parentMediaSection,
-                wasNavigatedTo: false,
-                level: sections.length));
-      }
+      // (Removed code dealing with old Lesson type)
 
       sections.insert(
           0, SitePosition(data: parentSection, level: sections.length));
@@ -94,15 +89,16 @@ class LibraryPositionService extends ChangeNotifier
     for (int i = 0; i < sections.length; i++) {
       sections[i].level = i;
 
-      if (sections[i].data is Section) {
-        await siteBoxes.resolve(sections[i].data as Section);
-      }
+      // TODO: implement optimize data here?
+      // if (sections[i].data is Section) {
+      //   await siteBoxes.resolve(sections[i].data as Section);
+      // }
     }
   }
 }
 
 class SitePosition {
-  final SiteDataItem? data;
+  final SiteDataBase? data;
   final bool wasNavigatedTo;
   // For example, the top level section (which would be on the home screen)
   // would be level 0. A child would be level 1, etc.

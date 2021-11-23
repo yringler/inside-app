@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/widgets/media-list/media-item.dart';
+import 'package:inside_data_flutter/inside_data_flutter.dart';
 
 class MediaList extends StatelessWidget {
   final Widget? leadingWidget;
   final List<Media?>? media;
-  final int? sectionId;
+  final String? sectionId;
   final IRoutDataService routeDataService;
 
   MediaList(

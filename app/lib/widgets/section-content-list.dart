@@ -1,19 +1,16 @@
-import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_api/models.dart';
-import 'package:inside_api/site-service.dart';
-import 'package:inside_chassidus/widgets/inside-navigator.dart';
+import 'package:inside_data_flutter/inside_data_flutter.dart';
 
-typedef Widget InsideDataBuilder<T extends SiteDataItem>(
+typedef Widget InsideDataBuilder<T extends SiteDataBase>(
     BuildContext context, T data);
 
 /// Given a section, provides simple way to build a list of it's sections
 /// and lessons.
 class SectionContentList extends StatelessWidget {
   final bool isSeperated;
-  final Section? section;
+  final Section section;
   final InsideDataBuilder<Section> sectionBuilder;
-  final InsideDataBuilder<MediaSection> lessonBuilder;
+  final InsideDataBuilder<Section> lessonBuilder;
   final InsideDataBuilder<Media>? mediaBuilder;
 
   /// A widget to go before other items in the list.
@@ -31,21 +28,23 @@ class SectionContentList extends StatelessWidget {
       this.leadingWidget});
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<Section>(
-        future: BlocProvider.getDependency<SiteBoxes>().resolve(section!),
+  Widget build(BuildContext context) => FutureBuilder<List<ContentReference>>(
+        // TODO: implement navigation optimization again - eg, navigating to section with one class should navigate to class.
+        // Could be this isn't the place to implement it - maybe in router.
+        future: Future.value(_withContent(section.content)),
         builder: (context, snapShot) {
           if (snapShot.hasData && snapShot.data != null) {
             if (isSeperated) {
               return ListView.separated(
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                itemCount: snapShot.data!.content.length + indexOffset,
-                itemBuilder: _sectionContent(snapShot.data),
+                itemCount: snapShot.data!.length + indexOffset,
+                itemBuilder: _sectionContent(snapShot.data!),
                 separatorBuilder: (context, i) => Divider(),
               );
             } else {
               return ListView.builder(
-                itemCount: snapShot.data!.content.length + indexOffset,
-                itemBuilder: _sectionContent(snapShot.data),
+                itemCount: snapShot.data!.length + indexOffset,
+                itemBuilder: _sectionContent(snapShot.data!),
               );
             }
           } else if (snapShot.hasError) {
@@ -56,32 +55,48 @@ class SectionContentList extends StatelessWidget {
         },
       );
 
-  IndexedWidgetBuilder _sectionContent(Section? section) => (BuildContext context, int i) {
+  IndexedWidgetBuilder _sectionContent(List<ContentReference> content) =>
+      (BuildContext context, int i) {
         if (i == 0 && leadingWidget != null) {
           return leadingWidget!;
         }
 
         i -= indexOffset;
 
-        final dataItem = section!.content[i];
+        final dataItem = content[i];
         if (dataItem.section != null) {
           return sectionBuilder(context, dataItem.section!);
-        } else if (dataItem.mediaSection != null) {
-          return _lessonNavigator(context, dataItem.mediaSection!);
+
+          // TODO: consider if to remove lesson navigator (used to mean section with just lessons)
+          // now that there are only sections.
+          // if (dataItem.section!.content.every((element) => element.isMedia)) {
+          //   return _lessonNavigator(context, dataItem.section!);
+          // } else {
+          //   return sectionBuilder(context, dataItem.section!);
+          // }
         } else if (dataItem.media != null && mediaBuilder != null) {
-            return mediaBuilder!(context, dataItem.media!);
+          return mediaBuilder!(context, dataItem.media!);
         }
         throw 'Error: item contained no data';
       };
 
-  _lessonNavigator(BuildContext context, MediaSection lesson) {
-    if (lesson.audioCount == 1 && mediaBuilder != null) {
-      return mediaBuilder!(context, lesson.media![0]);
-    }
+  /// Only return content with audio children.
+  /// TODO: Optimization (not showing empty content, skipping through sections which have only a single content etc) has to be done better.
+  List<ContentReference> _withContent(List<ContentReference> contents) =>
+      contents
+          .where((element) =>
+              (element.hasMedia && element.media!.source.isNotEmpty) ||
+              (element.hasSection && element.section!.audioCount > 0))
+          .toList();
 
-    return InsideNavigator(
-      child: lessonBuilder(context, lesson),
-      data: lesson,
-    );
-  }
+  // _lessonNavigator(BuildContext context, Section lesson) {
+  //   if (lesson.audioCount == 1 && mediaBuilder != null) {
+  //     return mediaBuilder!(context, lesson.content.map((e) => e.media).first!);
+  //   }
+
+  //   return InsideNavigator(
+  //     child: lessonBuilder(context, lesson),
+  //     data: lesson,
+  //   );
+  // }
 }

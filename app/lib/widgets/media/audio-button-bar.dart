@@ -2,7 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:inside_api/models.dart';
+import 'package:inside_data_flutter/inside_data_flutter.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:inside_chassidus/widgets/media-list/play-button.dart';
 
@@ -33,7 +33,7 @@ class AudioButtonBar extends StatelessWidget {
             onPressed: () => positionSaver
                 .skip(_mediaSource, Duration(seconds: -15), handler: handler)),
         PlayButton(
-          media: media,
+          media: media!,
           mediaSource: _mediaSource,
           iconSize: 48,
         ),

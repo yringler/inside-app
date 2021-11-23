@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 // ignore: implementation_imports
 import 'package:hive/src/hive_impl.dart';
-import 'package:inside_api/models.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
 import 'package:inside_chassidus/util/extract-id.dart';
+import 'package:inside_data_flutter/inside_data_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:hive_flutter/hive_flutter.dart';
@@ -21,6 +21,9 @@ class ChosenClassService {
   /// How many extra to have before deleting.
   static const int deleteAtMultiplier = 2;
 
+  /// Cache of all medias which are chosen.
+  static Map<String, Media> mediaCache = {};
+
   final HiveImpl? hive;
   final Box<ChoosenClass>? classes;
 
@@ -28,17 +31,18 @@ class ChosenClassService {
 
   Future<void> set(
       {required Media source, bool? isFavorite, bool? isRecent}) async {
-    var chosen = classes!.get(source.source!.toHiveId());
+    mediaCache[source.id] = source;
+    var chosen = classes!.get(source.source.toHiveId());
 
     await classes!.put(
-        source.source!.toHiveId(),
+        source.source.toHiveId(),
         ChoosenClass(
-            media: source,
+            mediaId: source.id,
             isFavorite: isFavorite ?? chosen?.isFavorite ?? false,
             isRecent: isRecent ?? chosen?.isRecent ?? false,
             modifiedDate: DateTime.now()));
 
-    final newClass = classes!.get(source.source!.toHiveId())!;
+    final newClass = classes!.get(source.source.toHiveId())!;
     if (!newClass.isRecent! && !newClass.isFavorite!) {
       await newClass.delete();
     }
@@ -66,18 +70,17 @@ class ChosenClassService {
             (recent == null || element.isRecent == recent) &&
             (favorite == null || element.isFavorite == favorite))
         .toList()
-          // Compare b to a to sort by most recent first.
-          ..sort((a, b) => b.modifiedDate!.compareTo(a.modifiedDate!));
+      // Compare b to a to sort by most recent first.
+      ..sort((a, b) => b.modifiedDate!.compareTo(a.modifiedDate!));
   }
 
-  static Future<ChosenClassService> create() async {
+  static Future<ChosenClassService> create(SiteDataLayer dataLayer) async {
     final hive = HiveImpl();
     final folder = await getApplicationDocumentsDirectory();
     hive.init(p.join(folder.path, 'chosen'));
 
     if (!hive.isAdapterRegistered(0)) {
       hive.registerAdapter(ChoosenClassAdapter());
-      hive.registerAdapter(MediaAdapter());
     }
 
     final classesBox = await hive.openBox<ChoosenClass>('classes');
@@ -101,6 +104,16 @@ class ChosenClassService {
       // Favorite classes, recent or not.
       await _deleteTooMany(
           classBox: classesBox, isFavorite: true, max: maxFavorite);
+
+      final medias = (await Future.wait(classesBox.values
+              .map((e) => dataLayer.media(e.mediaId))
+              .toList()))
+          .where((element) => element != null)
+          .map((e) => e!)
+          .map((e) => MapEntry(e.id, e))
+          .toList();
+
+      mediaCache.addEntries(medias);
     }
 
     return ChosenClassService(hive: hive, classes: classesBox);
