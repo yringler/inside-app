@@ -33,10 +33,8 @@ class PlayButton extends StatelessWidget {
         VoidCallback onPressed = () {
           audioHandler.playFromMediaId(_mediaSource!);
 
-          if (media != null) {
-            BlocProvider.getDependency<ChosenClassService>()
-                .set(source: media, isRecent: true);
-          }
+          BlocProvider.getDependency<ChosenClassService>()
+              .set(source: media, isRecent: true);
         };
         var icon = Icons.play_circle_filled;
 

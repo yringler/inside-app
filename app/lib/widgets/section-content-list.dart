@@ -8,7 +8,7 @@ typedef Widget InsideDataBuilder<T extends SiteDataBase>(
 /// and lessons.
 class SectionContentList extends StatelessWidget {
   final bool isSeperated;
-  final Section? section;
+  final Section section;
   final InsideDataBuilder<Section> sectionBuilder;
   final InsideDataBuilder<Section> lessonBuilder;
   final InsideDataBuilder<Media>? mediaBuilder;
@@ -28,23 +28,23 @@ class SectionContentList extends StatelessWidget {
       this.leadingWidget});
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<Section>(
+  Widget build(BuildContext context) => FutureBuilder<List<ContentReference>>(
         // TODO: implement navigation optimization again - eg, navigating to section with one class should navigate to class.
         // Could be this isn't the place to implement it - maybe in router.
-        future: Future.value(section!),
+        future: Future.value(_withContent(section.content)),
         builder: (context, snapShot) {
           if (snapShot.hasData && snapShot.data != null) {
             if (isSeperated) {
               return ListView.separated(
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                itemCount: snapShot.data!.content.length + indexOffset,
-                itemBuilder: _sectionContent(snapShot.data),
+                itemCount: snapShot.data!.length + indexOffset,
+                itemBuilder: _sectionContent(snapShot.data!),
                 separatorBuilder: (context, i) => Divider(),
               );
             } else {
               return ListView.builder(
-                itemCount: snapShot.data!.content.length + indexOffset,
-                itemBuilder: _sectionContent(snapShot.data),
+                itemCount: snapShot.data!.length + indexOffset,
+                itemBuilder: _sectionContent(snapShot.data!),
               );
             }
           } else if (snapShot.hasError) {
@@ -55,7 +55,7 @@ class SectionContentList extends StatelessWidget {
         },
       );
 
-  IndexedWidgetBuilder _sectionContent(Section? section) =>
+  IndexedWidgetBuilder _sectionContent(List<ContentReference> content) =>
       (BuildContext context, int i) {
         if (i == 0 && leadingWidget != null) {
           return leadingWidget!;
@@ -63,7 +63,7 @@ class SectionContentList extends StatelessWidget {
 
         i -= indexOffset;
 
-        final dataItem = section!.content[i];
+        final dataItem = content[i];
         if (dataItem.section != null) {
           return sectionBuilder(context, dataItem.section!);
 
@@ -79,6 +79,14 @@ class SectionContentList extends StatelessWidget {
         }
         throw 'Error: item contained no data';
       };
+
+  /// Only return content with audio children.
+  List<ContentReference> _withContent(List<ContentReference> contents) =>
+      contents
+          .where((element) =>
+              (element.hasMedia && element.media!.source.isNotEmpty) ||
+              (element.hasSection && element.section!.audioCount > 0))
+          .toList();
 
   // _lessonNavigator(BuildContext context, Section lesson) {
   //   if (lesson.audioCount == 1 && mediaBuilder != null) {

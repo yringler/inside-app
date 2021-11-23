@@ -49,14 +49,14 @@ class LibraryNavigator extends RouterDelegate
     // fire untill it's all set up.)
     if (book.level == 0 && book.data is Section) {
       return SecondarySectionRoute(
-        section: book.data as Section?,
+        section: book.data as Section,
       );
     }
 
     switch (book.data.runtimeType) {
       case Section:
         return TernarySectionRoute(
-          section: book.data as Section?,
+          section: book.data as Section,
         );
       // TODO: implement lesson route? Remove it?
       // case MediaSection:
