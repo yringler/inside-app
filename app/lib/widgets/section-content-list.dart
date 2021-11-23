@@ -81,6 +81,7 @@ class SectionContentList extends StatelessWidget {
       };
 
   /// Only return content with audio children.
+  /// TODO: Optimization (not showing empty content, skipping through sections which have only a single content etc) has to be done better.
   List<ContentReference> _withContent(List<ContentReference> contents) =>
       contents
           .where((element) =>
