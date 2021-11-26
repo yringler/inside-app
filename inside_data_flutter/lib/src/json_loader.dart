@@ -107,8 +107,17 @@ class JsonLoader extends SiteDataLoader {
     if (resource.existsSync() && resource.lengthSync() > 100) {
       return;
     }
+    // Load resource as gzip or regular JSON.
 
-    final json = await assetBundle.loadString(resourceName, cache: false);
-    await resource.writeAsString(json);
+    List<int> json;
+
+    try {
+      json = GZipCodec().decode(
+          (await assetBundle.load(resourceName + '.gz')).buffer.asUint8List());
+    } catch (e) {
+      json = (await assetBundle.load(resourceName)).buffer.asUint8List();
+    }
+
+    await resource.writeAsBytes(json);
   }
 }
