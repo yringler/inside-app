@@ -33,7 +33,7 @@ class AudioButtonBar extends StatelessWidget {
             onPressed: () => positionSaver
                 .skip(_mediaSource, Duration(seconds: -15), handler: handler)),
         PlayButton(
-          media: media!,
+          media: media,
           mediaSource: _mediaSource,
           iconSize: 48,
         ),

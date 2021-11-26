@@ -276,6 +276,9 @@ class InsideDatabase extends _$InsideDatabase {
                 id: e.id,
                 sort: e.sort,
                 title: e.title ?? "'",
+                length: e.duration == null
+                    ? null
+                    : Duration(milliseconds: e.duration!),
                 description: e.description ?? '',
                 parents: {id})))
         .toList();
