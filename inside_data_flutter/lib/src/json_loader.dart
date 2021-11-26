@@ -111,10 +111,10 @@ class JsonLoader extends SiteDataLoader {
 
     List<int> json;
 
-    try {
-      json = GZipCodec().decode(
-          (await assetBundle.load(resourceName + '.gz')).buffer.asUint8List());
-    } catch (e) {
+    if (resourceName.endsWith('.gz')) {
+      json = GZipCodec()
+          .decode((await assetBundle.load(resourceName)).buffer.asUint8List());
+    } else {
       json = (await assetBundle.load(resourceName)).buffer.asUint8List();
     }
 

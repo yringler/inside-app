@@ -325,7 +325,7 @@ class MyAppState extends State<MyApp> {
 /// open boxes.
 Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   await JsonLoader.init(
-      resourceName: 'assets/site.json', assetBundle: rootBundle);
+      resourceName: 'assets/site.json.gz', assetBundle: rootBundle);
 
   await compute(_ensureDataLoaded,
       [await JsonLoader.getJsonFolder(), await InsideDatabase.getFileFolder()]);
