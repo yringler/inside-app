@@ -8,17 +8,36 @@ import 'package:inside_chassidus/widgets/media/audio-button-bar.dart';
 import 'package:inside_data_flutter/inside_data_flutter.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 
-class PlayerRoute extends StatelessWidget {
+class PlayerRoute extends StatefulWidget {
   static const String routeName = '/library/playerroute';
 
   final Media media;
 
+
+  PlayerRoute({required this.media});
+
+  @override
+  State<PlayerRoute> createState() => _PlayerRouteState();
+}
+
+class _PlayerRouteState extends State<PlayerRoute> {
   final SiteDataLayer _siteBoxes = BlocProvider.getDependency<SiteDataLayer>();
 
   final libraryPositionService =
       BlocProvider.getDependency<LibraryPositionService>();
 
-  PlayerRoute({required this.media});
+  late Media _currMedia;
+
+  @override
+  void initState() {
+    super.initState();
+    _currMedia = widget.media;
+  }
+
+  void _changeMedia(Media media) {
+    if (mounted)
+      setState(() => _currMedia = media);
+  }
 
   @override
   Widget build(BuildContext context) => Container(
@@ -32,7 +51,7 @@ class PlayerRoute extends StatelessWidget {
                   child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: _title(context, media),
+                children: _title(context, _currMedia),
               )),
             ]),
             _description(context),
@@ -50,25 +69,23 @@ class PlayerRoute extends StatelessWidget {
                         icon: Icon(
                           icon,
                         )),
-                    audioSource: media.source,
+                    audioSource: _currMedia.source,
                     downloader: BlocProvider.getDependency<AudioDownloader>(),
                   )
                 ],
               ),
             ),
             ProgressBar(
-              media: media,
+              media: _currMedia,
             ),
-            AudioButtonBar(
-              media: media,
-            )
+            _audioButtonBar()
           ],
         ),
       );
 
   FutureBuilder<SiteDataBase?> _navigateToLibraryButton() =>
       FutureBuilder<SiteDataBase?>(
-        future: _getParent(),
+        future: _currMedia.getParent(_siteBoxes),
         builder: (context, snapshot) => snapshot.data != null
             ? IconButton(
                 padding: EdgeInsets.zero,
@@ -80,30 +97,32 @@ class PlayerRoute extends StatelessWidget {
             : Container(),
       );
 
-  Future<SiteDataBase?> _getParent() async {
-    if (media.parents.isEmpty) {
-      return null;
-    }
+  FutureBuilder<Section?> _audioButtonBar() {
+    return FutureBuilder<Section?>(
+        future: _currMedia.getParent(_siteBoxes),
+        builder: (context, snapshot) {
+          Media? nextMedia = _currMedia.getRelativeSibling(snapshot.data, 1);
+          Media? prevMedia = _currMedia.getRelativeSibling(snapshot.data, -1);
 
-    final parentSection = await _siteBoxes.section(media.parents.first);
-
-    // Make sure that the parent exists, and that it really has the data.
-    // This is done in case IDs change etc - we don't want to navigate to library,
-    // to some random place.
-    if (parentSection == null ||
-        !parentSection.content.any((c) => c.media == media)) {
-      return null;
-    }
-
-    return parentSection;
+          return AudioButtonBar(
+            media: this._currMedia,
+            nextMedia: nextMedia,
+            onChangedToNextMedia: nextMedia == null ? null :
+                () => _changeMedia(nextMedia),
+            previousMedia: prevMedia,
+            onChangedToPreviousMedia: prevMedia == null ? null :
+                () => _changeMedia(prevMedia),
+          );
+        }
+    );
   }
 
   /// Returns lesson title and media title.
   /// If the media doesn't have a title, just returns lesson title as title.
   List<Widget> _title(BuildContext context, SiteDataBase lesson) {
-    if ((media.title.isNotEmpty) &&
+    if ((_currMedia.title.isNotEmpty) &&
         (lesson.title.isNotEmpty) &&
-        media.title != lesson.title) {
+        _currMedia.title != lesson.title) {
       return [
         Container(
           margin: EdgeInsets.only(bottom: 8),
@@ -114,7 +133,7 @@ class PlayerRoute extends StatelessWidget {
           ),
         ),
         Text(
-          media.title,
+          _currMedia.title,
           style: Theme.of(context).textTheme.headline1,
         )
       ];
@@ -122,7 +141,7 @@ class PlayerRoute extends StatelessWidget {
 
     return [
       Text(
-        media.title.isNotEmpty ? media.title : lesson.title,
+        _currMedia.title.isNotEmpty ? _currMedia.title : lesson.title,
         style: Theme.of(context).textTheme.headline6,
       )
     ];
@@ -136,7 +155,7 @@ class PlayerRoute extends StatelessWidget {
           child: Container(
             margin: EdgeInsets.only(top: 8),
             child: Text(
-              media.description,
+              _currMedia.description,
               style: Theme.of(context).textTheme.bodyText2,
             ),
           ),
@@ -147,12 +166,12 @@ class PlayerRoute extends StatelessWidget {
     final chosenService = BlocProvider.getDependency<ChosenClassService>();
 
     return chosenService.isFavoriteValueListenableBuilder(
-      media.source,
+      _currMedia.source,
       builder: (context, isFavorite) => Center(
         child: IconButton(
           iconSize: Theme.of(context).iconTheme.size!,
           onPressed: () =>
-              chosenService.set(source: media, isFavorite: !isFavorite),
+              chosenService.set(source: _currMedia, isFavorite: !isFavorite),
           icon: Icon(
             isFavorite ? Icons.favorite : Icons.favorite_border,
             color: isFavorite ? Colors.red : null,

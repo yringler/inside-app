@@ -1,7 +1,10 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:inside_chassidus/widgets/media-list/next-media-button.dart';
+import 'package:inside_chassidus/widgets/media-list/previous-media-button.dart';
 import 'package:inside_data_flutter/inside_data_flutter.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:inside_chassidus/widgets/media-list/play-button.dart';
@@ -12,9 +15,22 @@ class AudioButtonBar extends StatelessWidget {
   /// Set [_mediaSource] if [media] isn't available.
   final String? mediaSource;
 
+  final Media? nextMedia;
+  final VoidCallback? onChangedToNextMedia;
+
+  final Media? previousMedia;
+  final VoidCallback? onChangedToPreviousMedia;
+
   String? get _mediaSource => media?.source ?? mediaSource;
 
-  AudioButtonBar({required this.media, this.mediaSource});
+  AudioButtonBar({
+    required this.media,
+    this.mediaSource,
+    this.nextMedia,
+    this.onChangedToNextMedia,
+    this.previousMedia,
+    this.onChangedToPreviousMedia
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,11 +38,13 @@ class AudioButtonBar extends StatelessWidget {
     final positionSaver = BlocProvider.getDependency<PositionSaver>();
 
     return ButtonBar(
+      alignment: MainAxisAlignment.spaceAround,
+      buttonPadding: const EdgeInsets.symmetric(vertical: 8.0),
       children: <Widget>[
-        IconButton(
-          icon: Icon(FontAwesomeIcons.stepBackward),
-          onPressed: () =>
-              positionSaver.set(_mediaSource, Duration.zero, handler: handler),
+        PreviousMediaButton(
+          currentMedia: media,
+          previousMedia: previousMedia,
+          onPressed: onChangedToPreviousMedia,
         ),
         IconButton(
             icon: Icon(FontAwesomeIcons.undo),
@@ -40,10 +58,14 @@ class AudioButtonBar extends StatelessWidget {
         IconButton(
             icon: Icon(FontAwesomeIcons.redo),
             onPressed: () => positionSaver
-                .skip(_mediaSource, Duration(seconds: 15), handler: handler)),
-        _speedButton(handler)
+                .skip(_mediaSource, Duration(seconds: 15), handler: handler)
+        ),
+        NextMediaButton(
+          media: nextMedia,
+          onPressed: onChangedToNextMedia,
+        ),
+        _speedButton(handler),
       ],
-      alignment: MainAxisAlignment.spaceBetween,
     );
   }
 
