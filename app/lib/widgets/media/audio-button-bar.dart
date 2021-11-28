@@ -43,6 +43,7 @@ class AudioButtonBar extends StatelessWidget {
       children: <Widget>[
         PreviousMediaButton(
           currentMedia: media,
+          currentMediaSource: _mediaSource,
           previousMedia: previousMedia,
           onPressed: onChangedToPreviousMedia,
         ),

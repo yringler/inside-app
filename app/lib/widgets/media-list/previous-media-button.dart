@@ -15,8 +15,14 @@ class PreviousMediaButton extends StatelessWidget {
   final double iconSize;
   final VoidCallback? onPressed;
 
+  final String? currentMediaSource;
+
+  String? get _currentMediaSource =>
+      currentMedia?.source ?? currentMediaSource;
+
   PreviousMediaButton({
     this.currentMedia,
+    this.currentMediaSource,
     this.previousMedia,
     this.onPressed,
     this.iconSize = 24
@@ -46,7 +52,7 @@ class PreviousMediaButton extends StatelessWidget {
           };
         } else if (_shouldGoToBeginningOfCurrentMedia(snapshot)) {
           onPressed = () =>
-            positionSaver.set(currentMedia!.source, Duration.zero, handler: audioHandler);
+            positionSaver.set(_currentMediaSource!, Duration.zero, handler: audioHandler);
         }
 
         return IconButton(
@@ -64,7 +70,7 @@ class PreviousMediaButton extends StatelessWidget {
   }
 
   bool _shouldGoToBeginningOfCurrentMedia(AsyncSnapshot<PositionState> snapshot) {
-    return currentMedia != null &&
+    return (currentMedia != null || currentMediaSource != null) &&
         (previousMedia == null || _currentAudioPosition(snapshot) > tenSeconds);
   }
 
