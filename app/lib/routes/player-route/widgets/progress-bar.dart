@@ -21,7 +21,7 @@ class ProgressBar extends StatelessWidget {
     // the position that you're at.
 
     return FutureBuilder<Duration>(
-      future: positionManager.get(media!.source),
+      future: positionManager.get(media!.id),
       initialData: Duration.zero,
       builder: (context, snapshot) => _progressBar(mediaManager, snapshot.data),
     );
@@ -30,6 +30,7 @@ class ProgressBar extends StatelessWidget {
   Widget _progressBar(AudioHandler handler, Duration? start) {
     final stream = getPositionStateWithPersisted(
         handler, BlocProvider.getDependency<PositionSaver>(),
+        // Has to use media source as ID untill audio_service is upgraded to use ID.
         mediaId: media!.source);
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -52,6 +53,8 @@ class ProgressBar extends StatelessWidget {
         if (media!.length != null)
           // Show time remaining in class.
           _stateDurationStreamBuilder(
+              // Here, we still use media source as ID.
+              // TODO: update audio service to use real media ID, not source.
               getPositionStateFiltered(handler, media!.source)
                   .map((event) => event.state.position),
               inactiveBuilder: (_) => _time(media!.length! - start!),
@@ -70,7 +73,10 @@ class ProgressBar extends StatelessWidget {
     }
 
     final onChanged = (double newProgress) => positionSaver.set(
-        media!.source, Duration(milliseconds: newProgress.round()),
+        // This is also used in audio_service, so has to use media source as ID untill
+        // we upgrade audio_service to use the real ID.
+        media!.source,
+        Duration(milliseconds: newProgress.round()),
         handler: handler);
 
     return Container(
