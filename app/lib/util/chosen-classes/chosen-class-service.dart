@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 // ignore: implementation_imports
@@ -83,7 +84,19 @@ class ChosenClassService {
       hive.registerAdapter(ChoosenClassAdapter());
     }
 
-    final classesBox = await hive.openBox<ChoosenClass>('classes');
+    Box<ChoosenClass>? classesBox;
+
+    try {
+      classesBox = await hive.openBox<ChoosenClass>('classes');
+    } catch (_) {
+      try {
+        await classesBox?.close();
+      } catch (_) {}
+
+      final transferredData = await _getDataFromOldBox(folder);
+      classesBox = await hive.openBox<ChoosenClass>('classes');
+      await classesBox.addAll(transferredData);
+    }
 
     // Don't save too much.
     if (classesBox.isNotEmpty) {
@@ -117,6 +130,30 @@ class ChosenClassService {
     }
 
     return ChosenClassService(hive: hive, classes: classesBox);
+  }
+
+  /// Old versions of the app (pre 3.6.0) also stored (the old inside-api) Media object
+  /// directly. This, as long as its type adapter, don't really exist anymore.
+  /// This method migrates the old format to the new and returns the new data style.
+  static Future<List<ChoosenClass>> _getDataFromOldBox(Directory folder) async {
+    final oldHive = HiveImpl();
+    oldHive.init(p.join(folder.path, 'chosen'));
+    oldHive.registerAdapter(MediaShimAdapter());
+    oldHive.registerAdapter(ChoosenClassShimAdapter());
+
+    final oldBox = await oldHive.openBox<ChoosenClassShim>('classes');
+
+    final returnValue = oldBox.values
+        .where((element) => element.media?.id != null)
+        .map((e) => ChoosenClass(
+            mediaId: e.media!.id!.toString(),
+            isFavorite: e.isFavorite,
+            isRecent: e.isRecent,
+            modifiedDate: e.modifiedDate))
+        .toList();
+
+    await oldBox.deleteFromDisk();
+    return returnValue;
   }
 
   static Future<void> _deleteTooMany(

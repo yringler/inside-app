@@ -111,7 +111,9 @@ class ChosenDataList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (data!.isEmpty) {
+    final data = this.data?.where((element) => element.media != null).toList();
+
+    if (data == null || data.isEmpty) {
       return Center(
         child: Text(
           emptyMessage,
@@ -121,9 +123,9 @@ class ChosenDataList extends StatelessWidget {
     }
 
     return ListView.builder(
-        itemCount: data!.length,
+        itemCount: data.length,
         itemBuilder: (context, index) {
-          final item = data![index];
+          final item = data[index];
 
           return ListTile(
             title: Text(item.media!.title),
