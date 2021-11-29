@@ -19,7 +19,7 @@ class SecondarySectionRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SectionContentList(
         leadingWidget: InsideBreadcrumbs(),
-        section: section,
+        content: section.content,
         sectionBuilder: (context, section) => InsideNavigator(
             data: section, child: InsideDataCard(insideData: section)),
         lessonBuilder: (context, lesson) => InsideDataCard(insideData: lesson),

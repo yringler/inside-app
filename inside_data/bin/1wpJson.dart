@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:inside_data/src/loaders/wordpress/wordpress_repository.dart';
+import 'package:inside_data/src/wordpress/wordpress_repository.dart';
 
 Future<void> main(List<String> args) async {
   final id = args.isNotEmpty ? int.tryParse(args.first) ?? 16 : 16;

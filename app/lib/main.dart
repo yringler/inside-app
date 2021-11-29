@@ -14,9 +14,11 @@ import 'package:inside_chassidus/tabs/favorites-tab.dart';
 import 'package:inside_chassidus/tabs/lesson-tab/lesson-tab.dart';
 import 'package:inside_chassidus/tabs/now-playing-tab.dart';
 import 'package:inside_chassidus/tabs/recent-tab.dart';
+import 'package:inside_chassidus/tabs/search-tab.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
+import 'package:inside_chassidus/util/search/search-service.dart';
 import 'package:inside_data_flutter/inside_data_flutter.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
@@ -50,6 +52,7 @@ void main() async {
   final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
   final PositionSaver positionSaver = HivePositionSaver();
+  final searchService = SearchService(siteBoxes: siteBoxes);
 
   final session = await AudioSession.instance;
   await session.configure(AudioSessionConfiguration.speech());
@@ -80,6 +83,7 @@ void main() async {
     Dependency((i) => chosenService),
     Dependency((i) => downloadManager),
     Dependency((i) => libraryPositionService),
+    Dependency((i) => searchService),
     Dependency((i) => audioHandler)
   ], blocs: [
     Bloc((i) => IsPlayerButtonsShowingBloc())
@@ -136,9 +140,12 @@ class MyApp extends StatefulWidget {
       GlobalKey<NavigatorState>(debugLabel: 'favorites');
   final GlobalKey<NavigatorState> recentsKey =
       GlobalKey<NavigatorState>(debugLabel: 'recents');
+  final GlobalKey<NavigatorState> searchKey =
+      GlobalKey<NavigatorState>(debugLabel: 'search');
 
   final recentState = MediaListTabRoute();
   final favoritesState = MediaListTabRoute();
+  final searchState = MediaListTabRoute();
 
   @override
   State<StatefulWidget> createState() => MyAppState();
@@ -160,12 +167,12 @@ class MyAppState extends State<MyApp> {
     positionService.addListener(rebuildForCanPop);
     widget.recentState.addListener(rebuildForCanPop);
     widget.favoritesState.addListener(rebuildForCanPop);
+    widget.searchState.addListener(rebuildForCanPop);
   }
 
   /// Hide the global media controls if on media player route.
   /// If the position is changed and we're not on the player route, return to library
-  /// in order to see the position. (This currently only happens on view parent button
-  /// in player route.)
+  /// in order to see the position.
   void onLibraryPositionChange() {
     final last = positionService.sections.lastOrNull;
     final isOnPlayer = last?.data != null && last!.data is Media;
@@ -235,6 +242,13 @@ class MyAppState extends State<MyApp> {
             label: 'Bookmarked'),
         BottomNavigationBarItem(
             activeIcon: Icon(
+              Icons.search,
+              color: Colors.blue,
+            ),
+            icon: Icon(Icons.search),
+            label: 'Search'),
+        BottomNavigationBarItem(
+            activeIcon: Icon(
               Icons.play_circle_filled,
               color: Colors.black,
             ),
@@ -286,6 +300,11 @@ class MyAppState extends State<MyApp> {
           routeState: widget.favoritesState,
         );
       case 3:
+        return SearchTab(
+          navigatorKey: widget.searchKey,
+          routeState: widget.searchState,
+        );
+      case 4:
         return NowPlayingTab();
       default:
         throw ArgumentError('Invalid tab index');
@@ -301,6 +320,8 @@ class MyAppState extends State<MyApp> {
       case 2:
         return widget.favoritesState.hasMedia();
       case 3:
+        return widget.searchState.hasMedia();
+      case 4:
         return false;
       default:
         throw ArgumentError('Called with invalid index');
@@ -315,6 +336,8 @@ class MyAppState extends State<MyApp> {
         return widget.recentsKey;
       case 2:
         return widget.favoritesKey;
+      case 3:
+        return widget.searchKey;
       default:
         throw ArgumentError('Called with invalid index');
     }

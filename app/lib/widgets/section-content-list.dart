@@ -8,7 +8,7 @@ typedef Widget InsideDataBuilder<T extends SiteDataBase>(
 /// and lessons.
 class SectionContentList extends StatelessWidget {
   final bool isSeperated;
-  final Section section;
+  final List<ContentReference> content;
   final InsideDataBuilder<Section> sectionBuilder;
   final InsideDataBuilder<Section> lessonBuilder;
   final InsideDataBuilder<Media>? mediaBuilder;
@@ -20,7 +20,7 @@ class SectionContentList extends StatelessWidget {
   int get indexOffset => leadingWidget == null ? 0 : 1;
 
   SectionContentList(
-      {required this.section,
+      {required this.content,
       required this.sectionBuilder,
       required this.lessonBuilder,
       required this.mediaBuilder,
@@ -31,7 +31,7 @@ class SectionContentList extends StatelessWidget {
   Widget build(BuildContext context) => FutureBuilder<List<ContentReference>>(
         // TODO: implement navigation optimization again - eg, navigating to section with one class should navigate to class.
         // Could be this isn't the place to implement it - maybe in router.
-        future: Future.value(_withContent(section.content)),
+        future: Future.value(_withContent(content)),
         builder: (context, snapShot) {
           if (snapShot.hasData && snapShot.data != null) {
             if (isSeperated) {

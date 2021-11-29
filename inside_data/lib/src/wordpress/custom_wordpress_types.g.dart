@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'wordpress_repository.dart';
+part of 'custom_wordpress_types.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
