@@ -127,6 +127,13 @@ class ChosenClassService {
           .toList();
 
       mediaCache.addEntries(medias);
+
+      // In case an ID changes or something, or otherwise no longer available.
+      for (var i in classesBox.values.toList()) {
+        if (i.media == null) {
+          await i.delete();
+        }
+      }
     }
 
     return ChosenClassService(hive: hive, classes: classesBox);
