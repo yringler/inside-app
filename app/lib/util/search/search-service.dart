@@ -4,19 +4,20 @@ import 'package:rxdart/rxdart.dart';
 //TODO: Overkill?
 class SearchService {
   final SiteDataLayer siteBoxes;
-  //TODO: Remove nullability?
   BehaviorSubject<List<ContentReference>> searchResults = BehaviorSubject();
+  BehaviorSubject<bool> loading = BehaviorSubject.seeded(false);
   WordpressSearch wordpressSearch = WordpressSearch(wordpressDomain: domain);
-  //TODO: Update to BehaviorSubject
-  bool loading = false;
   String? term = null;
 
   SearchService({required this.siteBoxes});
 
   Future<List<ContentReference>> search(String term) async {
-    if (term == this.term)
+    if (term == this.term) {
+      searchResults.add(searchResults.value);
       return Future.value(searchResults.value);
+    }
 
+    loading.add(true);
     this.term = term;
 
     final results = await wordpressSearch.search(term);
@@ -28,6 +29,7 @@ class SearchService {
       .toList();
 
     searchResults.add(content);
+    loading.add(false);
     return content;
   }
 

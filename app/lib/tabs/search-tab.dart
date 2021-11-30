@@ -7,8 +7,8 @@ import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_chassidus/util/search/search-service.dart';
 import 'package:inside_data_flutter/inside_data_flutter.dart';
 
-//TODO: Break this down into smaller widgets
-class SearchTab extends StatefulWidget {
+//TODO: Break this down into smaller widgets and add necessary navigator stuff; see MediaListTabNavigator
+class SearchTab extends StatefulWidget  {
   final GlobalKey<NavigatorState> navigatorKey;
   final MediaListTabRoute routeState;
 
@@ -20,8 +20,20 @@ class SearchTab extends StatefulWidget {
 
 class _SearchTabState extends State<SearchTab> {
   final searchService = BlocProvider.getDependency<SearchService>();
-  final _controller = TextEditingController();
+  TextEditingController _controller = TextEditingController();
 
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (searchService.term != null) {
+      _controller.text = searchService.term!;
+      // if (!widget.routeState.hasMedia()) {
+      //   _controller.selection = TextSelection(baseOffset: 0, extentOffset: searchService.term!.length);
+      // }
+    }
+  }
 
   @override
   Widget build(BuildContext context) => Navigator(
@@ -34,13 +46,13 @@ class _SearchTabState extends State<SearchTab> {
       return widget.routeState.clear();
     },
     pages: [
-      MaterialPage(child: _getSearch()),
+      MaterialPage(child: _getSearch(widget.routeState.hasMedia())),
       if (widget.routeState.hasMedia())
         MaterialPage(child: PlayerRoute(media: widget.routeState.media!))
     ],
   );
 
-  Widget _getSearch() => Container(
+  Widget _getSearch(bool isCoveredByMediaPage) => Container(
     //TODO: Try to bring this in line with padding of other pages
     padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
     child: Column(
@@ -51,20 +63,25 @@ class _SearchTabState extends State<SearchTab> {
               //TODO: Do we want to search automatically, perhaps with a debounce?
                 child: TextField(
                   controller: _controller,
-                  //TODO: Figure out why it's autofocusing when there are results
-                  // autofocus: _searchResults == null || _searchResults!.isEmpty,
+                  //TODO: Autofocus only when empty or no results? Might not work when navigating back from media screen
+                  autofocus: !hasMedia,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       isDense: true,
                       hintText: 'Search',
-                      suffix: searchService.loading
-                          ? SizedBox(
-                            height: 15,
-                            width: 15,
-                            //TODO: Fix position and/or size. Possibly remove and replace with another loader elsewhere.
-                            child: CircularProgressIndicator(strokeWidth: 2.5),
-                          )
-                          : null,
+                      suffix: StreamBuilder<bool>(
+                        stream: searchService.loading.stream,
+                        builder: (context, snapshot) {
+                          return snapshot.hasData && snapshot.data!
+                              ? SizedBox(
+                                height: 15,
+                                width: 15,
+                                //TODO: Fix position and/or size. Possibly remove and replace with another loader elsewhere.
+                                child: CircularProgressIndicator(strokeWidth: 2.5),
+                              )
+                              : SizedBox.shrink();
+                        }
+                      ),
                   ),
                   onSubmitted: (value) => searchService.search(value),
                 )
@@ -92,7 +109,6 @@ class _SearchTabState extends State<SearchTab> {
                           style: Theme.of(context).textTheme.bodyText1,
                         ),
                       )
-                      //TODO: When in the media player, back from app bar works but Android back button exists the app instead of going back
                       : SearchSectionRoute(
                           content: snapshot.data!,
                           routeDataService: widget.routeState
