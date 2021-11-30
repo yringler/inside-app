@@ -16,10 +16,8 @@ class AudioButtonBar extends StatelessWidget {
   final String? mediaSource;
 
   final Media? nextMedia;
-  final VoidCallback? onChangedToNextMedia;
 
   final Media? previousMedia;
-  final VoidCallback? onChangedToPreviousMedia;
 
   String? get _mediaSource => media?.source ?? mediaSource;
 
@@ -27,9 +25,7 @@ class AudioButtonBar extends StatelessWidget {
     required this.media,
     this.mediaSource,
     this.nextMedia,
-    this.onChangedToNextMedia,
     this.previousMedia,
-    this.onChangedToPreviousMedia
   });
 
   @override
@@ -45,7 +41,6 @@ class AudioButtonBar extends StatelessWidget {
           currentMedia: media,
           currentMediaSource: _mediaSource,
           previousMedia: previousMedia,
-          onPressed: onChangedToPreviousMedia,
         ),
         IconButton(
             icon: Icon(FontAwesomeIcons.undo),
@@ -63,7 +58,6 @@ class AudioButtonBar extends StatelessWidget {
         ),
         NextMediaButton(
           media: nextMedia,
-          onPressed: onChangedToNextMedia,
         ),
         _speedButton(handler),
       ],
