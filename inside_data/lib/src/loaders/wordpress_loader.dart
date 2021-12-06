@@ -1,5 +1,5 @@
 import 'package:inside_data/inside_data.dart';
-import 'package:inside_data/src/wordpress/wordpress_repository.dart';
+import 'package:inside_data/src/loaders/wordpress/wordpress_repository.dart';
 
 /// Loads entire site from wordpress REST API.
 /// This loader is only intended to be used server side, not client/app side.

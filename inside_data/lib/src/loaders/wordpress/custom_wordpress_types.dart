@@ -1,5 +1,5 @@
 import 'package:inside_data/inside_data.dart';
-import 'package:inside_data/src/wordpress/parsing_tools.dart';
+import 'package:inside_data/src/loaders/wordpress/parsing_tools.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'custom_wordpress_types.g.dart';
@@ -29,21 +29,21 @@ abstract class CustomEndpointGroup {
 
   CustomEndpointGroup(
       {required this.id,
-        required this.name,
-        required this.title,
-        required this.description,
-        required this.link,
-        required this.parents,
-        this.posts = const []});
+      required this.name,
+      required this.title,
+      required this.description,
+      required this.link,
+      required this.parents,
+      this.posts = const []});
 
   CustomEndpointGroup.copy(CustomEndpointGroup other)
       : this(
-      id: other.id,
-      name: other.name,
-      title: other.title,
-      description: other.description,
-      link: other.link,
-      parents: other.parents);
+            id: other.id,
+            name: other.name,
+            title: other.title,
+            description: other.description,
+            link: other.link,
+            parents: other.parents);
 
   Map<String, dynamic> toJson() => _$CustomEndpointGroupToJson(this);
 
@@ -89,20 +89,20 @@ abstract class CustomEndpointGroup {
 class CustomEndpointSeries extends CustomEndpointGroup {
   CustomEndpointSeries(
       {List<CustomEndpointPost> posts = const [],
-        required Set<int> parents,
-        required int id,
-        required String name,
-        required String title,
-        required String description,
-        required String link})
+      required Set<int> parents,
+      required int id,
+      required String name,
+      required String title,
+      required String description,
+      required String link})
       : super(
-      id: id,
-      name: name,
-      title: title,
-      parents: parents,
-      description: description,
-      link: link,
-      posts: posts);
+            id: id,
+            name: name,
+            title: title,
+            parents: parents,
+            description: description,
+            link: link,
+            posts: posts);
 
   factory CustomEndpointSeries.fromJson(Map<String, dynamic> json) =>
       _$CustomEndpointSeriesFromJson(json);
@@ -115,21 +115,21 @@ class CustomEndpointCategory extends CustomEndpointGroup {
 
   CustomEndpointCategory(
       {this.series = const [],
-        List<CustomEndpointPost> posts = const [],
-        required int id,
-        required Set<int> parents,
-        required String name,
-        required String title,
-        required String description,
-        required String link})
+      List<CustomEndpointPost> posts = const [],
+      required int id,
+      required Set<int> parents,
+      required String name,
+      required String title,
+      required String description,
+      required String link})
       : super(
-      id: id,
-      name: name,
-      title: title,
-      parents: parents,
-      description: description,
-      link: link,
-      posts: posts);
+            id: id,
+            name: name,
+            title: title,
+            parents: parents,
+            description: description,
+            link: link,
+            posts: posts);
 
   CustomEndpointCategory.withBase(CustomEndpointGroup group,
       {required this.series})
@@ -185,16 +185,16 @@ class CustomEndpointPost {
 
   CustomEndpointPost(
       {required this.parents,
-        required this.id,
-        required this.postTitle,
-        required this.postName,
-        required this.postContentFiltered,
-        required this.postDate,
-        required this.postModified,
-        required this.menuOrder,
-        required this.postContent,
-        required this.postType,
-        required this.guid});
+      required this.id,
+      required this.postTitle,
+      required this.postName,
+      required this.postContentFiltered,
+      required this.postDate,
+      required this.postModified,
+      required this.menuOrder,
+      required this.postContent,
+      required this.postType,
+      required this.guid});
 
   factory CustomEndpointPost.fromJson(Map<String, dynamic> json) =>
       _$CustomEndpointPostFromJson(json);
@@ -210,7 +210,7 @@ class CustomEndpointPost {
             id: id.toString(),
             title: postTitle,
             description:
-            postContent.isNotEmpty ? postContent : postContentFiltered,
+                postContent.isNotEmpty ? postContent : postContentFiltered,
             sort: menuOrder,
             link: url),
         requireAudio: isPost);

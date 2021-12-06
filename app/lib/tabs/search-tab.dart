@@ -64,7 +64,7 @@ class _SearchTabState extends State<SearchTab> {
                 child: TextField(
                   controller: _controller,
                   //TODO: Autofocus only when empty or no results? Might not work when navigating back from media screen
-                  autofocus: !hasMedia,
+                  autofocus: !isCoveredByMediaPage,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       isDense: true,

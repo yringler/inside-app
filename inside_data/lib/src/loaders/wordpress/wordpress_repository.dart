@@ -1,10 +1,10 @@
 import 'dart:convert';
-
-import 'package:inside_data/src/wordpress/custom_wordpress_types.dart';
-import 'package:inside_data/src/wordpress/wordpress.dart';
 import 'package:flutter_wordpress/flutter_wordpress.dart' as wp;
 import 'package:http/http.dart' as http;
+import 'package:inside_data/src/loaders/wordpress/wordpress.dart';
 import 'package:rxdart/subjects.dart';
+
+import 'custom_wordpress_types.dart';
 
 class WordpressRepository extends Wordpress {
   static const standardApiPath = 'wp-json/wp/v2';
