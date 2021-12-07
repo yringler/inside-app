@@ -23,6 +23,8 @@ class PrimarySectionsRoute extends StatelessWidget {
   Widget _sections(BuildContext context, List<Section> topLevel,
           SiteDataLayer dataLayer) =>
       GridView.extent(
+          physics: NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
           maxCrossAxisExtent: 200,
           padding: const EdgeInsets.all(4),
           mainAxisSpacing: 4,
