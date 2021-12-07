@@ -200,6 +200,9 @@ class InsideDatabase extends _$InsideDatabase {
         id: id,
         sort: media.sort,
         title: media.title ?? '',
+        length: media.duration != null
+            ? Duration(milliseconds: media.duration!)
+            : null,
         description: media.description ?? '',
         parents: parents);
   }

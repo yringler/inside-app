@@ -253,7 +253,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
     // Make sure to get most recent.
     final tasks = await FlutterDownloader.loadTasksWithRawQuery(
         query:
-            'SELECT * FROM task WHERE url like \'$uri\' ORDER BY time_created desc LIMIT 1');
+            'SELECT * FROM task WHERE url like \'${uri.toString().replaceAll("'", "''")}\' ORDER BY time_created desc LIMIT 1');
 
     final emptyTask = DownloadTask(
         status: DownloadTaskStatus.undefined,
