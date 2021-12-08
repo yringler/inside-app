@@ -256,9 +256,12 @@ class InsideDatabase extends _$InsideDatabase {
       innerJoin(sectionTable,
           sectionTable.id.equalsExp(sectionParentsTable.sectionId))
     ]);
-    final childSectionsValue = await childSectionsQuery.get();
-    final childSections = childSectionsValue
+    final childSectionsValue = (await childSectionsQuery.get())
         .map((e) => e.readTable(sectionTable))
+        .toList();
+    childSectionsValue.sort((a, b) => a.sort.compareTo(b.sort));
+
+    final childSections = childSectionsValue
         .map((e) => ContentReference.fromData(
             data: Section(
                 audioCount: e.count,
@@ -279,8 +282,11 @@ class InsideDatabase extends _$InsideDatabase {
       innerJoin(mediaTable, mediaTable.id.equalsExp(mediaParentsTable.mediaId))
     ]);
     final mediaValue = await mediaQuery.get();
-    final media = mediaValue
-        .map((e) => e.readTable(mediaTable))
+
+    final mediaRows = mediaValue.map((e) => e.readTable(mediaTable)).toList();
+    mediaRows.sort((a, b) => a.sort.compareTo(b.sort));
+
+    final media = mediaRows
         .map((e) => ContentReference.fromData(
             data: Media(
                 source: e.source,
@@ -296,7 +302,7 @@ class InsideDatabase extends _$InsideDatabase {
 
     return Section.fromBase(base,
         audioCount: baseSectionRow.count,
-        content: [...media, ...childSections]..sort());
+        content: [...media, ...childSections]);
   }
 
   Future<void> setUpdateTime(DateTime time) async {
