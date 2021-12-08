@@ -11,6 +11,5 @@ Future<void> main(List<String> args) async {
       topImagesInside.keys.map((e) => repository.category(e)).toList());
 
   final encoder = JsonEncoder.withIndent('\t');
-  print(encoder
-      .convert([...repository.categories.values, ...repository.groups.values]));
+  print(encoder.convert(repository.groups.values.toList()));
 }

@@ -60,7 +60,7 @@ class LibraryPositionService extends ChangeNotifier
       // that info.
       // TODO: I don't think the query will ever return null? Maybe a better
       // behaviour if does.
-      item = await siteBoxes.section(item.id) ?? item;
+      item = (await siteBoxes.section(item.id))!;
     }
 
     sections.clear();

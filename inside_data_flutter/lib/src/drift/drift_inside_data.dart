@@ -102,6 +102,7 @@ class InsideDatabase extends _$InsideDatabase {
   int get schemaVersion => 1;
 
   Future<void> addSections(Iterable<Section> sections) async {
+    assert(sections.where((element) => element.id == '18134').isNotEmpty);
     final sectionCompanions = sections
         .map((value) => SectionTableCompanion.insert(
             link: value.link,
@@ -138,6 +139,11 @@ class InsideDatabase extends _$InsideDatabase {
   }
 
   Future<void> addMedia(Iterable<Media> medias) async {
+    assert(medias
+        .where((element) =>
+            element.id ==
+            'https://insidechassidus.org/wp-content/uploads/classes/MM/SNGL/SNGL_1010-67_BASI.MP3')
+        .isNotEmpty);
     final mediaCompanions = medias
         .map((e) => MediaTableCompanion.insert(
             id: e.id,
@@ -200,9 +206,9 @@ class InsideDatabase extends _$InsideDatabase {
         id: id,
         sort: media.sort,
         title: media.title ?? '',
-        length: media.duration != null
-            ? Duration(milliseconds: media.duration!)
-            : null,
+        length: media.duration == null
+            ? null
+            : Duration(milliseconds: media.duration!),
         description: media.description ?? '',
         parents: parents);
   }

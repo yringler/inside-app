@@ -197,24 +197,12 @@ abstract class SiteDataLayer {
 class SiteData {
   final DateTime createdDate;
   final Map<String, Section> sections;
+  final Map<String, Media> medias;
   final List<int> topSectionIds;
-
-  /// All medias, extracted from [sections].
-  Iterable<Media> get medias => sections.values
-      .map((e) => e.content)
-      .expand((element) => element)
-      .map((e) => [
-            if (e.hasMedia) e.media!,
-            if (e.hasSection)
-              ...e.section!.content
-                  .where((element) => element.hasMedia)
-                  .map((e) => e.media!)
-          ])
-      .expand((element) => element)
-      .toSet();
 
   SiteData(
       {required this.sections,
+      required this.medias,
       required this.topSectionIds,
       required this.createdDate}) {
     var processing = Map<String, int?>();
@@ -243,15 +231,17 @@ class SiteData {
   /// and must be in the first level of [sections].
   SiteData.fromList(
       {required List<Section> sections,
+      required List<Media> medias,
       required List<int> topSectionIds,
       required DateTime createdDate})
-      : this(sections: {
+      : this(medias: {
+          for (var m in medias) m.id: m
+        }, sections: {
           for (var section in sections
               .map((e) => [
                     e,
                     ...e.content
-                        .where((element) =>
-                            element.isSection && element.section != null)
+                        .where((element) => element.hasSection)
                         .map((e) => e.section!)
                         .toList()
                   ])

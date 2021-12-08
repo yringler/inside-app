@@ -22,12 +22,24 @@ class WordpressLoader extends SiteDataLoader {
     await Future.wait(
         topCategoryIds.map((e) => wordpressRepository.category(e)).toList());
 
+    final postDataBase = wordpressRepository.posts.values
+        .map((e) => e.toSiteDataBase())
+        .toList();
+
+    final sectionsFromPosts = postDataBase.whereType<Section>().cast<Section>();
+
     final sectionList = [
-      ...wordpressRepository.categories.values.map((e) => e.toSection()),
       ...wordpressRepository.groups.values.map((e) => e.toSection()),
+      ...sectionsFromPosts
     ];
 
     return SiteData.fromList(
+        medias: [
+          ...postDataBase.whereType<Media>().cast<Media>(),
+          ...sectionsFromPosts
+              .map((e) => e.content.whereType<Media>().cast<Media>())
+              .expand((element) => element)
+        ],
         topSectionIds: topCategoryIds,
         sections: sectionList,
         createdDate: DateTime.now());

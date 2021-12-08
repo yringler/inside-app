@@ -45,7 +45,16 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final loader = JsonLoader();
-  final siteBoxes = await getBoxes(loader);
+  final siteBoxes = (await getBoxes(loader)) as DriftInsideData;
+  final test = await siteBoxes.media(
+      'https://insidechassidus.org/wp-content/uploads/classes/MM/SNGL/SNGL_1409_1_Basi_Ligani_YSH_74.mp3');
+  final testParent = await siteBoxes.section('18341');
+
+  final parentChildQuery = siteBoxes.database
+      .select(siteBoxes.database.mediaParentsTable)
+    ..where((tbl) => tbl.parentSection.equals('18341'));
+  final parentChild = await parentChildQuery.get();
+
   final chosenService = await ChosenClassService.create(siteBoxes);
   final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
