@@ -58,6 +58,10 @@ class WordpressLoader extends SiteDataLoader {
           ...postDataBase.whereType<Media>().cast<Media>(),
           ...nestedMedia
         ],
+        contentSort: {
+          for (var kv in wordpressRepository.contentSort.entries)
+            kv.key.toString(): kv.value.map((e) => e.toString()).toList()
+        },
         topSectionIds: topCategoryIds,
         // Don't return nested data.
         sections: sectionList

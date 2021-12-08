@@ -12,12 +12,14 @@ class MediaParentsTable extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get mediaId => text()();
   TextColumn get parentSection => text()();
+  IntColumn get sort => integer()();
 }
 
 class SectionParentsTable extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get sectionId => text()();
   TextColumn get parentSection => text()();
+  IntColumn get sort => integer()();
 }
 
 /// Contains a single media/post
@@ -101,7 +103,8 @@ class InsideDatabase extends _$InsideDatabase {
   @override
   int get schemaVersion => 1;
 
-  Future<void> addSections(Iterable<Section> sections) async {
+  Future<void> addSections(
+      Iterable<Section> sections, Map<String, List<String>> contentSort) async {
     final sectionCompanions = sections
         .map((value) => SectionTableCompanion.insert(
             link: value.link,
@@ -118,7 +121,9 @@ class InsideDatabase extends _$InsideDatabase {
     final sectionParents = sections
         .map((section) => section.parents.map((parent) =>
             SectionParentsTableCompanion.insert(
-                sectionId: section.id, parentSection: parent)))
+                sectionId: section.id,
+                parentSection: parent,
+                sort: contentSort[parent]!.indexOf(section.id))))
         .expand((element) => element)
         .toList();
 
@@ -137,7 +142,8 @@ class InsideDatabase extends _$InsideDatabase {
     }
   }
 
-  Future<void> addMedia(Iterable<Media> medias) async {
+  Future<void> addMedia(
+      Iterable<Media> medias, Map<String, List<String>> contentSort) async {
     final mediaCompanions = medias
         .map((e) => MediaTableCompanion.insert(
             id: e.id,
@@ -151,7 +157,9 @@ class InsideDatabase extends _$InsideDatabase {
     final mediaParents = medias
         .map((media) => media.parents.map((parent) =>
             MediaParentsTableCompanion.insert(
-                mediaId: media.id, parentSection: parent)))
+                mediaId: media.id,
+                parentSection: parent,
+                sort: contentSort[parent]!.indexOf(media.id))))
         .expand((element) => element)
         .toList();
 
@@ -362,8 +370,9 @@ class DriftInsideData extends SiteDataLayer {
 
       // Might be faster to run all at the same time with Future.wait, but that might
       // be a bit much for an older phone, and probably won't make much diffirence in time.
-      await database.addSections(data.sections.values.toSet());
-      await database.addMedia(data.medias.values.toSet());
+      await database.addSections(
+          data.sections.values.toSet(), data.contentSort);
+      await database.addMedia(data.medias.values.toSet(), data.contentSort);
       await database.setUpdateTime(data.createdDate);
     });
   }

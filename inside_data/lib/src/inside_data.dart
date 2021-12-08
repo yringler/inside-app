@@ -199,10 +199,12 @@ class SiteData {
   final Map<String, Section> sections;
   final Map<String, Media> medias;
   final List<int> topSectionIds;
+  final Map<String, List<String>> contentSort;
 
   SiteData(
       {required this.sections,
       required this.medias,
+      required this.contentSort,
       required this.topSectionIds,
       required this.createdDate}) {
     var processing = Map<String, int?>();
@@ -233,22 +235,28 @@ class SiteData {
       {required List<Section> sections,
       required List<Media> medias,
       required List<int> topSectionIds,
+      required Map<String, List<String>> contentSort,
       required DateTime createdDate})
-      : this(medias: {
-          for (var m in medias) m.id: m
-        }, sections: {
-          for (var section in sections
-              .map((e) => [
-                    e,
-                    ...e.content
-                        .where((element) => element.hasSection)
-                        .map((e) => e.section!)
-                        .toList()
-                  ])
-              .expand((element) => element)
-              .toSet())
-            section.id: section
-        }, topSectionIds: topSectionIds, createdDate: createdDate);
+      : this(
+            medias: {
+              for (var m in medias) m.id: m
+            },
+            sections: {
+              for (var section in sections
+                  .map((e) => [
+                        e,
+                        ...e.content
+                            .where((element) => element.hasSection)
+                            .map((e) => e.section!)
+                            .toList()
+                      ])
+                  .expand((element) => element)
+                  .toSet())
+                section.id: section
+            },
+            contentSort: contentSort,
+            topSectionIds: topSectionIds,
+            createdDate: createdDate);
 
   Map<String, dynamic> toJson() => _$SiteDataToJson(this);
 

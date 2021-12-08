@@ -18,6 +18,9 @@ class WordpressRepository {
   final Map<int, CustomEndpointGroup> _loadedGroups = {};
   final Map<int, CustomEndpointPost> _loadedPosts = {};
 
+  /// How direct children of a section should be sorted.
+  final Map<int, List<int>> contentSort = {};
+
   Map<int, CustomEndpointGroup> get groups => _loadedGroups;
   Map<int, CustomEndpointPost> get posts => _loadedPosts;
 
@@ -129,6 +132,10 @@ class WordpressRepository {
       s.parents.add(id);
     }
 
+    contentSort[id] ??= [];
+    contentSort[id]!.addAll(posts.map((e) => e.id));
+    contentSort[id]!.addAll(series.map((e) => e.id));
+
     CustomEndpointGroup.setSort(series);
 
     for (int i = 0; i < allPostTypes.length; i++) {
@@ -173,6 +180,8 @@ class WordpressRepository {
         final customCategories = (await Future.wait(
                 categories.map((e) => _childCategories(e)).toList()))
             .toList();
+
+        contentSort[category.id]!.insertAll(0, categories.map((e) => e.id!));
 
         CustomEndpointGroup.setSort(customCategories);
       }

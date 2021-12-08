@@ -12,8 +12,12 @@ class MediaParentsTableData extends DataClass
   final int id;
   final String mediaId;
   final String parentSection;
+  final int sort;
   MediaParentsTableData(
-      {required this.id, required this.mediaId, required this.parentSection});
+      {required this.id,
+      required this.mediaId,
+      required this.parentSection,
+      required this.sort});
   factory MediaParentsTableData.fromData(Map<String, dynamic> data,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
@@ -24,6 +28,8 @@ class MediaParentsTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}media_id'])!,
       parentSection: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}parent_section'])!,
+      sort: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}sort'])!,
     );
   }
   @override
@@ -32,6 +38,7 @@ class MediaParentsTableData extends DataClass
     map['id'] = Variable<int>(id);
     map['media_id'] = Variable<String>(mediaId);
     map['parent_section'] = Variable<String>(parentSection);
+    map['sort'] = Variable<int>(sort);
     return map;
   }
 
@@ -40,6 +47,7 @@ class MediaParentsTableData extends DataClass
       id: Value(id),
       mediaId: Value(mediaId),
       parentSection: Value(parentSection),
+      sort: Value(sort),
     );
   }
 
@@ -50,6 +58,7 @@ class MediaParentsTableData extends DataClass
       id: serializer.fromJson<int>(json['id']),
       mediaId: serializer.fromJson<String>(json['mediaId']),
       parentSection: serializer.fromJson<String>(json['parentSection']),
+      sort: serializer.fromJson<int>(json['sort']),
     );
   }
   @override
@@ -59,35 +68,39 @@ class MediaParentsTableData extends DataClass
       'id': serializer.toJson<int>(id),
       'mediaId': serializer.toJson<String>(mediaId),
       'parentSection': serializer.toJson<String>(parentSection),
+      'sort': serializer.toJson<int>(sort),
     };
   }
 
   MediaParentsTableData copyWith(
-          {int? id, String? mediaId, String? parentSection}) =>
+          {int? id, String? mediaId, String? parentSection, int? sort}) =>
       MediaParentsTableData(
         id: id ?? this.id,
         mediaId: mediaId ?? this.mediaId,
         parentSection: parentSection ?? this.parentSection,
+        sort: sort ?? this.sort,
       );
   @override
   String toString() {
     return (StringBuffer('MediaParentsTableData(')
           ..write('id: $id, ')
           ..write('mediaId: $mediaId, ')
-          ..write('parentSection: $parentSection')
+          ..write('parentSection: $parentSection, ')
+          ..write('sort: $sort')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, mediaId, parentSection);
+  int get hashCode => Object.hash(id, mediaId, parentSection, sort);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is MediaParentsTableData &&
           other.id == this.id &&
           other.mediaId == this.mediaId &&
-          other.parentSection == this.parentSection);
+          other.parentSection == this.parentSection &&
+          other.sort == this.sort);
 }
 
 class MediaParentsTableCompanion
@@ -95,35 +108,45 @@ class MediaParentsTableCompanion
   final Value<int> id;
   final Value<String> mediaId;
   final Value<String> parentSection;
+  final Value<int> sort;
   const MediaParentsTableCompanion({
     this.id = const Value.absent(),
     this.mediaId = const Value.absent(),
     this.parentSection = const Value.absent(),
+    this.sort = const Value.absent(),
   });
   MediaParentsTableCompanion.insert({
     this.id = const Value.absent(),
     required String mediaId,
     required String parentSection,
+    required int sort,
   })  : mediaId = Value(mediaId),
-        parentSection = Value(parentSection);
+        parentSection = Value(parentSection),
+        sort = Value(sort);
   static Insertable<MediaParentsTableData> custom({
     Expression<int>? id,
     Expression<String>? mediaId,
     Expression<String>? parentSection,
+    Expression<int>? sort,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (mediaId != null) 'media_id': mediaId,
       if (parentSection != null) 'parent_section': parentSection,
+      if (sort != null) 'sort': sort,
     });
   }
 
   MediaParentsTableCompanion copyWith(
-      {Value<int>? id, Value<String>? mediaId, Value<String>? parentSection}) {
+      {Value<int>? id,
+      Value<String>? mediaId,
+      Value<String>? parentSection,
+      Value<int>? sort}) {
     return MediaParentsTableCompanion(
       id: id ?? this.id,
       mediaId: mediaId ?? this.mediaId,
       parentSection: parentSection ?? this.parentSection,
+      sort: sort ?? this.sort,
     );
   }
 
@@ -139,6 +162,9 @@ class MediaParentsTableCompanion
     if (parentSection.present) {
       map['parent_section'] = Variable<String>(parentSection.value);
     }
+    if (sort.present) {
+      map['sort'] = Variable<int>(sort.value);
+    }
     return map;
   }
 
@@ -147,7 +173,8 @@ class MediaParentsTableCompanion
     return (StringBuffer('MediaParentsTableCompanion(')
           ..write('id: $id, ')
           ..write('mediaId: $mediaId, ')
-          ..write('parentSection: $parentSection')
+          ..write('parentSection: $parentSection, ')
+          ..write('sort: $sort')
           ..write(')'))
         .toString();
   }
@@ -173,8 +200,12 @@ class $MediaParentsTableTable extends MediaParentsTable
   late final GeneratedColumn<String?> parentSection = GeneratedColumn<String?>(
       'parent_section', aliasedName, false,
       typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _sortMeta = const VerificationMeta('sort');
+  late final GeneratedColumn<int?> sort = GeneratedColumn<int?>(
+      'sort', aliasedName, false,
+      typeName: 'INTEGER', requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [id, mediaId, parentSection];
+  List<GeneratedColumn> get $columns => [id, mediaId, parentSection, sort];
   @override
   String get aliasedName => _alias ?? 'media_parents_table';
   @override
@@ -202,6 +233,12 @@ class $MediaParentsTableTable extends MediaParentsTable
     } else if (isInserting) {
       context.missing(_parentSectionMeta);
     }
+    if (data.containsKey('sort')) {
+      context.handle(
+          _sortMeta, sort.isAcceptableOrUnknown(data['sort']!, _sortMeta));
+    } else if (isInserting) {
+      context.missing(_sortMeta);
+    }
     return context;
   }
 
@@ -224,8 +261,12 @@ class SectionParentsTableData extends DataClass
   final int id;
   final String sectionId;
   final String parentSection;
+  final int sort;
   SectionParentsTableData(
-      {required this.id, required this.sectionId, required this.parentSection});
+      {required this.id,
+      required this.sectionId,
+      required this.parentSection,
+      required this.sort});
   factory SectionParentsTableData.fromData(Map<String, dynamic> data,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
@@ -236,6 +277,8 @@ class SectionParentsTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}section_id'])!,
       parentSection: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}parent_section'])!,
+      sort: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}sort'])!,
     );
   }
   @override
@@ -244,6 +287,7 @@ class SectionParentsTableData extends DataClass
     map['id'] = Variable<int>(id);
     map['section_id'] = Variable<String>(sectionId);
     map['parent_section'] = Variable<String>(parentSection);
+    map['sort'] = Variable<int>(sort);
     return map;
   }
 
@@ -252,6 +296,7 @@ class SectionParentsTableData extends DataClass
       id: Value(id),
       sectionId: Value(sectionId),
       parentSection: Value(parentSection),
+      sort: Value(sort),
     );
   }
 
@@ -262,6 +307,7 @@ class SectionParentsTableData extends DataClass
       id: serializer.fromJson<int>(json['id']),
       sectionId: serializer.fromJson<String>(json['sectionId']),
       parentSection: serializer.fromJson<String>(json['parentSection']),
+      sort: serializer.fromJson<int>(json['sort']),
     );
   }
   @override
@@ -271,35 +317,39 @@ class SectionParentsTableData extends DataClass
       'id': serializer.toJson<int>(id),
       'sectionId': serializer.toJson<String>(sectionId),
       'parentSection': serializer.toJson<String>(parentSection),
+      'sort': serializer.toJson<int>(sort),
     };
   }
 
   SectionParentsTableData copyWith(
-          {int? id, String? sectionId, String? parentSection}) =>
+          {int? id, String? sectionId, String? parentSection, int? sort}) =>
       SectionParentsTableData(
         id: id ?? this.id,
         sectionId: sectionId ?? this.sectionId,
         parentSection: parentSection ?? this.parentSection,
+        sort: sort ?? this.sort,
       );
   @override
   String toString() {
     return (StringBuffer('SectionParentsTableData(')
           ..write('id: $id, ')
           ..write('sectionId: $sectionId, ')
-          ..write('parentSection: $parentSection')
+          ..write('parentSection: $parentSection, ')
+          ..write('sort: $sort')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, sectionId, parentSection);
+  int get hashCode => Object.hash(id, sectionId, parentSection, sort);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SectionParentsTableData &&
           other.id == this.id &&
           other.sectionId == this.sectionId &&
-          other.parentSection == this.parentSection);
+          other.parentSection == this.parentSection &&
+          other.sort == this.sort);
 }
 
 class SectionParentsTableCompanion
@@ -307,37 +357,45 @@ class SectionParentsTableCompanion
   final Value<int> id;
   final Value<String> sectionId;
   final Value<String> parentSection;
+  final Value<int> sort;
   const SectionParentsTableCompanion({
     this.id = const Value.absent(),
     this.sectionId = const Value.absent(),
     this.parentSection = const Value.absent(),
+    this.sort = const Value.absent(),
   });
   SectionParentsTableCompanion.insert({
     this.id = const Value.absent(),
     required String sectionId,
     required String parentSection,
+    required int sort,
   })  : sectionId = Value(sectionId),
-        parentSection = Value(parentSection);
+        parentSection = Value(parentSection),
+        sort = Value(sort);
   static Insertable<SectionParentsTableData> custom({
     Expression<int>? id,
     Expression<String>? sectionId,
     Expression<String>? parentSection,
+    Expression<int>? sort,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (sectionId != null) 'section_id': sectionId,
       if (parentSection != null) 'parent_section': parentSection,
+      if (sort != null) 'sort': sort,
     });
   }
 
   SectionParentsTableCompanion copyWith(
       {Value<int>? id,
       Value<String>? sectionId,
-      Value<String>? parentSection}) {
+      Value<String>? parentSection,
+      Value<int>? sort}) {
     return SectionParentsTableCompanion(
       id: id ?? this.id,
       sectionId: sectionId ?? this.sectionId,
       parentSection: parentSection ?? this.parentSection,
+      sort: sort ?? this.sort,
     );
   }
 
@@ -353,6 +411,9 @@ class SectionParentsTableCompanion
     if (parentSection.present) {
       map['parent_section'] = Variable<String>(parentSection.value);
     }
+    if (sort.present) {
+      map['sort'] = Variable<int>(sort.value);
+    }
     return map;
   }
 
@@ -361,7 +422,8 @@ class SectionParentsTableCompanion
     return (StringBuffer('SectionParentsTableCompanion(')
           ..write('id: $id, ')
           ..write('sectionId: $sectionId, ')
-          ..write('parentSection: $parentSection')
+          ..write('parentSection: $parentSection, ')
+          ..write('sort: $sort')
           ..write(')'))
         .toString();
   }
@@ -387,8 +449,12 @@ class $SectionParentsTableTable extends SectionParentsTable
   late final GeneratedColumn<String?> parentSection = GeneratedColumn<String?>(
       'parent_section', aliasedName, false,
       typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _sortMeta = const VerificationMeta('sort');
+  late final GeneratedColumn<int?> sort = GeneratedColumn<int?>(
+      'sort', aliasedName, false,
+      typeName: 'INTEGER', requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [id, sectionId, parentSection];
+  List<GeneratedColumn> get $columns => [id, sectionId, parentSection, sort];
   @override
   String get aliasedName => _alias ?? 'section_parents_table';
   @override
@@ -415,6 +481,12 @@ class $SectionParentsTableTable extends SectionParentsTable
               data['parent_section']!, _parentSectionMeta));
     } else if (isInserting) {
       context.missing(_parentSectionMeta);
+    }
+    if (data.containsKey('sort')) {
+      context.handle(
+          _sortMeta, sort.isAcceptableOrUnknown(data['sort']!, _sortMeta));
+    } else if (isInserting) {
+      context.missing(_sortMeta);
     }
     return context;
   }

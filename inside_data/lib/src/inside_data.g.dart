@@ -90,6 +90,10 @@ SiteData _$SiteDataFromJson(Map<String, dynamic> json) => SiteData(
       medias: (json['medias'] as Map<String, dynamic>).map(
         (k, e) => MapEntry(k, Media.fromJson(e as Map<String, dynamic>)),
       ),
+      contentSort: (json['contentSort'] as Map<String, dynamic>).map(
+        (k, e) =>
+            MapEntry(k, (e as List<dynamic>).map((e) => e as String).toList()),
+      ),
       topSectionIds: (json['topSectionIds'] as List<dynamic>)
           .map((e) => e as int)
           .toList(),
@@ -101,4 +105,5 @@ Map<String, dynamic> _$SiteDataToJson(SiteData instance) => <String, dynamic>{
       'sections': instance.sections,
       'medias': instance.medias,
       'topSectionIds': instance.topSectionIds,
+      'contentSort': instance.contentSort,
     };
