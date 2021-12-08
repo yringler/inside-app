@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:path/path.dart' as p;
 
 import 'package:http/http.dart';
 import 'package:inside_api/inside_api.dart';
@@ -39,7 +40,7 @@ void main(List<String> arguments) async {
   final site = await repository.initialLoad();
 
   final classListFile = File(env['classListFile']!);
-  final classList = _getClassList(site);
+  final classList = site.medias.values.toList();
   await classListFile.writeAsString(
       encoder.convert(classList.map((e) => e.source).toSet().toList()));
 
@@ -47,8 +48,9 @@ void main(List<String> arguments) async {
   if (classList.where((element) => element.length == Duration.zero).length >
       numInvalidMedia) {
     print('running check_duration');
-    await process
-        .runExecutableArguments('node', [env['getDurationScriptPath']!]);
+    final scriptPath = env['getDurationScriptPath']!;
+    await process.runExecutableArguments('node', ['get_duration.js'],
+        workingDirectory: scriptPath);
   }
   print('set duration');
   _setSiteDuration(site);
@@ -117,64 +119,14 @@ Future<void> _uploadToDropbox(SiteData site) async {
   await request.send();
 }
 
-List<Media> _getClassList(SiteData site) {
-  final siteContent =
-      site.sections.values.map((e) => e.content).expand((e) => e).toList();
-
-  final nestedMedia = siteContent
-      .where((element) => element.section != null)
-      .expand((element) => element.section!.content)
-      // This will throw if a nested section contains a section.
-      // That's a no-no; only one level of recursion is allowed.
-      .map((e) => e.media)
-      .where((element) => element != null)
-      .map((e) => e!)
-      .toList();
-
-  final regularMedia = siteContent
-      .where((element) => element.media != null)
-      .map((e) => e.media!)
-      .toList();
-
-  var allMedia = nestedMedia.toList()..addAll(regularMedia);
-
-  allMedia = allMedia.toSet().toList();
-
-  allMedia.sort((a, b) => a.source.compareTo(b.source));
-
-  final allValidMedia = allMedia
-      .where((element) => element.source.toLowerCase().endsWith('.mp3'))
-      .toList();
-
-  return allValidMedia;
-}
-
 void _setSiteDuration(SiteData site) {
   final durationJson = File(env['durationFileJson']!);
   final dynamicDuration =
       json.decode(durationJson.readAsStringSync()) as Map<String, dynamic>;
   final duration = Map.castFrom<String, dynamic, String, int>(dynamicDuration);
-
-  for (final sectionId in site.sections.keys.toList()) {
-    final section = site.sections[sectionId]!;
-
-    for (var i = 0; i < section.content.length; i++) {
-      final content = section.content[i];
-      final media = content.media;
-      final mediaSection = content.section;
-
-      if (media != null && duration[media.source] != null) {
-        media.length = Duration(milliseconds: duration[media.source]!);
-      } else if (mediaSection != null) {
-        // Throw if nested section has itself more deeply nested content.
-        for (final media in mediaSection.content
-            .where((element) => element.media != null)
-            .map((e) => e.media!)) {
-          if (duration[media.source] != null) {
-            media.length = Duration(milliseconds: duration[media.source]!);
-          }
-        }
-      }
+  for (var media in site.medias.values) {
+    if (duration.containsKey(media.source) && duration[media.source]! > 0) {
+      media.length = Duration(milliseconds: duration[media.source]!);
     }
   }
 }
