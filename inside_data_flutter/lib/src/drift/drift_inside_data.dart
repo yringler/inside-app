@@ -369,7 +369,7 @@ class DriftInsideData extends SiteDataLayer {
       // Might be faster to run all at the same time with Future.wait, but that might
       // be a bit much for an older phone, and probably won't make much diffirence in time.
       await database.addSections(data.sections.values.toSet());
-      await database.addMedia(data.medias.toSet());
+      await database.addMedia(data.medias.values.toSet());
       await database.setUpdateTime(data.createdDate);
     });
   }

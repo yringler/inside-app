@@ -33,15 +33,41 @@ class WordpressLoader extends SiteDataLoader {
       ...sectionsFromPosts
     ];
 
+    // If there are multiple posts with identical multiple medias (eg https://insidechassidus.org/basi-ligani-5714/ and https://insidechassidus.org/09-basi-ligani-5714/)
+    // ensure that we only have one of each media, and that that media has all parents.
+    final nestedMedia = sectionsFromPosts
+        .map((e) => e.content)
+        .expand((element) => element)
+        .where((element) => element.hasMedia)
+        .map((e) => e.media!)
+        .fold<Map<String, Media>>(Map<String, Media>(),
+            (previousValue, element) {
+          if (previousValue.containsKey(element.id)) {
+            previousValue[element.id]!.parents.addAll(element.parents);
+          } else {
+            previousValue[element.id] = element;
+          }
+
+          return previousValue;
+        })
+        .values
+        .toList();
+
     return SiteData.fromList(
         medias: [
           ...postDataBase.whereType<Media>().cast<Media>(),
-          ...sectionsFromPosts
-              .map((e) => e.content.whereType<Media>().cast<Media>())
-              .expand((element) => element)
+          ...nestedMedia
         ],
         topSectionIds: topCategoryIds,
-        sections: sectionList,
+        // Don't return nested data.
+        sections: sectionList
+            .map((e) => Section.fromBase(e,
+                content: e.content
+                    .map((e) => ContentReference.fromId(
+                        id: e.id, contentType: e.contentType))
+                    .toList(),
+                audioCount: e.audioCount))
+            .toList(),
         createdDate: DateTime.now());
   }
 
