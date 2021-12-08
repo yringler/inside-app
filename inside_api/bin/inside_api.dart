@@ -16,7 +16,7 @@ late final File currentRawSiteFile;
 const numInvalidMedia = 0;
 late final String dataVersion;
 late final String dropBoxFile;
-const isDebug = false;
+const isDebug = true;
 late final String sourceUrl;
 
 /// Reads (or queries) all lessons, creates lesson list and uses duration data.
@@ -29,7 +29,7 @@ void main(List<String> arguments) async {
   dartenv.load();
 
   currentRawSiteFile = File('rawsite.current.json');
-  sourceUrl = isDebug ? 'http://localhost/' : env['sourceUrl']!;
+  sourceUrl = /*isDebug ? 'http://localhost/' :*/ env['sourceUrl']!;
   dataVersion = env['dataVersion']!;
   dropBoxFile = '/site.v$dataVersion.json.gz';
 
@@ -75,7 +75,7 @@ Future<void> _updateLatestLocalCloud(SiteData site) async {
   var newJson = encoder.convert(site);
 
   // If newest is diffirent from current.
-  if (rawContents != newJson || isDebug || true) {
+  if (rawContents != newJson || isDebug) {
     print('update latest');
 
     // Save site as being current.
@@ -83,9 +83,9 @@ Future<void> _updateLatestLocalCloud(SiteData site) async {
 
     await _setCurrentVersionDate(site.createdDate);
 
-    print('uploading...');
-    await _uploadToDropbox(site);
     if (!isDebug) {
+      print('uploading...');
+      await _uploadToDropbox(site);
       print('notifying...');
       await notifyApiOfLatest(site.createdDate, dataVersion);
     } else {
