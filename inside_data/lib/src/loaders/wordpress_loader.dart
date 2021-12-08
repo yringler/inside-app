@@ -60,7 +60,9 @@ class WordpressLoader extends SiteDataLoader {
         ],
         contentSort: {
           for (var kv in wordpressRepository.contentSort.entries)
-            kv.key.toString(): kv.value.map((e) => e.toString()).toList()
+            kv.key.toString(): kv.value.map((e) => e.toString()).toList(),
+          for (var s in sectionsFromPosts)
+            s.id: s.content.map((e) => e.id).toList()
         },
         topSectionIds: topCategoryIds,
         // Don't return nested data.
