@@ -11,7 +11,7 @@ import 'package:path_provider/path_provider.dart';
 /// Loads site from local (or custom API/dropbox) JSON file.
 /// Note that [init] MUST be called before usage.
 class JsonLoader extends SiteDataLoader {
-  static const dataVersion = 5;
+  static const dataVersion = 6;
 
   /// Path to JSON that was downloaded, ready to be used at next app start up.
   static late String _jsonPath;

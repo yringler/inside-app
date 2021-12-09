@@ -165,27 +165,30 @@ class WordpressRepository {
       await _usePosts(jsonDecode(postsResponse.body), category.id!);
     }
 
+    List<wp.Category>? categories;
+
     // query for children of category causes error if there aren't any children.
     try {
-      final categories = await _withConnectionCount(
+      categories = await _withConnectionCount(
           () => wordPress.fetchCategories(
               params: wp.ParamsCategoryList(parent: category.id),
               fetchAll: true),
           'Fetch categories with parent: ${category.id}');
-
-      if (categories != null) {
-        // Get child categories. Note that we don't save child category to parent category; that
-        // is handled by the child categories parents property.
-        // This prevents us from having a data structure with unknown depth.
-        final customCategories = (await Future.wait(
-                categories.map((e) => _childCategories(e)).toList()))
-            .toList();
-
-        contentSort[category.id]!.insertAll(0, categories.map((e) => e.id!));
-
-        CustomEndpointGroup.setSort(customCategories);
-      }
     } catch (_) {}
+
+    if (categories != null) {
+      // Get child categories. Note that we don't save child category to parent category; that
+      // is handled by the child categories parents property.
+      // This prevents us from having a data structure with unknown depth.
+      final customCategories = (await Future.wait(
+              categories.map((e) => _childCategories(e)).toList()))
+          .toList();
+
+      contentSort[category.id!] ??= [];
+      contentSort[category.id]!.insertAll(0, categories.map((e) => e.id!));
+
+      CustomEndpointGroup.setSort(customCategories);
+    }
 
     final returnValue = CustomEndpointGroup(
         id: category.id ?? 0,

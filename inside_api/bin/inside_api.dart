@@ -16,7 +16,7 @@ late final File currentRawSiteFile;
 const numInvalidMedia = 0;
 late final String dataVersion;
 late final String dropBoxFile;
-const isDebug = true;
+const isDebug = false;
 late final String sourceUrl;
 
 /// Reads (or queries) all lessons, creates lesson list and uses duration data.

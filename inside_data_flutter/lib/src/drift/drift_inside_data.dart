@@ -119,8 +119,9 @@ class InsideDatabase extends _$InsideDatabase {
         sectionCompanions.length);
 
     final sectionParents = sections
-        .map((section) => section.parents.map((parent) =>
-            SectionParentsTableCompanion.insert(
+        .map((section) => section.parents
+            .where((element) => element.isNotEmpty && element != '0')
+            .map((parent) => SectionParentsTableCompanion.insert(
                 sectionId: section.id,
                 parentSection: parent,
                 sort: contentSort[parent]!.indexOf(section.id))))
