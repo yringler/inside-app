@@ -1,12 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:path/path.dart' as p;
-
-import 'package:http/http.dart';
 import 'package:inside_api/inside_api.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:process_run/process_run.dart' as process;
-
 import 'package:dotenv/dotenv.dart' as dartenv;
 import 'package:dotenv/dotenv.dart' show env;
 
@@ -15,7 +11,6 @@ late final File currentRawSiteFile;
 
 const numInvalidMedia = 0;
 late final String dataVersion;
-late final String dropBoxFile;
 const isDebug = false;
 late final String sourceUrl;
 
@@ -29,13 +24,11 @@ void main(List<String> arguments) async {
   dartenv.load();
 
   currentRawSiteFile = File('rawsite.current.json');
-  sourceUrl = /*isDebug ? 'http://localhost/' :*/ env['sourceUrl']!;
+  sourceUrl = env['sourceUrl']!;
   dataVersion = env['dataVersion']!;
-  dropBoxFile = '/site.v$dataVersion.json.gz';
 
   final repository = WordpressLoader(
-      topCategoryIds: topImagesInside.keys.toList(), //.take(1).toList(),
-      wordpressUrl: sourceUrl);
+      topCategoryIds: topImagesInside.keys.toList(), wordpressUrl: sourceUrl);
 
   final site = await repository.initialLoad();
 
@@ -46,8 +39,14 @@ void main(List<String> arguments) async {
 
   print('running check_duration');
   final scriptPath = env['getDurationScriptPath']!;
-  await process.runExecutableArguments('node', ['get_duration.js'],
+  final execResult = await process.runExecutableArguments(
+      'node', ['get_duration.js'],
       workingDirectory: scriptPath);
+  try {
+    print(execResult.stdout);
+  } catch (err) {
+    print(err);
+  }
 
   print('set duration');
   _setSiteDuration(site);
@@ -72,7 +71,7 @@ Future<void> _updateLatestLocalCloud(SiteData site) async {
   var newJson = encoder.convert(site);
 
   // If newest is diffirent from current.
-  if (rawContents != newJson || isDebug) {
+  if (rawContents != newJson || isDebug || true) {
     print('update latest');
 
     // Save site as being current.
@@ -82,7 +81,7 @@ Future<void> _updateLatestLocalCloud(SiteData site) async {
 
     if (!isDebug) {
       print('uploading...');
-      await _uploadToDropbox(site);
+      await uploadToDropbox(site, dataVersion);
       print('notifying...');
       await notifyApiOfLatest(site.createdDate, dataVersion);
     } else {
@@ -90,30 +89,6 @@ Future<void> _updateLatestLocalCloud(SiteData site) async {
     }
     print('done');
   }
-}
-
-/// Upload newest version of data to dropbox.
-/// (Thank you, Raj @https://stackoverflow.com/a/56572616)
-Future<void> _uploadToDropbox(SiteData site) async {
-  await File('dropbox.json').writeAsString(json.encode(site));
-
-  if (isDebug) {
-    return;
-  }
-
-  final key = env['dropBoxToken']!;
-
-  var request = Request(
-      'POST', Uri.parse('https://content.dropboxapi.com/2/files/upload'))
-    ..headers.addAll({
-      'Content-Type': 'application/octet-stream',
-      'Authorization': 'Bearer $key',
-      'Dropbox-API-Arg':
-          json.encode({'path': dropBoxFile, 'mode': 'overwrite', 'mute': true}),
-    })
-    ..bodyBytes = GZipCodec(level: 9).encode(utf8.encode(json.encode(site)));
-
-  await request.send();
 }
 
 void _setSiteDuration(SiteData site) {
