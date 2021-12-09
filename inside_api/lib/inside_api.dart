@@ -24,6 +24,7 @@ Future<void> notifyApiOfLatest(DateTime date, String version) async {
 Future<void> uploadToDropbox(SiteData site, String dataVersion) async {
   final key = env['dropBoxToken']!;
   final dropBoxFile = '/site.v$dataVersion.json.gz';
+  await File('.innnerDropbox.json').writeAsString(json.encode(site));
 
   print('uploading...');
 

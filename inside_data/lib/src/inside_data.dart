@@ -285,8 +285,12 @@ class SiteData {
         .where((element) => element.value.hasParentId(sectionId))
         .toList();
 
+    final childMedia = medias.values
+        .where((element) => element.hasParentId(sectionId))
+        .toList();
+
     // Handle empty sections.
-    if (section.content.isEmpty && childSections.isEmpty) {
+    if (childMedia.isEmpty && childSections.isEmpty) {
       processing[sectionId] = section.audioCount = 0;
       return 0;
     }
@@ -296,13 +300,7 @@ class SiteData {
     processing[sectionId] = null;
 
     // Count how many classes are directly in this section.
-    final directAudioCount = section.content.isEmpty
-        ? 0
-        : section.content
-            .map((e) =>
-                e.isMedia ? 1 : _setAudioCount(processing, e.id, sections))
-            .reduce((value, element) => value + element);
-
+    final directAudioCount = childMedia.length;
     final childSectionAudioCount = childSections.isEmpty
         ? 0
         : childSections
