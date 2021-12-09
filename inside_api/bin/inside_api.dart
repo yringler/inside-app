@@ -44,14 +44,11 @@ void main(List<String> arguments) async {
   await classListFile.writeAsString(
       encoder.convert(classList.map((e) => e.source).toSet().toList()));
 
-  // Update our duration list if we need to.
-  if (classList.where((element) => element.length == Duration.zero).length >
-      numInvalidMedia) {
-    print('running check_duration');
-    final scriptPath = env['getDurationScriptPath']!;
-    await process.runExecutableArguments('node', ['get_duration.js'],
-        workingDirectory: scriptPath);
-  }
+  print('running check_duration');
+  final scriptPath = env['getDurationScriptPath']!;
+  await process.runExecutableArguments('node', ['get_duration.js'],
+      workingDirectory: scriptPath);
+
   print('set duration');
   _setSiteDuration(site);
 
