@@ -45,7 +45,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final loader = JsonLoader();
-  final siteBoxes = await getBoxes(loader);
+  final siteBoxes = (await getBoxes(loader)) as DriftInsideData;
+
   final chosenService = await ChosenClassService.create(siteBoxes);
   final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);

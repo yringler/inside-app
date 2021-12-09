@@ -197,24 +197,14 @@ abstract class SiteDataLayer {
 class SiteData {
   final DateTime createdDate;
   final Map<String, Section> sections;
+  final Map<String, Media> medias;
   final List<int> topSectionIds;
-
-  /// All medias, extracted from [sections].
-  Iterable<Media> get medias => sections.values
-      .map((e) => e.content)
-      .expand((element) => element)
-      .map((e) => [
-            if (e.hasMedia) e.media!,
-            if (e.hasSection)
-              ...e.section!.content
-                  .where((element) => element.hasMedia)
-                  .map((e) => e.media!)
-          ])
-      .expand((element) => element)
-      .toSet();
+  final Map<String, List<String>> contentSort;
 
   SiteData(
       {required this.sections,
+      required this.medias,
+      required this.contentSort,
       required this.topSectionIds,
       required this.createdDate}) {
     var processing = Map<String, int?>();
@@ -243,22 +233,30 @@ class SiteData {
   /// and must be in the first level of [sections].
   SiteData.fromList(
       {required List<Section> sections,
+      required List<Media> medias,
       required List<int> topSectionIds,
+      required Map<String, List<String>> contentSort,
       required DateTime createdDate})
-      : this(sections: {
-          for (var section in sections
-              .map((e) => [
-                    e,
-                    ...e.content
-                        .where((element) =>
-                            element.isSection && element.section != null)
-                        .map((e) => e.section!)
-                        .toList()
-                  ])
-              .expand((element) => element)
-              .toSet())
-            section.id: section
-        }, topSectionIds: topSectionIds, createdDate: createdDate);
+      : this(
+            medias: {
+              for (var m in medias) m.id: m
+            },
+            sections: {
+              for (var section in sections
+                  .map((e) => [
+                        e,
+                        ...e.content
+                            .where((element) => element.hasSection)
+                            .map((e) => e.section!)
+                            .toList()
+                      ])
+                  .expand((element) => element)
+                  .toSet())
+                section.id: section
+            },
+            contentSort: contentSort,
+            topSectionIds: topSectionIds,
+            createdDate: createdDate);
 
   Map<String, dynamic> toJson() => _$SiteDataToJson(this);
 
@@ -287,8 +285,12 @@ class SiteData {
         .where((element) => element.value.hasParentId(sectionId))
         .toList();
 
+    final childMedia = medias.values
+        .where((element) => element.hasParentId(sectionId))
+        .toList();
+
     // Handle empty sections.
-    if (section.content.isEmpty && childSections.isEmpty) {
+    if (childMedia.isEmpty && childSections.isEmpty) {
       processing[sectionId] = section.audioCount = 0;
       return 0;
     }
@@ -298,13 +300,7 @@ class SiteData {
     processing[sectionId] = null;
 
     // Count how many classes are directly in this section.
-    final directAudioCount = section.content.isEmpty
-        ? 0
-        : section.content
-            .map((e) =>
-                e.isMedia ? 1 : _setAudioCount(processing, e.id, sections))
-            .reduce((value, element) => value + element);
-
+    final directAudioCount = childMedia.length;
     final childSectionAudioCount = childSections.isEmpty
         ? 0
         : childSections

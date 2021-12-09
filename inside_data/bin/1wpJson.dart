@@ -10,6 +10,8 @@ Future<void> main(List<String> args) async {
   await repository.category(id);
 
   final encoder = JsonEncoder.withIndent('\t');
-  print(encoder
-      .convert([...repository.categories.values, ...repository.groups.values]));
+  print(encoder.convert([
+    ...repository.groups.values.toList(),
+    ...repository.posts.values.toList()
+  ]));
 }

@@ -12,12 +12,14 @@ class MediaParentsTable extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get mediaId => text()();
   TextColumn get parentSection => text()();
+  IntColumn get sort => integer()();
 }
 
 class SectionParentsTable extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get sectionId => text()();
   TextColumn get parentSection => text()();
+  IntColumn get sort => integer()();
 }
 
 /// Contains a single media/post
@@ -101,7 +103,8 @@ class InsideDatabase extends _$InsideDatabase {
   @override
   int get schemaVersion => 1;
 
-  Future<void> addSections(Iterable<Section> sections) async {
+  Future<void> addSections(
+      Iterable<Section> sections, Map<String, List<String>> contentSort) async {
     final sectionCompanions = sections
         .map((value) => SectionTableCompanion.insert(
             link: value.link,
@@ -116,9 +119,12 @@ class InsideDatabase extends _$InsideDatabase {
         sectionCompanions.length);
 
     final sectionParents = sections
-        .map((section) => section.parents.map((parent) =>
-            SectionParentsTableCompanion.insert(
-                sectionId: section.id, parentSection: parent)))
+        .map((section) => section.parents
+            .where((element) => element.isNotEmpty && element != '0')
+            .map((parent) => SectionParentsTableCompanion.insert(
+                sectionId: section.id,
+                parentSection: parent,
+                sort: contentSort[parent]!.indexOf(section.id))))
         .expand((element) => element)
         .toList();
 
@@ -137,7 +143,8 @@ class InsideDatabase extends _$InsideDatabase {
     }
   }
 
-  Future<void> addMedia(Iterable<Media> medias) async {
+  Future<void> addMedia(
+      Iterable<Media> medias, Map<String, List<String>> contentSort) async {
     final mediaCompanions = medias
         .map((e) => MediaTableCompanion.insert(
             id: e.id,
@@ -151,7 +158,9 @@ class InsideDatabase extends _$InsideDatabase {
     final mediaParents = medias
         .map((media) => media.parents.map((parent) =>
             MediaParentsTableCompanion.insert(
-                mediaId: media.id, parentSection: parent)))
+                mediaId: media.id,
+                parentSection: parent,
+                sort: contentSort[parent]!.indexOf(media.id))))
         .expand((element) => element)
         .toList();
 
@@ -200,9 +209,9 @@ class InsideDatabase extends _$InsideDatabase {
         id: id,
         sort: media.sort,
         title: media.title ?? '',
-        length: media.duration != null
-            ? Duration(milliseconds: media.duration!)
-            : null,
+        length: media.duration == null
+            ? null
+            : Duration(milliseconds: media.duration!),
         description: media.description ?? '',
         parents: parents);
   }
@@ -248,9 +257,12 @@ class InsideDatabase extends _$InsideDatabase {
       innerJoin(sectionTable,
           sectionTable.id.equalsExp(sectionParentsTable.sectionId))
     ]);
-    final childSectionsValue = await childSectionsQuery.get();
-    final childSections = childSectionsValue
+    final childSectionsValue = (await childSectionsQuery.get())
         .map((e) => e.readTable(sectionTable))
+        .toList();
+    childSectionsValue.sort((a, b) => a.sort.compareTo(b.sort));
+
+    final childSections = childSectionsValue
         .map((e) => ContentReference.fromData(
             data: Section(
                 audioCount: e.count,
@@ -271,8 +283,11 @@ class InsideDatabase extends _$InsideDatabase {
       innerJoin(mediaTable, mediaTable.id.equalsExp(mediaParentsTable.mediaId))
     ]);
     final mediaValue = await mediaQuery.get();
-    final media = mediaValue
-        .map((e) => e.readTable(mediaTable))
+
+    final mediaRows = mediaValue.map((e) => e.readTable(mediaTable)).toList();
+    mediaRows.sort((a, b) => a.sort.compareTo(b.sort));
+
+    final media = mediaRows
         .map((e) => ContentReference.fromData(
             data: Media(
                 source: e.source,
@@ -288,7 +303,7 @@ class InsideDatabase extends _$InsideDatabase {
 
     return Section.fromBase(base,
         audioCount: baseSectionRow.count,
-        content: [...media, ...childSections]..sort());
+        content: [...media, ...childSections]);
   }
 
   Future<void> setUpdateTime(DateTime time) async {
@@ -362,8 +377,9 @@ class DriftInsideData extends SiteDataLayer {
 
       // Might be faster to run all at the same time with Future.wait, but that might
       // be a bit much for an older phone, and probably won't make much diffirence in time.
-      await database.addSections(data.sections.values.toSet());
-      await database.addMedia(data.medias.toSet());
+      await database.addSections(
+          data.sections.values.toSet(), data.contentSort);
+      await database.addMedia(data.medias.values.toSet(), data.contentSort);
       await database.setUpdateTime(data.createdDate);
     });
   }
