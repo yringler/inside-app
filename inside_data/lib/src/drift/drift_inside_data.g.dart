@@ -186,24 +186,28 @@ class $MediaParentsTableTable extends MediaParentsTable
   final String? _alias;
   $MediaParentsTableTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
   late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
       'id', aliasedName, false,
-      typeName: 'INTEGER',
+      type: const IntType(),
       requiredDuringInsert: false,
       defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
   final VerificationMeta _mediaIdMeta = const VerificationMeta('mediaId');
+  @override
   late final GeneratedColumn<String?> mediaId = GeneratedColumn<String?>(
       'media_id', aliasedName, false,
-      typeName: 'TEXT', requiredDuringInsert: true);
+      type: const StringType(), requiredDuringInsert: true);
   final VerificationMeta _parentSectionMeta =
       const VerificationMeta('parentSection');
+  @override
   late final GeneratedColumn<String?> parentSection = GeneratedColumn<String?>(
       'parent_section', aliasedName, false,
-      typeName: 'TEXT', requiredDuringInsert: true);
+      type: const StringType(), requiredDuringInsert: true);
   final VerificationMeta _sortMeta = const VerificationMeta('sort');
+  @override
   late final GeneratedColumn<int?> sort = GeneratedColumn<int?>(
       'sort', aliasedName, false,
-      typeName: 'INTEGER', requiredDuringInsert: true);
+      type: const IntType(), requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [id, mediaId, parentSection, sort];
   @override
@@ -435,24 +439,28 @@ class $SectionParentsTableTable extends SectionParentsTable
   final String? _alias;
   $SectionParentsTableTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
   late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
       'id', aliasedName, false,
-      typeName: 'INTEGER',
+      type: const IntType(),
       requiredDuringInsert: false,
       defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
   final VerificationMeta _sectionIdMeta = const VerificationMeta('sectionId');
+  @override
   late final GeneratedColumn<String?> sectionId = GeneratedColumn<String?>(
       'section_id', aliasedName, false,
-      typeName: 'TEXT', requiredDuringInsert: true);
+      type: const StringType(), requiredDuringInsert: true);
   final VerificationMeta _parentSectionMeta =
       const VerificationMeta('parentSection');
+  @override
   late final GeneratedColumn<String?> parentSection = GeneratedColumn<String?>(
       'parent_section', aliasedName, false,
-      typeName: 'TEXT', requiredDuringInsert: true);
+      type: const StringType(), requiredDuringInsert: true);
   final VerificationMeta _sortMeta = const VerificationMeta('sort');
+  @override
   late final GeneratedColumn<int?> sort = GeneratedColumn<int?>(
       'sort', aliasedName, false,
-      typeName: 'INTEGER', requiredDuringInsert: true);
+      type: const IntType(), requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [id, sectionId, parentSection, sort];
   @override
@@ -772,36 +780,43 @@ class $MediaTableTable extends MediaTable
   final String? _alias;
   $MediaTableTable(this._db, [this._alias]);
   final VerificationMeta _pkMeta = const VerificationMeta('pk');
+  @override
   late final GeneratedColumn<int?> pk = GeneratedColumn<int?>(
       'pk', aliasedName, false,
-      typeName: 'INTEGER',
+      type: const IntType(),
       requiredDuringInsert: false,
       defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
   final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
   late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
       'id', aliasedName, false,
-      typeName: 'TEXT', requiredDuringInsert: true);
+      type: const StringType(), requiredDuringInsert: true);
   final VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
   late final GeneratedColumn<String?> source = GeneratedColumn<String?>(
       'source', aliasedName, false,
-      typeName: 'TEXT', requiredDuringInsert: true);
+      type: const StringType(), requiredDuringInsert: true);
   final VerificationMeta _sortMeta = const VerificationMeta('sort');
+  @override
   late final GeneratedColumn<int?> sort = GeneratedColumn<int?>(
       'sort', aliasedName, false,
-      typeName: 'INTEGER', requiredDuringInsert: true);
+      type: const IntType(), requiredDuringInsert: true);
   final VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
   late final GeneratedColumn<String?> title = GeneratedColumn<String?>(
       'title', aliasedName, true,
-      typeName: 'TEXT', requiredDuringInsert: false);
+      type: const StringType(), requiredDuringInsert: false);
   final VerificationMeta _descriptionMeta =
       const VerificationMeta('description');
+  @override
   late final GeneratedColumn<String?> description = GeneratedColumn<String?>(
       'description', aliasedName, true,
-      typeName: 'TEXT', requiredDuringInsert: false);
+      type: const StringType(), requiredDuringInsert: false);
   final VerificationMeta _durationMeta = const VerificationMeta('duration');
+  @override
   late final GeneratedColumn<int?> duration = GeneratedColumn<int?>(
       'duration', aliasedName, true,
-      typeName: 'INTEGER', requiredDuringInsert: false);
+      type: const IntType(), requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
       [pk, id, source, sort, title, description, duration];
@@ -1133,34 +1148,41 @@ class $SectionTableTable extends SectionTable
   final String? _alias;
   $SectionTableTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
   late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
       'id', aliasedName, false,
-      typeName: 'TEXT', requiredDuringInsert: true);
+      type: const StringType(), requiredDuringInsert: true);
   final VerificationMeta _sortMeta = const VerificationMeta('sort');
+  @override
   late final GeneratedColumn<int?> sort = GeneratedColumn<int?>(
       'sort', aliasedName, false,
-      typeName: 'INTEGER', requiredDuringInsert: true);
+      type: const IntType(), requiredDuringInsert: true);
   final VerificationMeta _redirectIdMeta = const VerificationMeta('redirectId');
+  @override
   late final GeneratedColumn<String?> redirectId = GeneratedColumn<String?>(
       'redirect_id', aliasedName, true,
-      typeName: 'TEXT', requiredDuringInsert: false);
+      type: const StringType(), requiredDuringInsert: false);
   final VerificationMeta _linkMeta = const VerificationMeta('link');
+  @override
   late final GeneratedColumn<String?> link = GeneratedColumn<String?>(
       'link', aliasedName, false,
-      typeName: 'TEXT', requiredDuringInsert: true);
+      type: const StringType(), requiredDuringInsert: true);
   final VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
   late final GeneratedColumn<String?> title = GeneratedColumn<String?>(
       'title', aliasedName, true,
-      typeName: 'TEXT', requiredDuringInsert: false);
+      type: const StringType(), requiredDuringInsert: false);
   final VerificationMeta _descriptionMeta =
       const VerificationMeta('description');
+  @override
   late final GeneratedColumn<String?> description = GeneratedColumn<String?>(
       'description', aliasedName, true,
-      typeName: 'TEXT', requiredDuringInsert: false);
+      type: const StringType(), requiredDuringInsert: false);
   final VerificationMeta _countMeta = const VerificationMeta('count');
+  @override
   late final GeneratedColumn<int?> count = GeneratedColumn<int?>(
       'count', aliasedName, false,
-      typeName: 'INTEGER', requiredDuringInsert: true);
+      type: const IntType(), requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
       [id, sort, redirectId, link, title, description, count];
@@ -1358,15 +1380,17 @@ class $UpdateTimeTableTable extends UpdateTimeTable
   final String? _alias;
   $UpdateTimeTableTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
   late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
       'id', aliasedName, false,
-      typeName: 'INTEGER',
+      type: const IntType(),
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
   final VerificationMeta _updateTimeMeta = const VerificationMeta('updateTime');
+  @override
   late final GeneratedColumn<int?> updateTime = GeneratedColumn<int?>(
       'update_time', aliasedName, false,
-      typeName: 'INTEGER', requiredDuringInsert: true);
+      type: const IntType(), requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [id, updateTime];
   @override
