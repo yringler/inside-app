@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:inside_data/inside_data.dart';
 import 'package:drift/native.dart';
 import 'package:drift/drift.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 part 'drift_inside_data.g.dart';
@@ -71,16 +70,10 @@ class UpdateTimeTable extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-LazyDatabase _openConnection({String? folder}) {
-  // the LazyDatabase util lets us find the right location for the file async.
-  return LazyDatabase(() async {
-    // put the database file, called db.sqlite here, into the documents folder
-    // for your app.
-    folder ??= await InsideDatabase.getFileFolder();
-    final file = File(p.join(folder!, 'insidedata.sqlite'));
-    return NativeDatabase(file);
-  });
-}
+LazyDatabase _openConnection({required String folder}) =>
+    // the LazyDatabase util lets us find the right location for the file async.
+    LazyDatabase(() async =>
+        NativeDatabase(File(await InsideDatabase.getFilePath(folder))));
 
 @DriftDatabase(tables: [
   SectionTable,
@@ -92,13 +85,14 @@ LazyDatabase _openConnection({String? folder}) {
   'inside.drift'
 })
 class InsideDatabase extends _$InsideDatabase {
-  static Future<String> getFileFolder() async =>
-      (await getApplicationSupportDirectory()).path;
+  static Future<String> getFilePath(String folder) async =>
+      p.join(folder, 'insidedata.sqlite');
 
-  /// Optionally pass in a [database] (this is mostly intended for unit testing, to pass
-  /// in an in memory database).
-  InsideDatabase({NativeDatabase? database, String? folder})
-      : super(database ?? _openConnection(folder: folder));
+  InsideDatabase.fromNative({required NativeDatabase database})
+      : super(database);
+
+  InsideDatabase.fromFolder({required String folder})
+      : super(_openConnection(folder: folder));
 
   @override
   int get schemaVersion => 1;
@@ -327,12 +321,15 @@ class DriftInsideData extends SiteDataLayer {
   final InsideDatabase database;
   final List<String> topIds;
 
-  DriftInsideData(
-      {required this.loader,
-      required this.topIds,
-      InsideDatabase? database,
-      String? dbFolder})
-      : database = database ?? InsideDatabase(folder: dbFolder);
+  DriftInsideData.fromFolder(
+      {required this.loader, required this.topIds, required String folder})
+      : database = InsideDatabase.fromFolder(folder: folder);
+
+  DriftInsideData.fromDatabase({
+    required this.loader,
+    required this.topIds,
+    required InsideDatabase database,
+  }) : database = database;
 
   @override
   Future<void> init() async {
