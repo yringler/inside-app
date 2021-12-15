@@ -327,7 +327,7 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   final resourceFile = File(_getResourceFilePath(resourceFileFolder));
 
   // Create resource file which can be used from background isolate.
-  if (await resourceFile.length() < 500) {
+  if (!await resourceFile.exists()) {
     final blob = await rootBundle.load('assets/site.sqllite.gz');
     await File(_getResourceFilePath(resourceFileFolder)).writeAsBytes(
         gzip.decode(

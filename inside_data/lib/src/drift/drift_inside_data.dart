@@ -341,10 +341,12 @@ class _DataBasePair {
     final time1 = await db1.getUpdateTime();
     final time2 = await db2.getUpdateTime();
 
-    if (time2 == null) {
-      activeNumber = 1;
+    if (time1 != null && time2 != null) {
+      activeNumber = time1.isAfter(time2) ? 1 : 2;
     } else {
-      activeNumber = time1!.isAfter(time2) ? 1 : 2;
+      // One or both DBs is null.
+      // If db1 isn't null (or if both null), active is db1.
+      activeNumber = time2 == null ? 1 : 2;
     }
 
     _active = activeNumber == 1 ? db1 : db2;

@@ -92,6 +92,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "8.1.3"
+  characters:
+    dependency: transitive
+    description:
+      name: characters
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.2.0"
   charcode:
     dependency: transitive
     description:
@@ -190,6 +197,11 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  flutter:
+    dependency: transitive
+    description: flutter
+    source: sdk
+    version: "0.0.0"
   flutter_wordpress:
     dependency: "direct main"
     description:
@@ -374,6 +386,11 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
+  sky_engine:
+    dependency: transitive
+    description: flutter
+    source: sdk
+    version: "0.0.99"
   source_gen:
     dependency: transitive
     description:
@@ -402,6 +419,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.4.0"
+  sqlite3_flutter_libs:
+    dependency: "direct main"
+    description:
+      name: sqlite3_flutter_libs
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.5.2"
   sqlparser:
     dependency: transitive
     description:
@@ -458,6 +482,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.3.0"
+  vector_math:
+    dependency: transitive
+    description:
+      name: vector_math
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.1"
   watcher:
     dependency: transitive
     description:
@@ -481,3 +512,4 @@ packages:
     version: "3.1.0"
 sdks:
   dart: ">=2.15.0 <3.0.0"
+  flutter: ">=1.10.1"
