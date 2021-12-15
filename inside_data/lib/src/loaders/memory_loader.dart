@@ -12,7 +12,7 @@ class MemoryLoader extends SiteDataLoader {
   Future<SiteData> initialLoad() => Future.value(data);
 
   @override
-  Future<SiteData?> load(DateTime lastLoadTime) => Future.value(null);
+  Future<SiteData?> load(DateTime lastLoadTime) => Future.value(data);
 
   @override
   Future<void> prepareUpdate(DateTime lastLoadTime) async {}

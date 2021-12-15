@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:inside_chassidus/routes/player-route/index.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 
 class MediaListTabRoute extends ChangeNotifier implements IRoutDataService {
   Media? media;

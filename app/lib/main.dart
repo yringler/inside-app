@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:audio_service/audio_service.dart';
+import 'dart:io';
 import 'package:audio_session/audio_session.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -17,11 +17,12 @@ import 'package:inside_chassidus/tabs/recent-tab.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:inside_data/inside_data.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart';
 import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 void main() async {
   runApp(MaterialApp(
@@ -87,9 +88,6 @@ void main() async {
   ], child: AppRouterWidget()));
 
   MyApp.analytics.logAppOpen();
-
-  // Download the data file for use for next time.
-  await loader.prepareUpdate((await siteBoxes.lastUpdate())!);
 }
 
 /// Wraps the app in a root router.
@@ -325,38 +323,49 @@ class MyAppState extends State<MyApp> {
 /// Ensure that any source JSON is parsed and loaded in to hive, return
 /// open boxes.
 Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
-  await JsonLoader.init(
-      resourceName: 'assets/site.json.gz', assetBundle: rootBundle);
+  final resourceFileFolder = (await getApplicationSupportDirectory()).path;
+  final resourceFile = File(_getResourceFilePath(resourceFileFolder));
 
-  await compute(_ensureDataLoaded,
-      [await JsonLoader.getJsonFolder(), await InsideDatabase.getFileFolder()]);
+  // Create resource file which can be used from background isolate.
+  if (await resourceFile.length() < 500) {
+    final blob = await rootBundle.load('assets/site.sqllite.gz');
+    await File(_getResourceFilePath(resourceFileFolder)).writeAsBytes(
+        gzip.decode(
+            blob.buffer.asUint8List(blob.offsetInBytes, blob.lengthInBytes)),
+        flush: true);
+  }
 
-  final siteData = DriftInsideData(
+  await compute(_ensureDataLoaded, [resourceFileFolder]);
+
+  final siteData = DriftInsideData.fromFolder(
+      folder: resourceFileFolder,
       loader: loader,
-      topIds: topImagesInside.keys.map((e) => e.toString()).toList());
-
-  return siteData;
-}
-
-/// NOTE: This is expected to be run in another isolate.
-/// Do not connect to DB on main isolate before this returns.
-/// Make sure that there is data loaded in to hive. Return true if there is data.
-Future<bool> _ensureDataLoaded(List<dynamic> args) async {
-  final jsonFolder = args[0] as String;
-  final dbFolder = args[1] as String;
-
-  JsonLoader.init(jsonFolder: jsonFolder);
-
-  final siteData = DriftInsideData(
-      dbFolder: dbFolder,
-      loader: JsonLoader(),
       topIds: topImagesInside.keys.map((e) => e.toString()).toList());
 
   await siteData.init();
 
-  await siteData.database.close();
+  /* Note we don't await this - we want app to be usable as data is updated in background. */
+  siteData.prepareUpdate();
 
-  return true;
+  return siteData;
+}
+
+String _getResourceFilePath(String folder) => p.join(folder, 'resource.sqlite');
+
+/// NOTE: This is expected to be run in another isolate.
+/// Do not connect to DB on main isolate before this returns.
+/// Make sure that there is data loaded.
+Future<void> _ensureDataLoaded(List<dynamic> args) async {
+  final dbFolder = args[0] as String;
+
+  final siteData = DriftInsideData.fromFolder(
+      folder: dbFolder,
+      loader: JsonLoader(),
+      topIds: topImagesInside.keys.map((e) => e.toString()).toList());
+
+  await siteData.init(preloadedDatabase: File(_getResourceFilePath(dbFolder)));
+
+  await siteData.close();
 }
 
 class AnalyticsLogger extends AudioLogger {

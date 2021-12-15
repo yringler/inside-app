@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import 'package:inside_chassidus/widgets/media-list/play-button.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 
 class MediaItem extends StatelessWidget {
   // TODO: this probably shouldn't be nullable.

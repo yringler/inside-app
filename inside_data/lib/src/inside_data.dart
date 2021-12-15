@@ -190,6 +190,8 @@ abstract class SiteDataLayer {
   Future<DateTime?> lastUpdate();
 
   String? getImageFor(String id) => topImagesInside[int.tryParse(id)];
+  Future<void> close() async {}
+  Future<void> prepareUpdate() async {}
 }
 
 /// The entire website. In one object. Ideally, this would only be used server side.
@@ -318,16 +320,8 @@ class SiteData {
 /// Provides initial access to load all of site.
 /// After the whole site is loaded, it is copied into a data layer.
 abstract class SiteDataLoader {
-  /// Called when there is no data in the in app DB. Take data from quickest possible source,
-  /// eg pre-loaded resources.
-  Future<SiteData> initialLoad();
-
   /// Will load data now if it is readily available.
   /// Must be prepared first by call to [load].
   /// The prepared data will be deleted after retrieved via this method.
   Future<SiteData?> load(DateTime lastLoadTime);
-
-  /// Prepares update to be retrieved by call to [load].
-  /// Note that prepared data is deleted after [load] is called.
-  Future<void> prepareUpdate(DateTime lastLoadTime);
 }

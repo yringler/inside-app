@@ -4,7 +4,7 @@ import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import 'package:inside_chassidus/widgets/inside-breadcrumbs.dart';
 import 'package:inside_chassidus/widgets/media-list/index.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 
 /// Route to display all of the lessons for a given section.
 class LessonRoute extends StatelessWidget {

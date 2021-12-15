@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 
 part 'chosen-class.g.dart';
 

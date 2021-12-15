@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 
 /// A class which hold route data, and allows it to be set.
 /// This is useful when a widget can be a part of a couple diffirent routes, and

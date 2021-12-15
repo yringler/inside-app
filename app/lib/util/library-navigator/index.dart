@@ -5,7 +5,7 @@ import 'package:inside_chassidus/routes/primary-section-route.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/index.dart';
 import 'package:inside_chassidus/routes/ternary-section-route.dart';
 import 'package:inside_chassidus/util/library-navigator/library-position-service.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 export 'package:inside_chassidus/util/library-navigator/library-position-service.dart';
 
 class LibraryNavigator extends RouterDelegate
