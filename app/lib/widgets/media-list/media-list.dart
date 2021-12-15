@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/widgets/media-list/media-item.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 
 class MediaList extends StatelessWidget {
   final Widget? leadingWidget;

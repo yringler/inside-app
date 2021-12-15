@@ -1,9 +1,9 @@
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:inside_data/inside_data.dart';
 import 'package:drift/native.dart';
 import 'package:drift/drift.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 part 'drift_inside_data.g.dart';
@@ -71,16 +71,10 @@ class UpdateTimeTable extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-LazyDatabase _openConnection({String? folder}) {
-  // the LazyDatabase util lets us find the right location for the file async.
-  return LazyDatabase(() async {
-    // put the database file, called db.sqlite here, into the documents folder
-    // for your app.
-    folder ??= await InsideDatabase.getFileFolder();
-    final file = File(p.join(folder!, 'insidedata.sqlite'));
-    return NativeDatabase(file);
-  });
-}
+LazyDatabase _openConnection({required String folder, number = 1}) =>
+    // the LazyDatabase util lets us find the right location for the file async.
+    LazyDatabase(() async => NativeDatabase(
+        File(InsideDatabase.getFilePath(folder, number: number))));
 
 @DriftDatabase(tables: [
   SectionTable,
@@ -92,13 +86,14 @@ LazyDatabase _openConnection({String? folder}) {
   'inside.drift'
 })
 class InsideDatabase extends _$InsideDatabase {
-  static Future<String> getFileFolder() async =>
-      (await getApplicationSupportDirectory()).path;
+  static String getFilePath(String folder, {int number = 1}) =>
+      p.join(folder, 'insidedata_$number.sqlite');
 
-  /// Optionally pass in a [database] (this is mostly intended for unit testing, to pass
-  /// in an in memory database).
-  InsideDatabase({NativeDatabase? database, String? folder})
-      : super(database ?? _openConnection(folder: folder));
+  InsideDatabase.fromNative({required NativeDatabase database})
+      : super(database);
+
+  InsideDatabase.fromFolder({required String folder, int number = 1})
+      : super(_openConnection(folder: folder, number: number));
 
   @override
   int get schemaVersion => 1;
@@ -322,37 +317,126 @@ class InsideDatabase extends _$InsideDatabase {
   }
 }
 
-class DriftInsideData extends SiteDataLayer {
-  final SiteDataLoader loader;
-  final InsideDatabase database;
-  final List<String> topIds;
+/// We have two copies of the database, so that while one is being deleted and refreshed
+/// with all of the latest data, user can still use the old one.
+class _DataBasePair {
+  final String folder;
 
-  DriftInsideData(
-      {required this.loader,
-      required this.topIds,
-      InsideDatabase? database,
-      String? dbFolder})
-      : database = database ?? InsideDatabase(folder: dbFolder);
+  InsideDatabase get active => _active;
+
+  /// Database for reading.
+  late InsideDatabase _active;
+
+  // Which number can be written to as file operation.
+  late int activeNumber;
+
+  int get writeNumber => activeNumber == 1 ? 2 : 1;
+
+  _DataBasePair({required this.folder});
+
+  Future<void> init() async {
+    final db1 = InsideDatabase.fromFolder(folder: folder, number: 1);
+    final db2 = InsideDatabase.fromFolder(folder: folder, number: 2);
+
+    final time1 = await db1.getUpdateTime();
+    final time2 = await db2.getUpdateTime();
+
+    if (time1 != null && time2 != null) {
+      activeNumber = time1.isAfter(time2) ? 1 : 2;
+    } else {
+      // One or both DBs is null.
+      // If db1 isn't null (or if both null), active is db1.
+      activeNumber = time2 == null ? 1 : 2;
+    }
+
+    _active = activeNumber == 1 ? db1 : db2;
+
+    final write = activeNumber == 1 ? db2 : db1;
+    await write.close();
+  }
+
+  Future<void> close() async {
+    await active.close();
+  }
+
+  /// Get the file which is not currently being used, to write to for next app load.
+  Future<File> writeFile() async {
+    final path = InsideDatabase.getFilePath(folder, number: writeNumber);
+    return File(path);
+  }
+
+  InsideDatabase getWriteDb(String folder) {
+    return InsideDatabase.fromFolder(folder: folder, number: writeNumber);
+  }
+}
+
+class DriftInsideData extends SiteDataLayer {
+  final String folder;
+  final SiteDataLoader loader;
+  final List<String> topIds;
+  late _DataBasePair _databases;
+
+  InsideDatabase get database => _databases.active;
+
+  DriftInsideData.fromFolder(
+      {required this.loader, required this.topIds, required this.folder})
+      : _databases = _DataBasePair(folder: folder);
 
   @override
-  Future<void> init() async {
-    var lastUpdate = await database.getUpdateTime();
+  Future<void> init({File? preloadedDatabase}) async {
+    await _databases.init();
 
-    if (lastUpdate == null) {
-      var data = await loader.initialLoad();
+    final lastUpdate = await database.getUpdateTime();
 
-      await database.transaction(() async {
+    /*
+     * If this is the first app load, try to do the quick copy of asset database.
+     * Or, trigger a new load of one of the databases in the background.
+     */
+
+    if (lastUpdate == null && preloadedDatabase != null) {
+      final writeFile = await _databases.writeFile();
+      await writeFile.writeAsBytes(await preloadedDatabase.readAsBytes());
+
+      // Re-init the database pair to use new file.
+      await _databases.close();
+      await _databases.init();
+    }
+  }
+
+  @override
+  Future<void> close() => _databases.close();
+
+  /// Prepare the write database, update it with data to be used next app load.
+  @override
+  Future<void> prepareUpdate() async {
+    final newDb = await _getLatestDb(
+        await lastUpdate() ?? DateTime.fromMillisecondsSinceEpoch(0));
+
+    if (newDb != null) {
+      (await _databases.writeFile()).writeAsBytes(newDb);
+    }
+
+    // Untill we have incremental updates, loading whole sites of JSON is too heavy, so we
+    // download sqllite DBs.
+  }
+
+  /// Use loader to get update. For now, this is only here to prepare the DB on server.
+  /// This is horrid. Returns the number of database which is being written to.
+  Future<int?> prepareUpdateFromLoader() async {
+    var data = await loader
+        .load(await lastUpdate() ?? DateTime.fromMillisecondsSinceEpoch(0));
+
+    if (data != null) {
+      final writeDb = _databases.getWriteDb(folder);
+      await writeDb.transaction(() async {
         await addToDatabase(data);
       });
-    } else {
-      var data = await loader.load(lastUpdate);
+      await writeDb.close();
 
-      if (data != null) {
-        await database.transaction(() async {
-          await addToDatabase(data);
-        });
-      }
+      return _databases.writeNumber;
     }
+
+    return null;
   }
 
   @override
@@ -399,4 +483,26 @@ Iterable<List<T>> groupsOf<T>(List<T> list, int groupSize) sync* {
   // if (start + groupSize > list.length) {
   //   yield list.sublist(start);
   // }
+}
+
+const dataVersion = 7;
+
+/// Downloads newer DB from API if we don't already have the latest.
+Future<List<int>?> _getLatestDb(DateTime lastLoadTime) async {
+  final request = http.Request(
+      'GET',
+      Uri.parse(
+          'https://inside-api-go-2.herokuapp.com/check?date=${lastLoadTime.millisecondsSinceEpoch}&v=$dataVersion'));
+
+  try {
+    final response = await request.send();
+
+    if (response.statusCode == HttpStatus.ok) {
+      return GZipCodec().decode(await response.stream.toBytes());
+    }
+  } catch (ex) {
+    print(ex);
+  }
+
+  return null;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() async {
   runApp(const MaterialApp(
@@ -78,7 +79,8 @@ class TestDriftLoader extends StatelessWidget {
 
     final loader = JsonLoader();
 
-    var drift = DriftInsideData(
+    var drift = DriftInsideData.fromFolder(
+        folder: (await getTemporaryDirectory()).path,
         loader: loader,
         topIds: topImagesInside.keys.map((e) => e.toString()).toList());
 

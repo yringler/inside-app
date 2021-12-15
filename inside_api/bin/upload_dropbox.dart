@@ -13,6 +13,7 @@ void main() async {
   final existingSiteText = File('dropbox.json').readAsStringSync();
   final existingSiteJson = json.decode(existingSiteText);
   final existingSite = SiteData.fromJson(existingSiteJson);
+  existingSite.createdDate = DateTime.now();
   await uploadToDropbox(existingSite, dataVersion);
   exit(0);
 }

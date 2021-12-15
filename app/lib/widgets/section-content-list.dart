@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 
 typedef Widget InsideDataBuilder<T extends SiteDataBase>(
     BuildContext context, T data);

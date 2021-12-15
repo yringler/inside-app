@@ -23,9 +23,8 @@ Future<void> notifyApiOfLatest(DateTime date, String version) async {
 /// (Thank you, Raj @https://stackoverflow.com/a/56572616)
 Future<void> uploadToDropbox(SiteData site, String dataVersion) async {
   final key = env['dropBoxToken']!;
-  final dropBoxFile = '/site.v$dataVersion.json.gz';
-  await File('.innnerDropbox.json').writeAsString(json.encode(site));
-
+  final localFile = await createSqliteFile(site);
+  final dropBoxFile = '/site.v$dataVersion.sqlite.gz';
   print('uploading...');
 
   var request = Request(
@@ -36,9 +35,33 @@ Future<void> uploadToDropbox(SiteData site, String dataVersion) async {
       'Dropbox-API-Arg':
           json.encode({'path': dropBoxFile, 'mode': 'overwrite', 'mute': true}),
     })
-    ..bodyBytes = GZipCodec(level: 9).encode(utf8.encode(json.encode(site)));
+    ..bodyBytes = GZipCodec(level: 9).encode(await localFile.readAsBytes());
 
   var response = await request.send();
 
   print(response.reasonPhrase);
+}
+
+Future<File> createSqliteFile(SiteData site) async {
+  final dbFile = File(InsideDatabase.getFilePath('.'));
+  final dbFile2 = File(InsideDatabase.getFilePath('.', number: 2));
+
+  if (dbFile.existsSync()) {
+    dbFile.deleteSync();
+  }
+
+  if (dbFile2.existsSync()) {
+    dbFile2.deleteSync();
+  }
+
+  final drift = DriftInsideData.fromFolder(
+      loader: MemoryLoader(data: site),
+      topIds: topImagesInside.keys.map((e) => e.toString()).toList(),
+      folder: '.');
+
+  await drift.init();
+  final dbNumber = await drift.prepareUpdateFromLoader();
+  await drift.close();
+
+  return dbNumber! == 1 ? dbFile : dbFile2;
 }

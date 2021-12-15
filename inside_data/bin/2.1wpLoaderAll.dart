@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:inside_data/inside_data.dart';
-import 'package:inside_data/src/loaders/wordpress_loader.dart';
 
 Future<void> main(List<String> args) async {
   const domain = 'insidechassidus.org';
