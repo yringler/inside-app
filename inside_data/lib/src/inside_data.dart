@@ -197,7 +197,7 @@ abstract class SiteDataLayer {
 /// The entire website. In one object. Ideally, this would only be used server side.
 @JsonSerializable()
 class SiteData {
-  final DateTime createdDate;
+  DateTime createdDate;
   final Map<String, Section> sections;
   final Map<String, Media> medias;
   final List<int> topSectionIds;

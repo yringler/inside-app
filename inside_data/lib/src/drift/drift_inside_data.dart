@@ -74,7 +74,7 @@ class UpdateTimeTable extends Table {
 LazyDatabase _openConnection({required String folder, number = 1}) =>
     // the LazyDatabase util lets us find the right location for the file async.
     LazyDatabase(() async => NativeDatabase(
-        File(await InsideDatabase.getFilePath(folder, number: number))));
+        File(InsideDatabase.getFilePath(folder, number: number))));
 
 @DriftDatabase(tables: [
   SectionTable,
@@ -361,7 +361,7 @@ class _DataBasePair {
 
   /// Get the file which is not currently being used, to write to for next app load.
   Future<File> writeFile() async {
-    final path = await InsideDatabase.getFilePath(folder, number: writeNumber);
+    final path = InsideDatabase.getFilePath(folder, number: writeNumber);
     return File(path);
   }
 
