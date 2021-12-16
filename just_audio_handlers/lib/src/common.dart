@@ -1,6 +1,4 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -85,7 +83,7 @@ class DownloadButton extends StatelessWidget {
 
           if (download.status == DownloadTaskStatus.complete) {
             return buttonBuilder(Icons.delete,
-                () async => await limitDownloads(downloader, limit: 1));
+                () async => await downloader.remove(download.taskId));
           }
 
           return buttonBuilder(Icons.download, () {
@@ -94,4 +92,18 @@ class DownloadButton extends StatelessWidget {
           });
         },
       );
+}
+
+/// Add suport to extract url from extras found on a media item.
+mixin GetOriginalUri on AudioHandler {
+  Future<Uri?> originalUri({required String mediaId}) async =>
+      originalUriFromMedia(media: await getMediaItem(mediaId));
+
+  Uri? originalUriFromMedia({MediaItem? media}) {
+    if (media != null && media.extras != null) {
+      return ExtraSettings.getOriginalUri(media.extras!);
+    }
+
+    return null;
+  }
 }

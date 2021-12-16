@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/routes/player-route/index.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';

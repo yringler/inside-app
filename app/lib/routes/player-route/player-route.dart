@@ -147,12 +147,12 @@ class PlayerRoute extends StatelessWidget {
     final chosenService = BlocProvider.getDependency<ChosenClassService>();
 
     return chosenService.isFavoriteValueListenableBuilder(
-      media.source,
+      media.id,
       builder: (context, isFavorite) => Center(
         child: IconButton(
           iconSize: Theme.of(context).iconTheme.size!,
           onPressed: () =>
-              chosenService.set(source: media, isFavorite: !isFavorite),
+              chosenService.set(media: media, isFavorite: !isFavorite),
           icon: Icon(
             isFavorite ? Icons.favorite : Icons.favorite_border,
             color: isFavorite ? Colors.red : null,

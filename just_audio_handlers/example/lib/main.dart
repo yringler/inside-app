@@ -24,11 +24,9 @@
 
 import 'dart:async';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:example/common.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 
 // You might want to provide this using dependency injection rather than a
