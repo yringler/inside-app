@@ -395,11 +395,17 @@ class DbAccessAudioTask extends AudioHandlerJustAudio {
 
     final parent = await layer.section(media.parents.first);
 
+    var album = parent?.title ?? '';
+
+    if (album.isEmpty) {
+      album = 'Inside Chassidus';
+    }
+
     return MediaItem(
         id: media.id,
         title: media.title,
         artist: 'Rabbi Paltiel',
-        album: parent == null ? 'Inside Chassidus' : parent.title,
+        album: album,
         duration: media.length,
         displayDescription: media.description,
         extras: ExtraSettings(
