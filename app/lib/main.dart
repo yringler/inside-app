@@ -65,7 +65,8 @@ void main() async {
           positionRepository: positionSaver,
           inner: LoggingJustAudioHandler(
               logger: AnalyticsLogger(),
-              inner: AudioHandlerJustAudio(player: AudioPlayer())),
+              inner:
+                  DbAccessAudioTask(layer: siteBoxes, player: AudioPlayer())),
         )),
     config: AudioServiceConfig(
         androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
@@ -376,5 +377,33 @@ class AnalyticsLogger extends AudioLogger {
     analytics.logEvent(
         name: "completed_class",
         parameters: {"class_source": item.id.limitFromEnd(100) ?? ""});
+  }
+}
+
+class DbAccessAudioTask extends AudioHandlerJustAudio {
+  final SiteDataLayer layer;
+
+  DbAccessAudioTask({required this.layer, required AudioPlayer player})
+      : super(player: player);
+
+  @override
+  Future<MediaItem?> getMediaItem(String mediaId) async {
+    final media = await layer.media(mediaId);
+    if (media == null) {
+      return null;
+    }
+
+    final parent = await layer.section(media.parents.first);
+
+    return MediaItem(
+        id: media.id,
+        title: media.title,
+        artist: 'Rabbi Paltiel',
+        album: parent == null ? 'Inside Chassidus' : parent.title,
+        duration: media.length,
+        displayDescription: media.description,
+        extras: ExtraSettings(
+                start: Duration.zero, originalUri: Uri.parse(media.source))
+            .toExtra());
   }
 }

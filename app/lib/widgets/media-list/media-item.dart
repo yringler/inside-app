@@ -36,7 +36,7 @@ class MediaItem extends StatelessWidget {
 
     final handler = BlocProvider.getDependency<AudioHandler>();
 
-    final style = handler.mediaItem.valueOrNull?.id == media?.source
+    final style = handler.mediaItem.valueOrNull?.id == media?.id
         ? Theme.of(context)
             .textTheme
             .bodyText2!

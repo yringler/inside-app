@@ -16,12 +16,12 @@ class CurrentMediaButtonBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IsGlobalMediaButtonsShowingWatcher(
-        builder: (context, {required isGlobalButtonsShowing, mediaSource}) =>
+        builder: (context, {required isGlobalButtonsShowing, mediaId}) =>
             isGlobalButtonsShowing
                 ? Container(
                     child: AudioButtonBar(
                       media: null,
-                      mediaSource: mediaSource,
+                      mediaId: mediaId,
                     ),
                     color: Colors.grey.shade300,
                     height: _barHeight,

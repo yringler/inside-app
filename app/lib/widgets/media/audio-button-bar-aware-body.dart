@@ -10,7 +10,7 @@ class AudioButtonbarAwareBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IsGlobalMediaButtonsShowingWatcher(
-      builder: (context, {required isGlobalButtonsShowing, mediaSource}) => Padding(
+      builder: (context, {required isGlobalButtonsShowing, mediaId}) => Padding(
             child: body,
             padding: EdgeInsets.only(
                 bottom: CurrentMediaButtonBar.heightOfMediaBar(context,
