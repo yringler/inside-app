@@ -83,7 +83,7 @@ class DownloadButton extends StatelessWidget {
 
           if (download.status == DownloadTaskStatus.complete) {
             return buttonBuilder(Icons.delete,
-                () async => await limitDownloads(downloader, limit: 1));
+                () async => await downloader.remove(download.taskId));
           }
 
           return buttonBuilder(Icons.download, () {
