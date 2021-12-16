@@ -23,7 +23,7 @@ class AudioHandlerDownloader extends CompositeAudioHandler with GetOriginalUri {
     downloader.completedStream.listen((uri) async {
       if (!mediaItem.hasValue ||
           mediaItem.value == null ||
-          mediaItem.value!.id != uri.toString()) {
+          originalUriFromMedia(media: mediaItem.value) != uri) {
         return;
       }
 

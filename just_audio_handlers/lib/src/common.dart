@@ -96,9 +96,10 @@ class DownloadButton extends StatelessWidget {
 
 /// Add suport to extract url from extras found on a media item.
 mixin GetOriginalUri on AudioHandler {
-  Future<Uri?> originalUri({required String mediaId}) async {
-    final media = await getMediaItem(mediaId);
+  Future<Uri?> originalUri({required String mediaId}) async =>
+      originalUriFromMedia(media: await getMediaItem(mediaId));
 
+  Uri? originalUriFromMedia({MediaItem? media}) {
     if (media != null && media.extras != null) {
       return ExtraSettings.getOriginalUri(media.extras!);
     }

@@ -93,12 +93,16 @@ class AudioHandlerJustAudio extends BaseAudioHandler
 
   Future<void> _prepareMediaItem(
       Map<String, dynamic> extras, Uri defaultUri, MediaItem item) async {
-    if (_isPlaying(defaultUri.toString(), extras)) return;
+    if (_isPlaying(item.id, extras)) return;
 
     final parsedExtras =
         ExtraSettings.fromExtras(extras, defaultUri: defaultUri);
 
-    item = item.copyWith(extras: extras);
+    if (item.extras != null) {
+      item.extras!.addAll(extras);
+    } else {
+      item = item.copyWith(extras: extras);
+    }
 
     mediaItem.add(item);
 
@@ -118,13 +122,7 @@ class AudioHandlerJustAudio extends BaseAudioHandler
       return false;
     }
 
-    final currentExtras = ExtraSettings.fromExtras(
-        mediaItem.valueOrNull?.extras,
-        defaultUri: Uri.parse(mediaItem.value!.id));
-    final newExtras =
-        ExtraSettings.fromExtras(extras, defaultUri: Uri.parse(id));
-
-    return currentExtras.finalUri == newExtras.finalUri;
+    return mediaItem.valueOrNull?.id == id;
   }
 
   PlaybackState _transformEvent(PlaybackEvent event) {
