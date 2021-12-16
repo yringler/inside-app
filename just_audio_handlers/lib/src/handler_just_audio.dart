@@ -54,10 +54,10 @@ class AudioHandlerJustAudio extends BaseAudioHandler
 
     final startUri = await originalUri(mediaId: mediaId);
 
-    // If we can't get media meta data, just play it like a regular Uri.
     if (item != null && startUri != null) {
       await _prepareMediaItem(extras ?? {}, startUri, item);
     } else {
+      // If we can't get media meta data, just play it like a regular Uri.
       // IDK - should I throw?
       print('Error: could not get URI from media ID');
       await prepareFromUri(Uri.parse(mediaId), extras);
