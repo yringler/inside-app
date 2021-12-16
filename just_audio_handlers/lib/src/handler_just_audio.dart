@@ -1,12 +1,11 @@
 import 'dart:async';
 
-import 'package:audio_service/audio_service.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:just_audio_handlers/src/extra_settings.dart';
+import 'package:just_audio_handlers/just_audio_handlers.dart';
 
 /// Uses just_audio to handle playback.
 /// Inherit to override getMediaItem, if you want to get metadata from a media id.
-class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
+class AudioHandlerJustAudio extends BaseAudioHandler
+    with SeekHandler, GetOriginalUri {
   final AudioPlayer _player;
   final String defaultAlbum;
   final String defaultClass;
@@ -29,7 +28,10 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
         extras ?? {},
         uri,
         MediaItem(
-            id: uri.toString(), album: defaultAlbum, title: defaultClass));
+            id: uri.toString(),
+            album: defaultAlbum,
+            title: defaultClass,
+            extras: extras));
   }
 
   @override
@@ -50,13 +52,16 @@ class AudioHandlerJustAudio extends BaseAudioHandler with SeekHandler {
         ? mediaItem.value
         : await getMediaItem(mediaId);
 
-    // If we can't get media meta data, just play it like a regular Uri.
-    if (item == null) {
-      await prepareFromUri(Uri.parse(mediaId), extras);
-      return;
-    }
+    final startUri = await originalUri(mediaId: mediaId);
 
-    await _prepareMediaItem(extras ?? {}, Uri.parse(mediaId), item);
+    // If we can't get media meta data, just play it like a regular Uri.
+    if (item != null && startUri != null) {
+      await _prepareMediaItem(extras ?? {}, startUri, item);
+    } else {
+      // IDK - should I throw?
+      print('Error: could not get URI from media ID');
+      await prepareFromUri(Uri.parse(mediaId), extras);
+    }
   }
 
   @override

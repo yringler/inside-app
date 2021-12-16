@@ -1,12 +1,18 @@
 import 'package:audio_service/audio_service.dart';
 
 class ExtraSettings {
+  /// Where to start playback from.
   final Duration start;
+
+  /// The URI to actually play (may be the same as [originalUri]).
   final Uri finalUri;
+
+  /// The URI which the dataset states is the source (may be the same as [finalUri]).
   final Uri originalUri;
 
-  ExtraSettings(
-      {required this.start, required this.originalUri, required this.finalUri});
+  ExtraSettings({required this.start, Uri? originalUri, Uri? finalUri})
+      : originalUri = (originalUri ?? finalUri)!,
+        finalUri = (finalUri ?? originalUri)!;
 
   ExtraSettings.fromExtras(Map<String, dynamic>? extras,
       {required Uri defaultUri})
@@ -14,6 +20,16 @@ class ExtraSettings {
             start: getStartTime(extras ?? {}),
             originalUri: getOriginalUri(extras ?? {}) ?? defaultUri,
             finalUri: getOverrideUri(extras ?? {}) ?? defaultUri);
+
+  Map<String, dynamic> toExtra() {
+    final extras = Map<String, dynamic>();
+
+    setStartTime(extras, start);
+    setOverrideUri(extras, finalUri);
+    setOriginalUri(extras, originalUri);
+
+    return extras;
+  }
 
   static Map<String, dynamic> setStartTime(
       Map<String, dynamic> extras, Duration start) {

@@ -1,4 +1,3 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/util/duration-helpers.dart';
@@ -21,7 +20,7 @@ class ProgressBar extends StatelessWidget {
     // the position that you're at.
 
     return FutureBuilder<Duration>(
-      future: positionManager.get(media!.source),
+      future: positionManager.get(media!.id),
       initialData: Duration.zero,
       builder: (context, snapshot) => _progressBar(mediaManager, snapshot.data),
     );
@@ -30,7 +29,7 @@ class ProgressBar extends StatelessWidget {
   Widget _progressBar(AudioHandler handler, Duration? start) {
     final stream = getPositionStateWithPersisted(
         handler, BlocProvider.getDependency<PositionSaver>(),
-        mediaId: media!.source);
+        mediaId: media!.id);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -52,7 +51,7 @@ class ProgressBar extends StatelessWidget {
         if (media!.length != null)
           // Show time remaining in class.
           _stateDurationStreamBuilder(
-              getPositionStateFiltered(handler, media!.source)
+              getPositionStateFiltered(handler, media!.id)
                   .map((event) => event.state.position),
               inactiveBuilder: (_) => _time(media!.length! - start!),
               builder: (position) => _time(media!.length! - position))
@@ -70,7 +69,7 @@ class ProgressBar extends StatelessWidget {
     }
 
     final onChanged = (double newProgress) => positionSaver.set(
-        media!.source, Duration(milliseconds: newProgress.round()),
+        media!.id, Duration(milliseconds: newProgress.round()),
         handler: handler);
 
     return Container(
