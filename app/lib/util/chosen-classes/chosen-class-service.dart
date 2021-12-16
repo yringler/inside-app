@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:hive/hive.dart';
 // ignore: implementation_imports
 import 'package:hive/src/hive_impl.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
@@ -32,17 +33,17 @@ class ChosenClassService {
   Future<void> set(
       {required Media source, bool? isFavorite, bool? isRecent}) async {
     mediaCache[source.id] = source;
-    var chosen = classes!.get(source.id.toHiveId());
+    var chosen = classes!.get(source.source.toHiveId());
 
     await classes!.put(
-        source.id.toHiveId(),
+        source.source.toHiveId(),
         ChoosenClass(
             mediaId: source.id,
             isFavorite: isFavorite ?? chosen?.isFavorite ?? false,
             isRecent: isRecent ?? chosen?.isRecent ?? false,
             modifiedDate: DateTime.now()));
 
-    final newClass = classes!.get(source.id.toHiveId())!;
+    final newClass = classes!.get(source.source.toHiveId())!;
     if (!newClass.isRecent! && !newClass.isFavorite!) {
       await newClass.delete();
     }
