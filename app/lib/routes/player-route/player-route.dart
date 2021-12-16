@@ -152,7 +152,7 @@ class PlayerRoute extends StatelessWidget {
         child: IconButton(
           iconSize: Theme.of(context).iconTheme.size!,
           onPressed: () =>
-              chosenService.set(source: media, isFavorite: !isFavorite),
+              chosenService.set(media: media, isFavorite: !isFavorite),
           icon: Icon(
             isFavorite ? Icons.favorite : Icons.favorite_border,
             color: isFavorite ? Colors.red : null,

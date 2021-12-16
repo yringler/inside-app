@@ -30,37 +30,34 @@ class ChosenClassService {
   ChosenClassService({this.hive, this.classes});
 
   Future<void> set(
-      {required Media source, bool? isFavorite, bool? isRecent}) async {
-    mediaCache[source.id] = source;
-    var chosen = classes!.get(source.id.toHiveId());
+      {required Media media, bool? isFavorite, bool? isRecent}) async {
+    mediaCache[media.id] = media;
+    var chosen = classes!.get(media.id.toHiveId());
 
     await classes!.put(
-        source.id.toHiveId(),
+        media.id.toHiveId(),
         ChoosenClass(
-            mediaId: source.id,
+            mediaId: media.id,
             isFavorite: isFavorite ?? chosen?.isFavorite ?? false,
             isRecent: isRecent ?? chosen?.isRecent ?? false,
             modifiedDate: DateTime.now()));
 
-    final newClass = classes!.get(source.id.toHiveId())!;
+    final newClass = classes!.get(media.id.toHiveId())!;
     if (!newClass.isRecent! && !newClass.isFavorite!) {
       await newClass.delete();
     }
   }
 
-  bool isFavorite(String source) =>
-      classes!.get(source.toHiveId())?.isFavorite ?? false;
-
-  Widget isFavoriteValueListenableBuilder(String source,
+  Widget isFavoriteValueListenableBuilder(String id,
       {ValueBuilder<bool>? builder}) {
-    if (!classes!.containsKey(source.toHiveId())) {
+    if (!classes!.containsKey(id.toHiveId())) {
       // classes.put(source.toHiveId(), ChoosenClass(media: null));
     }
 
     return ValueListenableBuilder<Box<ChoosenClass>>(
-      valueListenable: classes!.listenable(keys: [source.toHiveId()]),
+      valueListenable: classes!.listenable(keys: [id.toHiveId()]),
       builder: (context, value, child) =>
-          builder!(context, value.get(source.toHiveId())?.isFavorite ?? false),
+          builder!(context, value.get(id.toHiveId())?.isFavorite ?? false),
     );
   }
 
