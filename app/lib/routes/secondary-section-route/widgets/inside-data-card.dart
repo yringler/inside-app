@@ -1,7 +1,7 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/routes/secondary-section-route/widgets/informative-text-painter.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 
 class InsideDataCard extends StatefulWidget {
   final Section insideData;

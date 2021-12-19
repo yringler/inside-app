@@ -7,7 +7,7 @@ part 'custom_wordpress_types.g.dart';
 /// Used for the core category / series data.
 @JsonSerializable(
     fieldRename: FieldRename.snake, explicitToJson: true, createFactory: false)
-abstract class CustomEndpointGroup {
+class CustomEndpointGroup {
   final int id;
 
   /// This is parents, but not from json.
@@ -22,7 +22,6 @@ abstract class CustomEndpointGroup {
   final String title;
   final String description;
   int sort = 0;
-  List<CustomEndpointPost> posts;
 
   /// A URL to site where this content can be seen.
   final String link;
@@ -33,8 +32,7 @@ abstract class CustomEndpointGroup {
       required this.title,
       required this.description,
       required this.link,
-      required this.parents,
-      this.posts = const []});
+      required this.parents});
 
   CustomEndpointGroup.copy(CustomEndpointGroup other)
       : this(
@@ -69,85 +67,8 @@ abstract class CustomEndpointGroup {
       throw "to section parse post: returned null";
     }
 
-    final sectionContent = posts
-        .map((e) => e.toSiteDataBase())
-        .where((element) => element != null)
-        .cast<SiteDataBase>()
-        .map((e) => ContentReference.fromData(data: e))
-        .toList();
-
     // This is one place where we set audio count to 0, because at this point we don't have the whole site yet...
-    return Section.fromBase(base, content: sectionContent, audioCount: 0);
-  }
-}
-
-/// A series is a custom post type which can be a parent to other posts.
-/// Sqlite-wise, it will end up being stored as a post, not a section.
-/// This class could probably be deleted at this point (now that the parents property
-/// was moved up to parent).
-@JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
-class CustomEndpointSeries extends CustomEndpointGroup {
-  CustomEndpointSeries(
-      {List<CustomEndpointPost> posts = const [],
-      required Set<int> parents,
-      required int id,
-      required String name,
-      required String title,
-      required String description,
-      required String link})
-      : super(
-            id: id,
-            name: name,
-            title: title,
-            parents: parents,
-            description: description,
-            link: link,
-            posts: posts);
-
-  factory CustomEndpointSeries.fromJson(Map<String, dynamic> json) =>
-      _$CustomEndpointSeriesFromJson(json);
-  Map<String, dynamic> toJson() => _$CustomEndpointSeriesToJson(this);
-}
-
-@JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
-class CustomEndpointCategory extends CustomEndpointGroup {
-  List<CustomEndpointSeries> series;
-
-  CustomEndpointCategory(
-      {this.series = const [],
-      List<CustomEndpointPost> posts = const [],
-      required int id,
-      required Set<int> parents,
-      required String name,
-      required String title,
-      required String description,
-      required String link})
-      : super(
-            id: id,
-            name: name,
-            title: title,
-            parents: parents,
-            description: description,
-            link: link,
-            posts: posts);
-
-  CustomEndpointCategory.withBase(CustomEndpointGroup group,
-      {required this.series})
-      : super.copy(group);
-
-  factory CustomEndpointCategory.fromJson(Map<String, dynamic> json) =>
-      _$CustomEndpointCategoryFromJson(json);
-  Map<String, dynamic> toJson() => _$CustomEndpointCategoryToJson(this);
-
-  Section toSection() {
-    // This takes care of basic properties
-    final base = super.toSection();
-    base.content.addAll(series
-        .map((e) => e.toSection())
-        .map((e) => ContentReference.fromData(data: e))
-        .toList());
-
-    return base;
+    return Section.fromBase(base, content: [], audioCount: 0);
   }
 }
 

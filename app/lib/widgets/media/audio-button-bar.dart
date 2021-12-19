@@ -1,20 +1,19 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:inside_chassidus/widgets/media-list/play-button.dart';
 
 class AudioButtonBar extends StatelessWidget {
   final Media? media;
 
-  /// Set [_mediaSource] if [media] isn't available.
-  final String? mediaSource;
+  /// Set [_mediaId] if [media] isn't available.
+  final String? mediaId;
 
-  String? get _mediaSource => media?.source ?? mediaSource;
+  String? get _mediaId => media?.id ?? mediaId;
 
-  AudioButtonBar({required this.media, this.mediaSource});
+  AudioButtonBar({required this.media, this.mediaId});
 
   @override
   Widget build(BuildContext context) {
@@ -26,21 +25,21 @@ class AudioButtonBar extends StatelessWidget {
         IconButton(
           icon: Icon(FontAwesomeIcons.stepBackward),
           onPressed: () =>
-              positionSaver.set(_mediaSource, Duration.zero, handler: handler),
+              positionSaver.set(_mediaId, Duration.zero, handler: handler),
         ),
         IconButton(
             icon: Icon(FontAwesomeIcons.undo),
             onPressed: () => positionSaver
-                .skip(_mediaSource, Duration(seconds: -15), handler: handler)),
+                .skip(_mediaId, Duration(seconds: -15), handler: handler)),
         PlayButton(
           media: media,
-          mediaSource: _mediaSource,
+          mediaId: _mediaId,
           iconSize: 48,
         ),
         IconButton(
             icon: Icon(FontAwesomeIcons.redo),
-            onPressed: () => positionSaver
-                .skip(_mediaSource, Duration(seconds: 15), handler: handler)),
+            onPressed: () => positionSaver.skip(_mediaId, Duration(seconds: 15),
+                handler: handler)),
         _speedButton(handler)
       ],
       alignment: MainAxisAlignment.spaceBetween,

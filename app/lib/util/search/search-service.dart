@@ -1,4 +1,4 @@
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 import 'package:rxdart/rxdart.dart';
 
 //TODO: Overkill?
@@ -22,29 +22,29 @@ class SearchService {
 
     final results = await wordpressSearch.search(term);
 
-    final content = (await Future.wait(results
-          .map(_mapSearchResultToContentReference)))
-      .where((element) => element != null)
-      .map((e) => e!)
-      .toList();
+    final content =
+        (await Future.wait(results.map(_mapSearchResultToContentReference)))
+            .where((element) => element != null)
+            .map((e) => e!)
+            .toList();
 
     searchResults.add(content);
     loading.add(false);
     return content;
   }
 
-
-  Future<ContentReference?> _mapSearchResultToContentReference(SearchResult result) async {
-      SiteDataBase? data;
-      if (result.contentType == ContentType.section) {
-        data = await siteBoxes.section(result.id);
-      } else if (result.contentType == ContentType.media) {
-        data = await siteBoxes.media(result.id);
-      }
-      if (data != null) {
-        return ContentReference.fromData(data: data);
-      } else {
-        return null;
-      }
+  Future<ContentReference?> _mapSearchResultToContentReference(
+      SearchResult result) async {
+    SiteDataBase? data;
+    if (result.contentType == ContentType.section) {
+      data = await siteBoxes.section(result.id);
+    } else if (result.contentType == ContentType.media) {
+      data = await siteBoxes.media(result.id);
+    }
+    if (data != null) {
+      return ContentReference.fromData(data: data);
+    } else {
+      return null;
+    }
   }
 }

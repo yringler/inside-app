@@ -1,0 +1,4 @@
+import 'drift_inside_data.dart';
+
+test: SELECT id, title FROM section_table
+WHERE id = :id;

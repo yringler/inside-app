@@ -1,9 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/routes/player-route/index.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 
 class MediaListTabRoute extends ChangeNotifier implements IRoutDataService {
   Media? media;
@@ -111,7 +110,9 @@ class ChosenDataList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (data!.isEmpty) {
+    final data = this.data?.where((element) => element.media != null).toList();
+
+    if (data == null || data.isEmpty) {
       return Center(
         child: Text(
           emptyMessage,
@@ -121,9 +122,9 @@ class ChosenDataList extends StatelessWidget {
     }
 
     return ListView.builder(
-        itemCount: data!.length,
+        itemCount: data.length,
         itemBuilder: (context, index) {
-          final item = data![index];
+          final item = data[index];
 
           return ListTile(
             title: Text(item.media!.title),
