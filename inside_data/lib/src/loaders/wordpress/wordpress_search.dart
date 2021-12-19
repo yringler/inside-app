@@ -6,19 +6,42 @@ import 'package:http/http.dart' as http;
 import 'package:inside_data/src/loaders/wordpress/parsing_tools.dart';
 import 'package:inside_data/src/loaders/wordpress/wordpress.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:rxdart/rxdart.dart';
 
 part 'wordpress_search.g.dart';
 
 class WordpressSearch extends Wordpress {
-  final Map<String, CompleterState<List<SearchResultItem>>> _resultCache = {};
+  final SiteDataLayer siteBoxes;
+  final Map<String, CompleterState<List<ContentReference>>> _resultCache = {};
+  final BehaviorSubject<String> _recentTerm = BehaviorSubject.seeded('');
+
+  /// As new search values are coming in, how long [activeResults] should wait
+  /// before triggering another search.
+  /// Note that calling [search] directly is not debounced.
+  ///
+  /// TODO: calling search should cause search results to immidieately be added to [activeResults] steram.
+  /// This could be done with some combine latest or something, but isn't so important because debounce shouldn't
+  /// be that long anyway.
+  final Duration constantSearchDebounceTime;
 
   static const searchApiPath =
       'wp-content/plugins/elasticpress-custom/proxy/proxy.php';
 
-  WordpressSearch({required String wordpressDomain})
+  Stream<String> get activeTerm => _recentTerm.stream.distinct();
+
+  /// Stream of results.
+  Stream<List<ContentReference>> get activeResults =>
+      activeTerm.debounceTime(Duration(milliseconds: 20)).asyncMap(search);
+
+  WordpressSearch(
+      {required String wordpressDomain,
+      required this.siteBoxes,
+      this.constantSearchDebounceTime = const Duration(milliseconds: 20)})
       : super(wordpressDomain: wordpressDomain);
 
-  Future<List<SearchResultItem>> search(String term) async {
+  Future<List<ContentReference>> search(String term) async {
+    _recentTerm.add(term);
+
     if (_resultCache.containsKey(term) && _resultCache[term]!.wasLoadCalled) {
       return _resultCache[term]!.completer.future;
     }
@@ -45,18 +68,41 @@ class WordpressSearch extends Wordpress {
     yield true;
   }
 
-  Future<List<SearchResultItem>> _fetchSearchResults(String term) async {
+  Future<List<ContentReference>> _fetchSearchResults(String term) async {
     final url = '$wordpressDomain/$searchApiPath?term=$term';
     final coreResponse = await http.get(Uri.parse(url));
 
     if (coreResponse.statusCode == HttpStatus.ok) {
-      return SearchResponseRoot.fromJson(jsonDecode(coreResponse.body))
-          .responses
-          .map((e) => e.hits.hits.map((e) => e.source))
-          .expand((element) => element)
+      final referenceFutures =
+          SearchResponseRoot.fromJson(jsonDecode(coreResponse.body))
+              .responses
+              .map((e) => e.hits.hits.map((e) => e.source))
+              .expand((element) => element)
+              .where((element) => element.type != null)
+              .map(_mapSearchResultToContentReference)
+              .toList();
+
+      return (await Future.wait(referenceFutures))
+          .where((e) => e != null)
+          .map((e) => e!)
           .toList();
     } else {
       return Future.error(coreResponse);
+    }
+  }
+
+  Future<ContentReference?> _mapSearchResultToContentReference(
+      SearchResultItem result) async {
+    SiteDataBase? data;
+    if (result.type == ContentType.section) {
+      data = await siteBoxes.section(result.id);
+    } else if (result.type == ContentType.media) {
+      data = await siteBoxes.media(result.id);
+    }
+    if (data != null) {
+      return ContentReference.fromData(data: data);
+    } else {
+      return null;
     }
   }
 }

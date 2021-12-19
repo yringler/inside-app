@@ -18,7 +18,6 @@ import 'package:inside_chassidus/tabs/search-tab.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
-import 'package:inside_chassidus/util/search/search-service.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart';
@@ -54,7 +53,8 @@ void main() async {
   final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
   final PositionSaver positionSaver = HivePositionSaver();
-  final searchService = SearchService(siteBoxes: siteBoxes);
+  final searchService = WordpressSearch(
+      wordpressDomain: activeSourceDomain, siteBoxes: siteBoxes);
 
   final session = await AudioSession.instance;
   await session.configure(AudioSessionConfiguration.speech());
@@ -301,9 +301,7 @@ class MyAppState extends State<MyApp> {
         );
       case 3:
         return SearchTab(
-          navigatorKey: widget.searchKey,
-          routeState: widget.searchState,
-        );
+            navigatorKey: widget.searchKey, routeState: widget.searchState);
       case 4:
         return NowPlayingTab();
       default:

@@ -1,52 +1,64 @@
+import 'dart:async';
+
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/routes/player-route/index.dart';
 import 'package:inside_chassidus/routes/search-section-route.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
-import 'package:inside_chassidus/util/search/search-service.dart';
 import 'package:inside_data/inside_data.dart';
 
-//TODO: Break this down into smaller widgets and add necessary navigator stuff; see MediaListTabNavigator
+//TODO: add necessary navigator stuff; see MediaListTabNavigator
+
 class SearchTab extends StatefulWidget {
   final GlobalKey<NavigatorState> navigatorKey;
   final MediaListTabRoute routeState;
+  final WordpressSearch searchService =
+      BlocProvider.getDependency<WordpressSearch>();
 
   SearchTab({required this.navigatorKey, required this.routeState});
 
   @override
-  State<SearchTab> createState() => _SearchTabState();
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    throw UnimplementedError();
+  }
 }
 
-class _SearchTabState extends State<SearchTab> {
-  final searchService = BlocProvider.getDependency<SearchService>();
-  TextEditingController _controller = TextEditingController();
+class SearchTabState extends State<SearchTab> {
+  GlobalKey<NavigatorState> get navigatorKey => widget.navigatorKey;
+  MediaListTabRoute get routeState => widget.routeState;
+  WordpressSearch get searchService => widget.searchService;
+
+  final TextEditingController _controller = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    searchService.activeTerm
+        .take(1)
+        .listen((event) => _controller.text = event);
+  }
 
-    if (searchService.term != null) {
-      _controller.text = searchService.term!;
-      // if (!widget.routeState.hasMedia()) {
-      //   _controller.selection = TextSelection(baseOffset: 0, extentOffset: searchService.term!.length);
-      // }
-    }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => Navigator(
-        key: widget.navigatorKey,
+        key: navigatorKey,
         onPopPage: (route, result) {
           if (!route.didPop(result)) {
             return false;
           }
 
-          return widget.routeState.clear();
+          return routeState.clear();
         },
         pages: [
-          MaterialPage(child: _searchWidget(widget.routeState.hasMedia())),
-          if (widget.routeState.hasMedia())
-            MaterialPage(child: PlayerRoute(media: widget.routeState.media!))
+          MaterialPage(child: _searchWidget(routeState.hasMedia())),
+          if (routeState.hasMedia())
+            MaterialPage(child: PlayerRoute(media: routeState.media!))
         ],
       );
 
@@ -63,7 +75,7 @@ class _SearchTabState extends State<SearchTab> {
 
   StreamBuilder<List<ContentReference>> _searchResults() {
     return StreamBuilder<List<ContentReference>>(
-        stream: searchService.searchResults.stream,
+        stream: searchService.activeResults,
         builder: (context, snapshot) {
           return (!snapshot.hasData
               ? Container()
@@ -76,8 +88,7 @@ class _SearchTabState extends State<SearchTab> {
                       ),
                     )
                   : SearchSectionRoute(
-                      content: snapshot.data!,
-                      routeDataService: widget.routeState)));
+                      content: snapshot.data!, routeDataService: routeState)));
         });
   }
 
@@ -85,7 +96,6 @@ class _SearchTabState extends State<SearchTab> {
     return Row(
       children: [
         Expanded(
-            //TODO: Do we want to search automatically, perhaps with a debounce?
             child: TextField(
           controller: _controller,
           //TODO: Autofocus only when empty or no results? Might not work when navigating back from media screen
@@ -95,16 +105,16 @@ class _SearchTabState extends State<SearchTab> {
             isDense: true,
             hintText: 'Search',
             suffix: StreamBuilder<bool>(
-                stream: searchService.loading.stream,
+                stream: searchService.isCompleted(_controller.text),
                 builder: (context, snapshot) {
                   return snapshot.hasData && snapshot.data!
-                      ? SizedBox(
+                      ? Container()
+                      : SizedBox(
                           height: 15,
                           width: 15,
                           //TODO: Fix position and/or size. Possibly remove and replace with another loader elsewhere.
                           child: CircularProgressIndicator(strokeWidth: 2.5),
-                        )
-                      : SizedBox.shrink();
+                        );
                 }),
           ),
           onSubmitted: (value) => searchService.search(value),
