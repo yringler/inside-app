@@ -7,9 +7,6 @@ import 'package:inside_chassidus/widgets/section-content-list.dart';
 import 'package:inside_data/inside_data.dart';
 
 class SearchSectionRoute extends StatelessWidget {
-  //TODO: What's the point of this?
-  static const String routeName = '/library/search';
-
   final List<ContentReference> content;
   final IRoutDataService routeDataService;
 

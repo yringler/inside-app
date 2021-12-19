@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:inside_chassidus/widgets/navigate-to-section.dart';
 import 'package:inside_data/inside_data.dart';
 
-class PrimarySectionRoute extends StatelessWidget {
+class PrimarySectionsRoute extends StatelessWidget {
   static const String routeName = '/library';
 
   @override

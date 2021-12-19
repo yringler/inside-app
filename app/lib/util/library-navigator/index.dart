@@ -31,7 +31,7 @@ class LibraryNavigator extends RouterDelegate
         pages: [
           MaterialPage(
               key: ValueKey("PrimarySectionsRoute"),
-              child: PrimarySectionRoute()),
+              child: PrimarySectionsRoute()),
           for (final book
               in appState.sections.where((section) => section.wasNavigatedTo))
             MaterialPage(
