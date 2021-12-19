@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:inside_data/inside_data.dart';
@@ -9,6 +10,8 @@ import 'package:json_annotation/json_annotation.dart';
 part 'wordpress_search.g.dart';
 
 class WordpressSearch extends Wordpress {
+  final Map<String, CompleterState<List<SearchResultItem>>> _resultCache = {};
+
   static const searchApiPath =
       'wp-content/plugins/elasticpress-custom/proxy/proxy.php';
 
@@ -16,31 +19,42 @@ class WordpressSearch extends Wordpress {
       : super(wordpressDomain: wordpressDomain);
 
   Future<List<SearchResultItem>> search(String term) async {
-    SearchResponseRoot resultResponse;
-
-    try {
-      resultResponse = await _fetchSearchResults(term);
-    } catch (err) {
-      print(err);
-      // Fail in debug mode, but not in production.
-      assert(false);
-      return [];
+    if (_resultCache.containsKey(term) && _resultCache[term]!.wasLoadCalled) {
+      return _resultCache[term]!.completer.future;
     }
 
-    final response = resultResponse.responses
-        .map((e) => e.hits.hits.map((e) => e.source))
-        .expand((element) => element)
-        .toList();
+    _resultCache[term] ??= CompleterState();
+    _resultCache[term]!.wasLoadCalled = true;
 
-    return response;
+    try {
+      _resultCache[term]!.completer.complete(await _fetchSearchResults(term));
+    } catch (err) {
+      _resultCache[term]!.completer.completeError(err);
+    }
+
+    return _resultCache[term]!.completer.future;
   }
 
-  Future<SearchResponseRoot> _fetchSearchResults(String term) async {
+  Stream<bool> isCompleted(String term) async* {
+    _resultCache[term] ??= CompleterState();
+
+    yield _resultCache[term]!.completer.isCompleted;
+
+    await _resultCache[term]!.completer.future;
+
+    yield true;
+  }
+
+  Future<List<SearchResultItem>> _fetchSearchResults(String term) async {
     final url = '$wordpressDomain/$searchApiPath?term=$term';
     final coreResponse = await http.get(Uri.parse(url));
 
     if (coreResponse.statusCode == HttpStatus.ok) {
-      return SearchResponseRoot.fromJson(jsonDecode(coreResponse.body));
+      return SearchResponseRoot.fromJson(jsonDecode(coreResponse.body))
+          .responses
+          .map((e) => e.hits.hits.map((e) => e.source))
+          .expand((element) => element)
+          .toList();
     } else {
       return Future.error(coreResponse);
     }
@@ -97,6 +111,25 @@ class SearchResultItem {
 
     return ContentType.section;
   }
+}
+
+class CompleterState<T> {
+  final Completer<T> completer = Completer();
+
+  /// Set to true if there's a method waiting for a result to complete this with.
+  /// Ideally, this should be encapsulated.
+  bool wasLoadCalled;
+
+  CompleterState({this.wasLoadCalled = false});
+}
+
+class SearchState<T> {
+  final bool isLoading;
+  final FutureOr<T> data;
+
+  SearchState({required this.isLoading, required this.data});
+
+  bool get isComplete => !isLoading;
 }
 
 @JsonSerializable()
