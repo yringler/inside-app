@@ -12,9 +12,11 @@ In addition, there are some conveniance things.
 2. Various streams, which combine media item and playback state, optionaly the persisted position also
 
 ## State
-### 🚧 In development, pre beta, use with caution 🚧
-There is a working example, which tests a lot of the functionality.
-And I've migrated my own (non trivial) app (also found in this mono repo) to use it. In doing so, I added a bunch of features and fixed a bunch of bugs, so this plugin is in decent state. That version of the app is _not_ in production yet - as of this writing, it is a few days away from starting beta testing. But still very exciting.
+### 🚧 In production app, written for my use case, use with caution 🚧
+Originally, this was written to work with the `playFromUri` family of methods.
+Now, I use `playFromMediaId` etc, which relies on `getMedia` by ID.
+It might still be usable without implementing `getMedia`, but I haven't tested that, and probably won't get around to it unless I need it.
+A PR to fix that (if broken) would be welcome.
 
 ## TODO
 Todo
