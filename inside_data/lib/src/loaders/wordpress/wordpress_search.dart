@@ -1,8 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:inside_data/inside_data.dart';
 import 'package:http/http.dart' as http;
-import 'package:inside_data/src/loaders/wordpress/custom_wordpress_types.dart';
+import 'package:inside_data/src/loaders/wordpress/parsing_tools.dart';
 import 'package:inside_data/src/loaders/wordpress/wordpress.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'wordpress_search.g.dart';
 
 class WordpressSearch extends Wordpress {
   static const searchApiPath =
@@ -11,47 +15,127 @@ class WordpressSearch extends Wordpress {
   WordpressSearch({required String wordpressDomain})
       : super(wordpressDomain: wordpressDomain);
 
-  Future<List<SearchResult>> search(String term) async {
-    final resultResponse = await _fetchSearchResults(term);
+  Future<List<SearchResultItem>> search(String term) async {
+    SearchResponseRoot resultResponse;
 
-    final searchResults = <SearchResult>[];
-    //TODO: Create Classes for the below or use the flutter elastic library
-    for (var response in resultResponse["responses"]) {
-      for (var hit in response["hits"]["hits"]) {
-        final source = hit["_source"];
-        //TODO: What about tags or other possible results?
-        if (source["post_type"] == "series" || source["post_type"] == "post") {
-          final result =
-              SearchResult._fromPost(CustomEndpointPost.fromJson(source));
-          searchResults.add(result);
-        }
-      }
+    try {
+      resultResponse = await _fetchSearchResults(term);
+    } catch (err) {
+      print(err);
+      // Fail in debug mode, but not in production.
+      assert(false);
+      return [];
     }
-    return searchResults;
+
+    final response = resultResponse.responses
+        .map((e) => e.hits.hits.map((e) => e.source))
+        .expand((element) => element)
+        .toList();
+
+    return response;
   }
 
-  Future<Map<String, dynamic>> _fetchSearchResults(String term) async {
+  Future<SearchResponseRoot> _fetchSearchResults(String term) async {
     final url = '$wordpressDomain/$searchApiPath?term=$term';
     final coreResponse = await http.get(Uri.parse(url));
 
-    //TODO: We don't check this elsewhere, is that for a reason?
-    if (coreResponse.statusCode == 200) {
-      return jsonDecode(coreResponse.body);
+    if (coreResponse.statusCode == HttpStatus.ok) {
+      return SearchResponseRoot.fromJson(jsonDecode(coreResponse.body));
     } else {
-      //TODO: Deal with error here? Put in try catch as well?
       return Future.error(coreResponse);
     }
   }
 }
 
-class SearchResult {
+@JsonSerializable(fieldRename: FieldRename.snake)
+class SearchResultItem {
   final String id;
-  final ContentType contentType;
 
-  SearchResult({required this.id, required this.contentType});
+  final String postType;
 
-  factory SearchResult._fromPost(CustomEndpointPost post) => SearchResult(
-      id: post.id.toString(),
-      //TODO: Account for neither post nor series?
-      contentType: post.isPost ? ContentType.media : ContentType.section);
+  final String postContent;
+
+  final String postContentFiltered;
+
+  /// Yeah, bad name. There are 2 contents returned by wordpress, takes better.
+  String get postContentContent =>
+      postContent.trim().isNotEmpty ? postContent : postContentFiltered;
+
+  SearchResultItem(
+      {required this.postType,
+      required this.postContent,
+      required this.postContentFiltered,
+      required this.id});
+
+  factory SearchResultItem.fromJson(Map<String, dynamic> json) =>
+      _$SearchResultItemFromJson(json);
+
+  ContentType? get type {
+    if (postType != 'post') {
+      return ContentType.section;
+    }
+
+    // If it's a post, it might still be a section, if the post contains more than one media.
+
+    final content = parsePost(
+        SiteDataBase(
+            id: id,
+            title: '',
+            description: postContentContent,
+            sort: 0,
+            link: '',
+            parents: {}),
+        requireAudio: false);
+
+    if (content == null) {
+      return null;
+    }
+
+    if (content is Media) {
+      return ContentType.media;
+    }
+
+    return ContentType.section;
+  }
+}
+
+@JsonSerializable()
+class SearchResponseResult {
+  @JsonKey(name: '_source')
+  final SearchResultItem source;
+
+  SearchResponseResult({required this.source});
+
+  factory SearchResponseResult.fromJson(Map<String, dynamic> json) =>
+      _$SearchResponseResultFromJson(json);
+}
+
+@JsonSerializable()
+class SearchResponseItem {
+  final List<SearchResponseResult> hits;
+
+  SearchResponseItem(this.hits);
+
+  factory SearchResponseItem.fromJson(Map<String, dynamic> json) =>
+      _$SearchResponseItemFromJson(json);
+}
+
+@JsonSerializable()
+class SearchResponseItemParent {
+  final SearchResponseItem hits;
+
+  SearchResponseItemParent({required this.hits});
+
+  factory SearchResponseItemParent.fromJson(Map<String, dynamic> json) =>
+      _$SearchResponseItemParentFromJson(json);
+}
+
+@JsonSerializable()
+class SearchResponseRoot {
+  final List<SearchResponseItemParent> responses;
+
+  SearchResponseRoot({required this.responses});
+
+  factory SearchResponseRoot.fromJson(Map<String, dynamic> json) =>
+      _$SearchResponseRootFromJson(json);
 }
