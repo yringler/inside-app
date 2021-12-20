@@ -8,15 +8,15 @@ part of 'wordpress_search.dart';
 
 SearchResultItem _$SearchResultItemFromJson(Map<String, dynamic> json) =>
     SearchResultItem(
-      postType: json['post_type'] as String,
-      postContent: json['post_content'] as String,
-      postContentFiltered: json['post_content_filtered'] as String,
-      id: json['id'] as String,
+      postType: json['post_type'] as String? ?? '',
+      postContent: json['post_content'] as String? ?? '',
+      postContentFiltered: json['post_content_filtered'] as String? ?? '',
+      id: json['ID'] as int,
     );
 
 Map<String, dynamic> _$SearchResultItemToJson(SearchResultItem instance) =>
     <String, dynamic>{
-      'id': instance.id,
+      'ID': instance.id,
       'post_type': instance.postType,
       'post_content': instance.postContent,
       'post_content_filtered': instance.postContentFiltered,

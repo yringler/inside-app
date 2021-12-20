@@ -17,7 +17,7 @@ class WordpressSearch extends Wordpress {
 
   /// As new search values are coming in, how long [activeResults] should wait
   /// before triggering another search.
-  /// Note that calling [search] directly is not debounced.
+  /// Note that calling [_search] directly is not debounced.
   ///
   /// TODO: calling search should cause search results to immidieately be added to [activeResults] steram.
   /// This could be done with some combine latest or something, but isn't so important because debounce shouldn't
@@ -27,12 +27,15 @@ class WordpressSearch extends Wordpress {
   static const searchApiPath =
       'wp-content/plugins/elasticpress-custom/proxy/proxy.php';
 
-  Stream<String> get activeTerm =>
-      _recentTerm.stream.where((event) => event.isNotEmpty).distinct();
+  Stream<String> get activeTermStream =>
+      _recentTerm.where((event) => event.isNotEmpty).distinct();
+
+  String get activeTerm => _recentTerm.value;
 
   /// Stream of results.
-  Stream<List<ContentReference>> get activeResults =>
-      activeTerm.debounceTime(Duration(milliseconds: 20)).asyncMap(search);
+  Stream<List<ContentReference>> get activeResults => activeTermStream
+      .debounceTime(Duration(milliseconds: 20))
+      .asyncMap(_search);
 
   WordpressSearch(
       {required String wordpressDomain,
@@ -40,9 +43,9 @@ class WordpressSearch extends Wordpress {
       this.constantSearchDebounceTime = const Duration(milliseconds: 20)})
       : super(wordpressDomain: wordpressDomain);
 
-  Future<List<ContentReference>> search(String term) async {
-    _recentTerm.add(term);
+  void setSearch(String term) => _recentTerm.add(term);
 
+  Future<List<ContentReference>> _search(String term) async {
     if (_resultCache.containsKey(term) && _resultCache[term]!.wasLoadCalled) {
       return _resultCache[term]!.completer.future;
     }
@@ -96,9 +99,9 @@ class WordpressSearch extends Wordpress {
       SearchResultItem result) async {
     SiteDataBase? data;
     if (result.type == ContentType.section) {
-      data = await siteBoxes.section(result.id);
+      data = await siteBoxes.section(result.id.toString());
     } else if (result.type == ContentType.media) {
-      data = await siteBoxes.media(result.id);
+      data = await siteBoxes.media(result.id.toString());
     }
     if (data != null) {
       return ContentReference.fromData(data: data);
@@ -108,14 +111,21 @@ class WordpressSearch extends Wordpress {
   }
 }
 
+/// This model is used for posts (classes and series), which is fine.
+/// There are also tags in the API response, though...
+/// So I give the fields a default value.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class SearchResultItem {
-  final String id;
+  @JsonKey(name: "ID")
+  final int id;
 
+  @JsonKey(defaultValue: '')
   final String postType;
 
+  @JsonKey(defaultValue: '')
   final String postContent;
 
+  @JsonKey(defaultValue: '')
   final String postContentFiltered;
 
   /// Yeah, bad name. There are 2 contents returned by wordpress, takes better.
@@ -132,6 +142,11 @@ class SearchResultItem {
       _$SearchResultItemFromJson(json);
 
   ContentType? get type {
+    // This happens for results which are tags.
+    if (postType.isEmpty) {
+      return null;
+    }
+
     if (postType != 'post') {
       return ContentType.section;
     }
@@ -140,7 +155,7 @@ class SearchResultItem {
 
     final content = parsePost(
         SiteDataBase(
-            id: id,
+            id: id.toString(),
             title: '',
             description: postContentContent,
             sort: 0,

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/routes/player-route/index.dart';
@@ -31,9 +29,9 @@ class SearchTabState extends State<SearchTab> {
   @override
   void initState() {
     super.initState();
-    searchService.activeTerm
-        .take(1)
-        .listen((event) => _controller.text = event);
+    if (searchService.activeTerm.isNotEmpty) {
+      _controller.text = searchService.activeTerm;
+    }
   }
 
   @override
@@ -53,13 +51,13 @@ class SearchTabState extends State<SearchTab> {
           return routeState.clear();
         },
         pages: [
-          MaterialPage(child: _searchWidget(routeState.hasMedia())),
+          MaterialPage(child: _searchPage(routeState.hasMedia())),
           if (routeState.hasMedia())
             MaterialPage(child: PlayerRoute(media: routeState.media!))
         ],
       );
 
-  Widget _searchWidget(bool isCoveredByMediaPage) => Container(
+  Widget _searchPage(bool isCoveredByMediaPage) => Container(
         //TODO: Try to bring this in line with padding of other pages
         padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
         child: Column(
@@ -101,27 +99,26 @@ class SearchTabState extends State<SearchTab> {
             border: OutlineInputBorder(),
             isDense: true,
             hintText: 'Search',
-            suffix: StreamBuilder<bool>(
-                stream: searchService.isCompleted(_controller.text),
-                builder: (context, snapshot) {
-                  return snapshot.hasData && snapshot.data!
-                      ? Container()
-                      : SizedBox(
-                          height: 15,
-                          width: 15,
-                          //TODO: Fix position and/or size. Possibly remove and replace with another loader elsewhere.
-                          child: CircularProgressIndicator(strokeWidth: 2.5),
-                        );
-                }),
+            // suffix: StreamBuilder<bool>(
+            //     stream: searchService.isCompleted(_controller.text),
+            //     builder: (context, snapshot) {
+            //       return snapshot.hasData && snapshot.data!
+            //           ? Container()
+            //           : SizedBox(
+            //               height: 15,
+            //               width: 15,
+            //               //TODO: Fix position and/or size. Possibly remove and replace with another loader elsewhere.
+            //               child: CircularProgressIndicator(strokeWidth: 2.5),
+            //             );
+            //     }),
           ),
-          onChanged: (value) => searchService.search(value),
-          onSubmitted: (value) => searchService.search(value),
+          onChanged: (value) => searchService.setSearch(value),
+          onSubmitted: (value) => searchService.setSearch(value),
         )),
         IconButton(
           icon: Icon(Icons.search),
           onPressed: () {
             FocusScope.of(context).unfocus();
-            searchService.search(_controller.value.text);
           },
         )
       ],
