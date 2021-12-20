@@ -18,10 +18,7 @@ class SearchTab extends StatefulWidget {
   SearchTab({required this.navigatorKey, required this.routeState});
 
   @override
-  State<StatefulWidget> createState() {
-    // TODO: implement createState
-    throw UnimplementedError();
-  }
+  State<StatefulWidget> createState() => SearchTabState();
 }
 
 class SearchTabState extends State<SearchTab> {
@@ -117,6 +114,7 @@ class SearchTabState extends State<SearchTab> {
                         );
                 }),
           ),
+          onChanged: (value) => searchService.search(value),
           onSubmitted: (value) => searchService.search(value),
         )),
         IconButton(

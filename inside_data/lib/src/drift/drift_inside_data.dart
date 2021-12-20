@@ -335,6 +335,8 @@ class _DataBasePair {
   _DataBasePair({required this.folder});
 
   Future<void> init() async {
+    driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
     final db1 = InsideDatabase.fromFolder(folder: folder, number: 1);
     final db2 = InsideDatabase.fromFolder(folder: folder, number: 2);
 

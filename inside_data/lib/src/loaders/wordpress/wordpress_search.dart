@@ -27,7 +27,8 @@ class WordpressSearch extends Wordpress {
   static const searchApiPath =
       'wp-content/plugins/elasticpress-custom/proxy/proxy.php';
 
-  Stream<String> get activeTerm => _recentTerm.stream.distinct();
+  Stream<String> get activeTerm =>
+      _recentTerm.stream.where((event) => event.isNotEmpty).distinct();
 
   /// Stream of results.
   Stream<List<ContentReference>> get activeResults =>
