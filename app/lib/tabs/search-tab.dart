@@ -4,6 +4,7 @@ import 'package:inside_chassidus/routes/player-route/index.dart';
 import 'package:inside_chassidus/routes/search-section-route.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_data/inside_data.dart';
+import 'package:rxdart/subjects.dart';
 
 //TODO: add necessary navigator stuff; see MediaListTabNavigator
 
@@ -23,12 +24,19 @@ class SearchTabState extends State<SearchTab> {
   GlobalKey<NavigatorState> get navigatorKey => widget.navigatorKey;
   MediaListTabRoute get routeState => widget.routeState;
   WordpressSearch get searchService => widget.searchService;
+  final BehaviorSubject<bool> _hasFocus = BehaviorSubject.seeded(false);
+
+  late FocusNode _searchFocus;
 
   final TextEditingController _controller = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+
+    _searchFocus = FocusNode();
+    _searchFocus.addListener(() => _hasFocus.add(_searchFocus.hasPrimaryFocus));
+
     if (searchService.activeTerm.isNotEmpty) {
       _controller.text = searchService.activeTerm;
     }
@@ -37,6 +45,8 @@ class SearchTabState extends State<SearchTab> {
   @override
   void dispose() {
     _controller.dispose();
+    _searchFocus.dispose();
+    _hasFocus.close();
     super.dispose();
   }
 
@@ -48,23 +58,26 @@ class SearchTabState extends State<SearchTab> {
             return false;
           }
 
+          // If the input has focus and user clicks back, remove focus.
+          // if (_searchFocus.hasPrimaryFocus) {
+          //   _searchFocus.unfocus();
+          //   return false;
+          // }
+
           return routeState.clear();
         },
         pages: [
-          MaterialPage(child: _searchPage(routeState.hasMedia())),
+          MaterialPage(child: _searchPage()),
           if (routeState.hasMedia())
             MaterialPage(child: PlayerRoute(media: routeState.media!))
         ],
       );
 
-  Widget _searchPage(bool isCoveredByMediaPage) => Container(
+  Widget _searchPage() => Container(
         //TODO: Try to bring this in line with padding of other pages
         padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
         child: Column(
-          children: [
-            _searchInput(isCoveredByMediaPage),
-            Expanded(child: _searchResults())
-          ],
+          children: [_searchInput(), Expanded(child: _searchResults())],
         ),
       );
 
@@ -87,40 +100,38 @@ class SearchTabState extends State<SearchTab> {
         });
   }
 
-  Row _searchInput(bool isCoveredByMediaPage) {
+  Row _searchInput() {
     return Row(
       children: [
         Expanded(
-            child: TextField(
-          controller: _controller,
-          //TODO: Autofocus only when empty or no results? Might not work when navigating back from media screen
-          autofocus: !isCoveredByMediaPage,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            isDense: true,
-            hintText: 'Search',
-            // suffix: StreamBuilder<bool>(
-            //     stream: searchService.isCompleted(_controller.text),
-            //     builder: (context, snapshot) {
-            //       return snapshot.hasData && snapshot.data!
-            //           ? Container()
-            //           : SizedBox(
-            //               height: 15,
-            //               width: 15,
-            //               //TODO: Fix position and/or size. Possibly remove and replace with another loader elsewhere.
-            //               child: CircularProgressIndicator(strokeWidth: 2.5),
-            //             );
-            //     }),
-          ),
-          onChanged: (value) => searchService.setSearch(value),
-          onSubmitted: (value) => searchService.setSearch(value),
-        )),
-        IconButton(
-          icon: Icon(Icons.search),
-          onPressed: () {
-            FocusScope.of(context).unfocus();
-          },
-        )
+            child: FutureBuilder<bool>(
+                future: searchService.hasResults,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Container();
+                  }
+
+                  return TextField(
+                    controller: _controller,
+                    focusNode: _searchFocus,
+                    autofocus: !routeState.hasMedia() && !snapshot.data!,
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        hintText: 'Search'),
+                    onChanged: (value) => searchService.setSearch(value),
+                    onSubmitted: (value) => searchService.setSearch(value),
+                  );
+                })),
+        StreamBuilder<bool>(
+            stream: _hasFocus,
+            builder: (context, snapshot) => snapshot.hasData && snapshot.data!
+                ? IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () => _searchFocus.unfocus())
+                : IconButton(
+                    onPressed: () => _searchFocus.requestFocus(),
+                    icon: Icon(Icons.search)))
       ],
     );
   }

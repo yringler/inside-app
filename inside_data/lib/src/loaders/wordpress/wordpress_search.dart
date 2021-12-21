@@ -37,6 +37,25 @@ class WordpressSearch extends Wordpress {
       .debounceTime(Duration(milliseconds: 20))
       .asyncMap(_search);
 
+  Future<bool> get hasResults async {
+    final currentTerm = _recentTerm.valueOrNull;
+
+    if (currentTerm == null ||
+        currentTerm.isEmpty ||
+        !_resultCache.containsKey(currentTerm)) {
+      return false;
+    }
+
+    final valueSource = _resultCache[currentTerm]!;
+
+    if (!valueSource.completer.isCompleted) {
+      return false;
+    }
+
+    final value = await valueSource.completer.future;
+    return value.isNotEmpty;
+  }
+
   WordpressSearch(
       {required String wordpressDomain,
       required this.siteBoxes,

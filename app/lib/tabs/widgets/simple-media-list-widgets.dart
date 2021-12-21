@@ -8,13 +8,13 @@ class MediaListTabRoute extends ChangeNotifier implements IRoutDataService {
   Media? media;
 
   @override
-  setActiveItem(SiteDataBase? data) {
+  void setActiveItem(SiteDataBase? data) {
     assert(data is Media);
     this.media = data as Media?;
     notifyListeners();
   }
 
-  clear() {
+  bool clear() {
     final hadMedia = hasMedia();
     media = null;
 
@@ -25,7 +25,7 @@ class MediaListTabRoute extends ChangeNotifier implements IRoutDataService {
     return hadMedia;
   }
 
-  hasMedia() => media != null;
+  bool hasMedia() => media != null;
 }
 
 class MediaListTabNavigator extends RouterDelegate
