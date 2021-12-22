@@ -300,7 +300,7 @@ class MyAppState extends State<MyApp> {
           routeState: widget.favoritesState,
         );
       case 3:
-        return SearchTab(
+        return SearchResultsTab(
             navigatorKey: widget.searchKey, routeState: widget.searchState);
       case 4:
         return NowPlayingTab();

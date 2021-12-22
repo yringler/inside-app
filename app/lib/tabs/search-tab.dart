@@ -1,28 +1,49 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/routes/player-route/index.dart';
-import 'package:inside_chassidus/routes/search-section-route.dart';
+import 'package:inside_chassidus/routes/secondary-section-route/widgets/inside-data-card.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
+import 'package:inside_chassidus/util/library-navigator/index.dart';
+import 'package:inside_chassidus/widgets/inside-navigator.dart';
+import 'package:inside_chassidus/widgets/media-list/media-item.dart';
+import 'package:inside_chassidus/widgets/section-content-list.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:rxdart/subjects.dart';
 
-//TODO: add necessary navigator stuff; see MediaListTabNavigator
-
-class SearchTab extends StatefulWidget {
+class SearchResultsTab extends StatefulWidget {
   final GlobalKey<NavigatorState> navigatorKey;
+  final MediaListTabRoute routeState;
+
+  const SearchResultsTab(
+      {Key? key, required this.navigatorKey, required this.routeState});
+
+  @override
+  State<StatefulWidget> createState() => SearchResultsTabState();
+}
+
+class SearchResultsTabState extends State<SearchResultsTab> {
+  @override
+  Widget build(BuildContext context) => Router(
+      backButtonDispatcher: Router.of(context)
+          .backButtonDispatcher!
+          .createChildBackButtonDispatcher()
+        ..takePriority(),
+      routerDelegate: SearchTabTabNavigator(
+          key: widget.navigatorKey, state: widget.routeState));
+}
+
+class SearchForm extends StatefulWidget {
   final MediaListTabRoute routeState;
   final WordpressSearch searchService =
       BlocProvider.getDependency<WordpressSearch>();
 
-  SearchTab({required this.navigatorKey, required this.routeState});
+  SearchForm({required this.routeState});
 
   @override
-  State<StatefulWidget> createState() => SearchTabState();
+  State<StatefulWidget> createState() => SearchFormState();
 }
 
-class SearchTabState extends State<SearchTab> {
-  GlobalKey<NavigatorState> get navigatorKey => widget.navigatorKey;
-  MediaListTabRoute get routeState => widget.routeState;
+class SearchFormState extends State<SearchForm> {
   WordpressSearch get searchService => widget.searchService;
   final BehaviorSubject<bool> _hasFocus = BehaviorSubject.seeded(false);
 
@@ -51,29 +72,7 @@ class SearchTabState extends State<SearchTab> {
   }
 
   @override
-  Widget build(BuildContext context) => Navigator(
-        key: navigatorKey,
-        onPopPage: (route, result) {
-          if (!route.didPop(result)) {
-            return false;
-          }
-
-          // If the input has focus and user clicks back, remove focus.
-          // if (_searchFocus.hasPrimaryFocus) {
-          //   _searchFocus.unfocus();
-          //   return false;
-          // }
-
-          return routeState.clear();
-        },
-        pages: [
-          MaterialPage(child: _searchPage()),
-          if (routeState.hasMedia())
-            MaterialPage(child: PlayerRoute(media: routeState.media!))
-        ],
-      );
-
-  Widget _searchPage() => Container(
+  Widget build(BuildContext context) => Container(
         //TODO: Try to bring this in line with padding of other pages
         padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
         child: Column(
@@ -95,8 +94,9 @@ class SearchTabState extends State<SearchTab> {
                         style: Theme.of(context).textTheme.bodyText1,
                       ),
                     )
-                  : SearchSectionRoute(
-                      content: snapshot.data!, routeDataService: routeState)));
+                  : SearchFormResults(
+                      content: snapshot.data!,
+                      routeDataService: widget.routeState)));
         });
   }
 
@@ -114,7 +114,7 @@ class SearchTabState extends State<SearchTab> {
                   return TextField(
                     controller: _controller,
                     focusNode: _searchFocus,
-                    autofocus: !routeState.hasMedia() && !snapshot.data!,
+                    autofocus: !widget.routeState.hasMedia() && !snapshot.data!,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(),
                         isDense: true,
@@ -135,4 +135,65 @@ class SearchTabState extends State<SearchTab> {
       ],
     );
   }
+}
+
+class SearchFormResults extends StatelessWidget {
+  final List<ContentReference> content;
+  final IRoutDataService routeDataService;
+
+  const SearchFormResults(
+      {required this.content, required this.routeDataService});
+
+  @override
+  Widget build(BuildContext context) => SectionContentList(
+        content: content,
+        sectionBuilder: (context, section) => InsideNavigator(
+            data: section, child: InsideDataCard(insideData: section)),
+        lessonBuilder: (context, lesson) => InsideDataCard(insideData: lesson),
+        mediaBuilder: (context, media) => MediaItem(
+          media: media,
+          sectionId: null,
+          routeDataService: routeDataService,
+        ),
+      );
+}
+
+class SearchTabTabNavigator extends RouterDelegate
+    with ChangeNotifier, PopNavigatorRouterDelegateMixin {
+  final GlobalKey<NavigatorState> key;
+  final MediaListTabRoute state;
+
+  SearchTabTabNavigator({required this.key, required this.state}) {
+    this.state.addListener(notifyListeners);
+  }
+
+  @override
+  Widget build(BuildContext context) => Navigator(
+        key: navigatorKey,
+        onPopPage: (route, result) {
+          if (!route.didPop(result)) {
+            return false;
+          }
+
+          // If the input has focus and user clicks back, remove focus.
+          // if (_searchFocus.hasPrimaryFocus) {
+          //   _searchFocus.unfocus();
+          //   return false;
+          // }
+
+          return state.clear();
+        },
+        pages: [
+          MaterialPage(child: SearchForm(routeState: state)),
+          if (state.hasMedia())
+            MaterialPage(child: PlayerRoute(media: state.media!))
+        ],
+      );
+
+  @override
+  // TODO: implement navigatorKey
+  GlobalKey<NavigatorState>? get navigatorKey => key;
+
+  @override
+  Future<void> setNewRoutePath(configuration) async {}
 }
