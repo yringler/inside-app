@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "app"
+		},
+		{
+			"path": "inside_api"
+		},
+		{
+			"path": "inside_data"
+		},
+		{
+			"path": "inside_data_flutter"
+		},
+		{
+			"path": "just_audio_handlers"
+		}
+	],
+	"settings": {}
+}
