@@ -155,7 +155,11 @@ const String appTitle = 'Inside Chassidus';
 
 /// The app state.
 class MyAppState extends State<MyApp> {
-  int _currentTabIndex = 0;
+  TabType _currentTab = TabType.libraryHome;
+
+  /// Keep track of previous tab. If user goes to library from other tab, back button
+  /// should return to that tab.
+  TabType? _previousTab;
 
   final positionService = BlocProvider.getDependency<LibraryPositionService>();
 
@@ -180,10 +184,13 @@ class MyAppState extends State<MyApp> {
     BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
         .isOtherButtonsShowing(isShowing: isOnPlayer);
 
-    if (!(_currentTabIndex == 0 || isOnPlayer)) {
+    if (!(_currentTab == TabType.libraryHome || isOnPlayer)) {
+      _previousTab = _currentTab;
       setState(() {
-        _currentTabIndex = 0;
+        _currentTab = TabType.libraryHome;
       });
+    } else {
+      _previousTab = null;
     }
   }
 
@@ -205,7 +212,25 @@ class MyAppState extends State<MyApp> {
                 : null),
         body: AudioButtonbarAwareBody(
             body: Material(
-          child: _getCurrentTab(),
+          child: WillPopScope(
+            child: _getCurrentTab(),
+            onWillPop: () {
+              // Before we close the app, check if current tab was navigated to
+              // from another tab.
+              // If it was, back up back to that tab.
+
+              final hasSomewhereToGo = _previousTab != null;
+
+              if (hasSomewhereToGo) {
+                setState(() {
+                  _currentTab = _previousTab!;
+                  _previousTab = null;
+                });
+              }
+
+              return Future.value(!hasSomewhereToGo);
+            },
+          ),
         )),
         bottomSheet: CurrentMediaButtonBar(),
         bottomNavigationBar: bottomNavigationBar(),
@@ -214,7 +239,7 @@ class MyAppState extends State<MyApp> {
   BottomNavigationBar bottomNavigationBar() {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
-      currentIndex: _currentTabIndex,
+      currentIndex: _currentTab.index,
       onTap: _onBottomNavigationTap,
       items: <BottomNavigationBarItem>[
         BottomNavigationBarItem(
@@ -262,16 +287,18 @@ class MyAppState extends State<MyApp> {
     setState(() {});
   }
 
-  void _onBottomNavigationTap(value) {
+  void _onBottomNavigationTap(intValue) {
+    final value = TabType.values[intValue];
+
     // If the home button is pressed when already on home section, we show the
     // lesson tab, but go back to root.
-    if (value == 0 &&
-        _currentTabIndex == 0 &&
+    if (value == TabType.libraryHome &&
+        _currentTab == TabType.libraryHome &&
         positionService.sections.isNotEmpty) {
       positionService.clear();
     }
 
-    if (value == _currentTabIndex) {
+    if (value == _currentTab) {
       return;
     }
 
@@ -279,30 +306,30 @@ class MyAppState extends State<MyApp> {
         .canGlobalButtonsShow(value == 0);
 
     setState(() {
-      _currentTabIndex = value;
+      _currentTab = value;
     });
   }
 
   Widget _getCurrentTab() {
-    switch (_currentTabIndex) {
-      case 0:
+    switch (_currentTab) {
+      case TabType.libraryHome:
         return LessonTab(
           navigatorKey: widget.lessonNavigatorKey,
         );
-      case 1:
+      case TabType.recent:
         return RecentsTab(
           navigatorKey: widget.recentsKey,
           routeState: widget.recentState,
         );
-      case 2:
+      case TabType.favorites:
         return FavoritesTab(
           navigatorKey: widget.favoritesKey,
           routeState: widget.favoritesState,
         );
-      case 3:
+      case TabType.search:
         return SearchResultsTab(
             navigatorKey: widget.searchKey, routeState: widget.searchState);
-      case 4:
+      case TabType.nowPlaying:
         return NowPlayingTab();
       default:
         throw ArgumentError('Invalid tab index');
@@ -310,16 +337,16 @@ class MyAppState extends State<MyApp> {
   }
 
   bool _getCanPop() {
-    switch (_currentTabIndex) {
-      case 0:
+    switch (_currentTab) {
+      case TabType.libraryHome:
         return positionService.sections.isNotEmpty;
-      case 1:
+      case TabType.recent:
         return widget.recentState.hasMedia();
-      case 2:
+      case TabType.favorites:
         return widget.favoritesState.hasMedia();
-      case 3:
+      case TabType.search:
         return widget.searchState.hasMedia();
-      case 4:
+      case TabType.nowPlaying:
         return false;
       default:
         throw ArgumentError('Called with invalid index');
@@ -327,14 +354,14 @@ class MyAppState extends State<MyApp> {
   }
 
   GlobalKey<NavigatorState> _getCurrentRouterKey() {
-    switch (_currentTabIndex) {
-      case 0:
+    switch (_currentTab) {
+      case TabType.libraryHome:
         return widget.lessonNavigatorKey;
-      case 1:
+      case TabType.recent:
         return widget.recentsKey;
-      case 2:
+      case TabType.favorites:
         return widget.favoritesKey;
-      case 3:
+      case TabType.search:
         return widget.searchKey;
       default:
         throw ArgumentError('Called with invalid index');
@@ -434,3 +461,5 @@ class DbAccessAudioTask extends AudioHandlerJustAudio {
             .toExtra());
   }
 }
+
+enum TabType { libraryHome, recent, favorites, search, nowPlaying }

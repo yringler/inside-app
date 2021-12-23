@@ -19,26 +19,36 @@ class LibraryNavigator extends RouterDelegate
   }
 
   @override
-  Widget build(BuildContext context) => Navigator(
-        key: navigatorKey,
-        onPopPage: (route, result) {
-          if (!route.didPop(result)) {
-            return false;
-          }
+  Widget build(BuildContext context) {
+    final bookPages = [
+      for (final book
+          in appState.sections.where((section) => section.wasNavigatedTo))
+        MaterialPage(
+            key: ValueKey('${book.level}_${book.data!.id}'),
+            child: Material(child: getChild(book)))
+    ];
 
-          return appState.removeLast();
-        },
-        pages: [
+    return Navigator(
+      key: navigatorKey,
+      onPopPage: (route, result) {
+        if (!route.didPop(result)) {
+          return false;
+        }
+
+        return appState.removeLast();
+      },
+      pages: [
+        // We only add home page if we aren't showing a subsection or player.
+        // This means that if library is navigated to from a diffirent tab, back button will not bring
+        // to library home - it is up to the app to catch the pop and show the right tab.
+        if (bookPages.isEmpty)
           MaterialPage(
               key: ValueKey("PrimarySectionsRoute"),
               child: PrimarySectionsRoute()),
-          for (final book
-              in appState.sections.where((section) => section.wasNavigatedTo))
-            MaterialPage(
-                key: ValueKey('${book.level}_${book.data!.id}'),
-                child: Material(child: getChild(book)))
-        ],
-      );
+        ...bookPages
+      ],
+    );
+  }
 
   @override
   Future<void> setNewRoutePath(configuration) async {}
