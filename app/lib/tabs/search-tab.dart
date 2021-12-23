@@ -49,7 +49,7 @@ class SearchFormState extends State<SearchForm> {
 
   late FocusNode _searchFocus;
 
-  final TextEditingController _controller = TextEditingController();
+  late TextEditingController _controller;
 
   @override
   void initState() {
@@ -58,9 +58,8 @@ class SearchFormState extends State<SearchForm> {
     _searchFocus = FocusNode();
     _searchFocus.addListener(() => _hasFocus.add(_searchFocus.hasPrimaryFocus));
 
-    if (searchService.activeTerm.isNotEmpty) {
-      _controller.text = searchService.activeTerm;
-    }
+    _controller = TextEditingController.fromValue(
+        TextEditingValue(text: searchService.activeTerm));
   }
 
   @override
@@ -89,6 +88,11 @@ class SearchFormState extends State<SearchForm> {
         child: StreamBuilder<List<ContentReference>>(
             stream: searchService.activeResults,
             builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return ErrorWidget.withDetails(
+                    message: "We're sorry, an error occured.");
+              }
+
               return (!snapshot.hasData
                   ? Container()
                   : (snapshot.data!.isEmpty
