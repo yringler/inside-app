@@ -76,28 +76,35 @@ class SearchFormState extends State<SearchForm> {
         //TODO: Try to bring this in line with padding of other pages
         padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
         child: Column(
-          children: [_searchInput(), Expanded(child: _searchResults())],
+          children: [_searchInput(), _searchResults()],
         ),
       );
 
-  StreamBuilder<List<ContentReference>> _searchResults() {
-    return StreamBuilder<List<ContentReference>>(
-        stream: searchService.activeResults,
-        builder: (context, snapshot) {
-          return (!snapshot.hasData
-              ? Container()
-              : (snapshot.data!.isEmpty
-                  ? Center(
-                      //TODO: Bring padding in line with other pages
-                      child: Text(
-                        'No results found. Would you like to search for something else?',
-                        style: Theme.of(context).textTheme.bodyText1,
-                      ),
-                    )
-                  : SearchFormResults(
-                      content: snapshot.data!,
-                      routeDataService: widget.routeState)));
-        });
+  Widget _searchResults() {
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanDown: (_) => _searchFocus.unfocus(),
+        onTap: () => _searchFocus.unfocus(),
+        child: StreamBuilder<List<ContentReference>>(
+            stream: searchService.activeResults,
+            builder: (context, snapshot) {
+              return (!snapshot.hasData
+                  ? Container()
+                  : (snapshot.data!.isEmpty
+                      ? Center(
+                          //TODO: Bring padding in line with other pages
+                          child: Text(
+                            'No results found. Would you like to search for something else?',
+                            style: Theme.of(context).textTheme.bodyText1,
+                          ),
+                        )
+                      : SearchFormResults(
+                          content: snapshot.data!,
+                          routeDataService: widget.routeState)));
+            }),
+      ),
+    );
   }
 
   Row _searchInput() {
@@ -118,20 +125,15 @@ class SearchFormState extends State<SearchForm> {
                     decoration: InputDecoration(
                         border: OutlineInputBorder(),
                         isDense: true,
-                        hintText: 'Search'),
+                        hintText: 'Search',
+                        suffixIcon: IconButton(
+                          onPressed: () => searchService.setSearch(''),
+                          icon: Icon(Icons.clear),
+                        )),
                     onChanged: (value) => searchService.setSearch(value),
                     onSubmitted: (value) => searchService.setSearch(value),
                   );
-                })),
-        StreamBuilder<bool>(
-            stream: _hasFocus,
-            builder: (context, snapshot) => snapshot.hasData && snapshot.data!
-                ? IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () => _searchFocus.unfocus())
-                : IconButton(
-                    onPressed: () => _searchFocus.requestFocus(),
-                    icon: Icon(Icons.search)))
+                }))
       ],
     );
   }
