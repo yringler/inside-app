@@ -93,7 +93,7 @@ class SearchFormState extends State<SearchForm> {
                     message: "We're sorry, an error occured.");
               }
 
-              return (!snapshot.hasData
+              return (!snapshot.hasData || searchService.activeTerm.isEmpty
                   ? Container()
                   : (snapshot.data!.isEmpty
                       ? Center(
@@ -131,7 +131,10 @@ class SearchFormState extends State<SearchForm> {
                         isDense: true,
                         hintText: 'Search',
                         suffixIcon: IconButton(
-                          onPressed: () => searchService.setSearch(''),
+                          onPressed: () {
+                            _controller.text = '';
+                            searchService.setSearch('');
+                          },
                           icon: Icon(Icons.clear),
                         )),
                     onChanged: (value) => searchService.setSearch(value),

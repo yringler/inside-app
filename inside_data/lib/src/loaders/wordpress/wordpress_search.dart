@@ -27,8 +27,7 @@ class WordpressSearch extends Wordpress {
   static const searchApiPath =
       'wp-content/plugins/elasticpress-custom/proxy/proxy.php';
 
-  Stream<String> get activeTermStream =>
-      _recentTerm.where((event) => event.isNotEmpty).distinct();
+  Stream<String> get activeTermStream => _recentTerm.distinct();
 
   String get activeTerm => _recentTerm.value;
 
@@ -65,6 +64,10 @@ class WordpressSearch extends Wordpress {
   void setSearch(String term) => _recentTerm.add(term);
 
   Future<List<ContentReference>> _search(String term) async {
+    if (term.isEmpty) {
+      return [];
+    }
+
     if (_resultCache.containsKey(term) && _resultCache[term]!.wasLoadCalled) {
       return _resultCache[term]!.completer.future;
     }
