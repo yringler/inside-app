@@ -82,19 +82,21 @@ class MediaListTab extends StatefulWidget {
 class MediaListTabState extends State<MediaListTab> {
   @override
   Widget build(BuildContext context) {
-    return Router(
-      backButtonDispatcher: Router.of(context)
-          .backButtonDispatcher!
-          .createChildBackButtonDispatcher()
-        ..takePriority(),
-      routerDelegate: MediaListTabNavigator(
-          navigatorKey: widget.navigatorKey,
-          state: widget.mediaTabRoute,
-          chosenDataList: ChosenDataList(
-            data: widget.data,
-            emptyMessage: widget.emptyMessage,
-            routeDataService: widget.mediaTabRoute,
-          )),
+    return Material(
+      child: Router(
+        backButtonDispatcher: Router.of(context)
+            .backButtonDispatcher!
+            .createChildBackButtonDispatcher()
+          ..takePriority(),
+        routerDelegate: MediaListTabNavigator(
+            navigatorKey: widget.navigatorKey,
+            state: widget.mediaTabRoute,
+            chosenDataList: ChosenDataList(
+              data: widget.data,
+              emptyMessage: widget.emptyMessage,
+              routeDataService: widget.mediaTabRoute,
+            )),
+      ),
     );
   }
 }
@@ -121,24 +123,26 @@ class ChosenDataList extends StatelessWidget {
       );
     }
 
-    return ListView.builder(
-        itemCount: data.length,
-        itemBuilder: (context, index) {
-          final item = data[index];
+    return Material(
+      child: ListView.builder(
+          itemCount: data.length,
+          itemBuilder: (context, index) {
+            final item = data[index];
 
-          return ListTile(
-            title: Text(item.media!.title),
-            subtitle: item.media!.description.isNotEmpty
-                ? Text(
-                    item.media!.description,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  )
-                : null,
-            onTap: () {
-              routeDataService.setActiveItem(item.media);
-            },
-          );
-        });
+            return ListTile(
+              title: Text(item.media!.title),
+              subtitle: item.media!.description.isNotEmpty
+                  ? Text(
+                      item.media!.description,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  : null,
+              onTap: () {
+                routeDataService.setActiveItem(item.media);
+              },
+            );
+          }),
+    );
   }
 }

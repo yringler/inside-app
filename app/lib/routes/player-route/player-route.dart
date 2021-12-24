@@ -21,48 +21,50 @@ class PlayerRoute extends StatelessWidget {
   PlayerRoute({required this.media});
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: EdgeInsets.all(8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              _navigateToLibraryButton(),
-              Expanded(
-                  child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: _title(context, media),
-              )),
-            ]),
-            _description(context),
-            Theme(
-              data: Theme.of(context).copyWith(
-                iconTheme: IconThemeData(size: 30),
+  Widget build(BuildContext context) => Material(
+        child: Container(
+          padding: EdgeInsets.all(8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                _navigateToLibraryButton(),
+                Expanded(
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: _title(context, media),
+                )),
+              ]),
+              _description(context),
+              Theme(
+                data: Theme.of(context).copyWith(
+                  iconTheme: IconThemeData(size: 30),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _favoriteButton(context),
+                    DownloadButton(
+                      buttonBuilder: (icon, onPressed) => IconButton(
+                          onPressed: onPressed,
+                          icon: Icon(
+                            icon,
+                          )),
+                      audioSource: media.source,
+                      downloader: BlocProvider.getDependency<AudioDownloader>(),
+                    )
+                  ],
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _favoriteButton(context),
-                  DownloadButton(
-                    buttonBuilder: (icon, onPressed) => IconButton(
-                        onPressed: onPressed,
-                        icon: Icon(
-                          icon,
-                        )),
-                    audioSource: media.source,
-                    downloader: BlocProvider.getDependency<AudioDownloader>(),
-                  )
-                ],
+              ProgressBar(
+                media: media,
               ),
-            ),
-            ProgressBar(
-              media: media,
-            ),
-            AudioButtonBar(
-              media: media,
-            )
-          ],
+              AudioButtonBar(
+                media: media,
+              )
+            ],
+          ),
         ),
       );
 

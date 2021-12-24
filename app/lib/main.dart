@@ -206,35 +206,50 @@ class MyAppState extends State<MyApp> {
             title: Text(appTitle),
             leading: _getCanPop()
                 ? BackButton(
-                    onPressed: () =>
-                        _getCurrentRouterKey().currentState!.maybePop(),
+                    onPressed: () async {
+                      // Try to pop current root.
+                      final currentPopped =
+                          await _getCurrentRouterKey().currentState!.maybePop();
+
+                      if (currentPopped) {
+                        return;
+                      }
+
+                      // If the current route has no where to go, check if we have another tab to
+                      // back up to.
+                      tryChangeTab();
+                    },
                   )
                 : null),
         body: AudioButtonbarAwareBody(
             body: Material(
           child: WillPopScope(
             child: _getCurrentTab(),
-            onWillPop: () {
-              // Before we close the app, check if current tab was navigated to
-              // from another tab.
-              // If it was, back up back to that tab.
-
-              final hasSomewhereToGo = _previousTab != null;
-
-              if (hasSomewhereToGo) {
-                setState(() {
-                  _currentTab = _previousTab!;
-                  _previousTab = null;
-                });
-              }
-
-              return Future.value(!hasSomewhereToGo);
-            },
+            onWillPop: () async => !tryChangeTab(),
           ),
         )),
         bottomSheet: CurrentMediaButtonBar(),
         bottomNavigationBar: bottomNavigationBar(),
       );
+
+  /// Try to change to a relevant previous tab.
+  /// Returns true if successfully changes tab.
+  bool tryChangeTab() {
+    // Before we close the app, check if current tab was navigated to
+    // from another tab.
+    // If it was, back up back to that tab.
+
+    final hasSomewhereToGo = _previousTab != null;
+
+    if (hasSomewhereToGo) {
+      setState(() {
+        _currentTab = _previousTab!;
+        _previousTab = null;
+      });
+    }
+
+    return hasSomewhereToGo;
+  }
 
   BottomNavigationBar bottomNavigationBar() {
     return BottomNavigationBar(
@@ -303,7 +318,7 @@ class MyAppState extends State<MyApp> {
     }
 
     BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
-        .canGlobalButtonsShow(value == 0);
+        .canGlobalButtonsShow(value == TabType.libraryHome);
 
     setState(() {
       _currentTab = value;
