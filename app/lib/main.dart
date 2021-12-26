@@ -14,6 +14,7 @@ import 'package:inside_chassidus/tabs/favorites-tab.dart';
 import 'package:inside_chassidus/tabs/lesson-tab/lesson-tab.dart';
 import 'package:inside_chassidus/tabs/now-playing-tab.dart';
 import 'package:inside_chassidus/tabs/recent-tab.dart';
+import 'package:inside_chassidus/tabs/search-tab.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
@@ -52,6 +53,8 @@ void main() async {
   final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
   final PositionSaver positionSaver = HivePositionSaver();
+  final searchService = WordpressSearch(
+      wordpressDomain: activeSourceDomain, siteBoxes: siteBoxes);
 
   final session = await AudioSession.instance;
   await session.configure(AudioSessionConfiguration.speech());
@@ -83,6 +86,7 @@ void main() async {
     Dependency((i) => chosenService),
     Dependency((i) => downloadManager),
     Dependency((i) => libraryPositionService),
+    Dependency((i) => searchService),
     Dependency((i) => audioHandler)
   ], blocs: [
     Bloc((i) => IsPlayerButtonsShowingBloc())
@@ -136,9 +140,12 @@ class MyApp extends StatefulWidget {
       GlobalKey<NavigatorState>(debugLabel: 'favorites');
   final GlobalKey<NavigatorState> recentsKey =
       GlobalKey<NavigatorState>(debugLabel: 'recents');
+  final GlobalKey<NavigatorState> searchKey =
+      GlobalKey<NavigatorState>(debugLabel: 'search');
 
   final recentState = MediaListTabRoute();
   final favoritesState = MediaListTabRoute();
+  final searchState = MediaListTabRoute();
 
   @override
   State<StatefulWidget> createState() => MyAppState();
@@ -148,7 +155,11 @@ const String appTitle = 'Inside Chassidus';
 
 /// The app state.
 class MyAppState extends State<MyApp> {
-  int _currentTabIndex = 0;
+  TabType _currentTab = TabType.libraryHome;
+
+  /// Keep track of previous tab. If user goes to library from other tab, back button
+  /// should return to that tab.
+  TabType? _previousTab;
 
   final positionService = BlocProvider.getDependency<LibraryPositionService>();
 
@@ -160,12 +171,12 @@ class MyAppState extends State<MyApp> {
     positionService.addListener(rebuildForCanPop);
     widget.recentState.addListener(rebuildForCanPop);
     widget.favoritesState.addListener(rebuildForCanPop);
+    widget.searchState.addListener(rebuildForCanPop);
   }
 
   /// Hide the global media controls if on media player route.
   /// If the position is changed and we're not on the player route, return to library
-  /// in order to see the position. (This currently only happens on view parent button
-  /// in player route.)
+  /// in order to see the position.
   void onLibraryPositionChange() {
     final last = positionService.sections.lastOrNull;
     final isOnPlayer = last?.data != null && last!.data is Media;
@@ -173,10 +184,13 @@ class MyAppState extends State<MyApp> {
     BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
         .isOtherButtonsShowing(isShowing: isOnPlayer);
 
-    if (!(_currentTabIndex == 0 || isOnPlayer)) {
+    if (!(_currentTab == TabType.libraryHome || isOnPlayer)) {
+      _previousTab = _currentTab;
       setState(() {
-        _currentTabIndex = 0;
+        _currentTab = TabType.libraryHome;
       });
+    } else {
+      _previousTab = null;
     }
   }
 
@@ -192,22 +206,55 @@ class MyAppState extends State<MyApp> {
             title: Text(appTitle),
             leading: _getCanPop()
                 ? BackButton(
-                    onPressed: () =>
-                        _getCurrentRouterKey().currentState!.maybePop(),
+                    onPressed: () async {
+                      // Try to pop current root.
+                      final currentPopped =
+                          await _getCurrentRouterKey().currentState!.maybePop();
+
+                      if (currentPopped) {
+                        return;
+                      }
+
+                      // If the current route has no where to go, check if we have another tab to
+                      // back up to.
+                      tryChangeTab();
+                    },
                   )
                 : null),
         body: AudioButtonbarAwareBody(
             body: Material(
-          child: _getCurrentTab(),
+          child: WillPopScope(
+            child: _getCurrentTab(),
+            onWillPop: () async => !tryChangeTab(),
+          ),
         )),
         bottomSheet: CurrentMediaButtonBar(),
         bottomNavigationBar: bottomNavigationBar(),
       );
 
+  /// Try to change to a relevant previous tab.
+  /// Returns true if successfully changes tab.
+  bool tryChangeTab() {
+    // Before we close the app, check if current tab was navigated to
+    // from another tab.
+    // If it was, back up back to that tab.
+
+    final hasSomewhereToGo = _previousTab != null;
+
+    if (hasSomewhereToGo) {
+      setState(() {
+        _currentTab = _previousTab!;
+        _previousTab = null;
+      });
+    }
+
+    return hasSomewhereToGo;
+  }
+
   BottomNavigationBar bottomNavigationBar() {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
-      currentIndex: _currentTabIndex,
+      currentIndex: _currentTab.index,
       onTap: _onBottomNavigationTap,
       items: <BottomNavigationBarItem>[
         BottomNavigationBarItem(
@@ -235,6 +282,13 @@ class MyAppState extends State<MyApp> {
             label: 'Bookmarked'),
         BottomNavigationBarItem(
             activeIcon: Icon(
+              Icons.search,
+              color: Colors.blue,
+            ),
+            icon: Icon(Icons.search),
+            label: 'Search'),
+        BottomNavigationBarItem(
+            activeIcon: Icon(
               Icons.play_circle_filled,
               color: Colors.black,
             ),
@@ -248,44 +302,49 @@ class MyAppState extends State<MyApp> {
     setState(() {});
   }
 
-  void _onBottomNavigationTap(value) {
+  void _onBottomNavigationTap(intValue) {
+    final value = TabType.values[intValue];
+
     // If the home button is pressed when already on home section, we show the
     // lesson tab, but go back to root.
-    if (value == 0 &&
-        _currentTabIndex == 0 &&
+    if (value == TabType.libraryHome &&
+        _currentTab == TabType.libraryHome &&
         positionService.sections.isNotEmpty) {
       positionService.clear();
     }
 
-    if (value == _currentTabIndex) {
+    if (value == _currentTab) {
       return;
     }
 
     BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
-        .canGlobalButtonsShow(value == 0);
+        .canGlobalButtonsShow(value == TabType.libraryHome);
 
     setState(() {
-      _currentTabIndex = value;
+      _currentTab = value;
     });
   }
 
   Widget _getCurrentTab() {
-    switch (_currentTabIndex) {
-      case 0:
+    switch (_currentTab) {
+      case TabType.libraryHome:
         return LessonTab(
           navigatorKey: widget.lessonNavigatorKey,
         );
-      case 1:
+      case TabType.recent:
         return RecentsTab(
           navigatorKey: widget.recentsKey,
           routeState: widget.recentState,
         );
-      case 2:
+      case TabType.favorites:
         return FavoritesTab(
           navigatorKey: widget.favoritesKey,
           routeState: widget.favoritesState,
         );
-      case 3:
+      case TabType.search:
+        return SearchResultsTab(
+            navigatorKey: widget.searchKey, routeState: widget.searchState);
+      case TabType.nowPlaying:
         return NowPlayingTab();
       default:
         throw ArgumentError('Invalid tab index');
@@ -293,14 +352,16 @@ class MyAppState extends State<MyApp> {
   }
 
   bool _getCanPop() {
-    switch (_currentTabIndex) {
-      case 0:
+    switch (_currentTab) {
+      case TabType.libraryHome:
         return positionService.sections.isNotEmpty;
-      case 1:
+      case TabType.recent:
         return widget.recentState.hasMedia();
-      case 2:
+      case TabType.favorites:
         return widget.favoritesState.hasMedia();
-      case 3:
+      case TabType.search:
+        return widget.searchState.hasMedia();
+      case TabType.nowPlaying:
         return false;
       default:
         throw ArgumentError('Called with invalid index');
@@ -308,13 +369,15 @@ class MyAppState extends State<MyApp> {
   }
 
   GlobalKey<NavigatorState> _getCurrentRouterKey() {
-    switch (_currentTabIndex) {
-      case 0:
+    switch (_currentTab) {
+      case TabType.libraryHome:
         return widget.lessonNavigatorKey;
-      case 1:
+      case TabType.recent:
         return widget.recentsKey;
-      case 2:
+      case TabType.favorites:
         return widget.favoritesKey;
+      case TabType.search:
+        return widget.searchKey;
       default:
         throw ArgumentError('Called with invalid index');
     }
@@ -413,3 +476,5 @@ class DbAccessAudioTask extends AudioHandlerJustAudio {
             .toExtra());
   }
 }
+
+enum TabType { libraryHome, recent, favorites, search, nowPlaying }

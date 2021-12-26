@@ -64,8 +64,15 @@ class LibraryPositionService extends ChangeNotifier
       item = (await siteBoxes.section(item.id))!;
     }
 
+    final wasNavigatedTo = sections
+        .where((element) => element.wasNavigatedTo)
+        .map((e) => e.data?.id)
+        .where((element) => element != null)
+        .cast<String>()
+        .toSet();
+
     sections.clear();
-    sections.add(SitePosition(data: item, level: 0));
+    sections.add(SitePosition(data: item, level: 0, wasNavigatedTo: true));
 
     // Add all the parents to the list. These aren't used for some navigation (the
     // back button won't get you there), but they are used for explicit navigation
@@ -83,7 +90,11 @@ class LibraryPositionService extends ChangeNotifier
       // (Removed code dealing with old Lesson type)
 
       sections.insert(
-          0, SitePosition(data: parentSection, level: sections.length));
+          0,
+          SitePosition(
+              data: parentSection,
+              level: sections.length,
+              wasNavigatedTo: wasNavigatedTo.contains(parentSection.id)));
       lastItemAdded = parentSection;
     }
 
