@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "app"
+		},
+		{
+			"path": "inside_api"
+		},
+		{
+			"path": "inside_data"
+		},
+		{
+			"path": "just_audio_handlers"
+		}
+	],
+	"settings": {}
+}

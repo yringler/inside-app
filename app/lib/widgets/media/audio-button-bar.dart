@@ -1,29 +1,27 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:inside_chassidus/widgets/media-list/next-media-button.dart';
 import 'package:inside_chassidus/widgets/media-list/previous-media-button.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:inside_chassidus/widgets/media-list/play-button.dart';
 
 class AudioButtonBar extends StatelessWidget {
   final Media? media;
 
-  /// Set [_mediaSource] if [media] isn't available.
-  final String? mediaSource;
+  /// Set [_mediaId] if [media] isn't available.
+  final String? mediaId;
 
   final Media? nextMedia;
 
   final Media? previousMedia;
 
-  String? get _mediaSource => media?.source ?? mediaSource;
+  String? get _mediaId => media?.id ?? mediaId;
 
   AudioButtonBar({
     required this.media,
-    this.mediaSource,
+    this.mediaId,
     this.nextMedia,
     this.previousMedia,
   });
@@ -39,23 +37,22 @@ class AudioButtonBar extends StatelessWidget {
       children: <Widget>[
         PreviousMediaButton(
           currentMedia: media,
-          currentMediaSource: _mediaSource,
+          currentMediaId: _mediaId,
           previousMedia: previousMedia,
         ),
         IconButton(
             icon: Icon(FontAwesomeIcons.undo),
             onPressed: () => positionSaver
-                .skip(_mediaSource, Duration(seconds: -15), handler: handler)),
+                .skip(_mediaId, Duration(seconds: -15), handler: handler)),
         PlayButton(
           media: media,
-          mediaSource: _mediaSource,
+          mediaId: _mediaId,
           iconSize: 48,
         ),
         IconButton(
             icon: Icon(FontAwesomeIcons.redo),
-            onPressed: () => positionSaver
-                .skip(_mediaSource, Duration(seconds: 15), handler: handler)
-        ),
+            onPressed: () => positionSaver.skip(_mediaId, Duration(seconds: 15),
+                handler: handler)),
         NextMediaButton(
           media: nextMedia,
         ),

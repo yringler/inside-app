@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 
 /// A class which hold route data, and allows it to be set.
 /// This is useful when a widget can be a part of a couple diffirent routes, and
@@ -60,7 +60,7 @@ class LibraryPositionService extends ChangeNotifier
       // that info.
       // TODO: I don't think the query will ever return null? Maybe a better
       // behaviour if does.
-      item = await siteBoxes.section(item.id) ?? item;
+      item = (await siteBoxes.section(item.id))!;
     }
 
     sections.clear();

@@ -1,7 +1,7 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 
 /// Simplify navigation to a route which depends on inside chassidus data.
 class InsideNavigator extends StatelessWidget {

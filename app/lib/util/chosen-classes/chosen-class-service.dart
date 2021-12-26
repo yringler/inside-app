@@ -1,10 +1,10 @@
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
-import 'package:hive/hive.dart';
 // ignore: implementation_imports
 import 'package:hive/src/hive_impl.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
 import 'package:inside_chassidus/util/extract-id.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:hive_flutter/hive_flutter.dart';
@@ -30,37 +30,34 @@ class ChosenClassService {
   ChosenClassService({this.hive, this.classes});
 
   Future<void> set(
-      {required Media source, bool? isFavorite, bool? isRecent}) async {
-    mediaCache[source.id] = source;
-    var chosen = classes!.get(source.source.toHiveId());
+      {required Media media, bool? isFavorite, bool? isRecent}) async {
+    mediaCache[media.id] = media;
+    var chosen = classes!.get(media.id.toHiveId());
 
     await classes!.put(
-        source.source.toHiveId(),
+        media.id.toHiveId(),
         ChoosenClass(
-            mediaId: source.id,
+            mediaId: media.id,
             isFavorite: isFavorite ?? chosen?.isFavorite ?? false,
             isRecent: isRecent ?? chosen?.isRecent ?? false,
             modifiedDate: DateTime.now()));
 
-    final newClass = classes!.get(source.source.toHiveId())!;
+    final newClass = classes!.get(media.id.toHiveId())!;
     if (!newClass.isRecent! && !newClass.isFavorite!) {
       await newClass.delete();
     }
   }
 
-  bool isFavorite(String source) =>
-      classes!.get(source.toHiveId())?.isFavorite ?? false;
-
-  Widget isFavoriteValueListenableBuilder(String source,
+  Widget isFavoriteValueListenableBuilder(String id,
       {ValueBuilder<bool>? builder}) {
-    if (!classes!.containsKey(source.toHiveId())) {
+    if (!classes!.containsKey(id.toHiveId())) {
       // classes.put(source.toHiveId(), ChoosenClass(media: null));
     }
 
     return ValueListenableBuilder<Box<ChoosenClass>>(
-      valueListenable: classes!.listenable(keys: [source.toHiveId()]),
+      valueListenable: classes!.listenable(keys: [id.toHiveId()]),
       builder: (context, value, child) =>
-          builder!(context, value.get(source.toHiveId())?.isFavorite ?? false),
+          builder!(context, value.get(id.toHiveId())?.isFavorite ?? false),
     );
   }
 
@@ -83,7 +80,19 @@ class ChosenClassService {
       hive.registerAdapter(ChoosenClassAdapter());
     }
 
-    final classesBox = await hive.openBox<ChoosenClass>('classes');
+    Box<ChoosenClass>? classesBox;
+
+    try {
+      classesBox = await hive.openBox<ChoosenClass>('classes');
+    } catch (_) {
+      try {
+        await classesBox?.close();
+      } catch (_) {}
+
+      final transferredData = await _getDataFromOldBox(folder);
+      classesBox = await hive.openBox<ChoosenClass>('classes');
+      await classesBox.addAll(transferredData);
+    }
 
     // Don't save too much.
     if (classesBox.isNotEmpty) {
@@ -114,9 +123,40 @@ class ChosenClassService {
           .toList();
 
       mediaCache.addEntries(medias);
+
+      // In case an ID changes or something, or otherwise no longer available.
+      for (var i in classesBox.values.toList()) {
+        if (i.media == null) {
+          await i.delete();
+        }
+      }
     }
 
     return ChosenClassService(hive: hive, classes: classesBox);
+  }
+
+  /// Old versions of the app (pre 3.6.0) also stored (the old inside-api) Media object
+  /// directly. This, as long as its type adapter, don't really exist anymore.
+  /// This method migrates the old format to the new and returns the new data style.
+  static Future<List<ChoosenClass>> _getDataFromOldBox(Directory folder) async {
+    final oldHive = HiveImpl();
+    oldHive.init(p.join(folder.path, 'chosen'));
+    oldHive.registerAdapter(MediaShimAdapter());
+    oldHive.registerAdapter(ChoosenClassShimAdapter());
+
+    final oldBox = await oldHive.openBox<ChoosenClassShim>('classes');
+
+    final returnValue = oldBox.values
+        .where((element) => element.media?.id != null)
+        .map((e) => ChoosenClass(
+            mediaId: e.media!.id!.toString(),
+            isFavorite: e.isFavorite,
+            isRecent: e.isRecent,
+            modifiedDate: e.modifiedDate))
+        .toList();
+
+    await oldBox.deleteFromDisk();
+    return returnValue;
   }
 
   static Future<void> _deleteTooMany(

@@ -1,10 +1,9 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/util/library-navigator/library-position-service.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 
 class PreviousMediaButton extends StatelessWidget {
@@ -15,28 +14,27 @@ class PreviousMediaButton extends StatelessWidget {
 
   final double iconSize;
 
-  final String? currentMediaSource;
+  final String? currentMediaId;
 
-  String? get _currentMediaSource =>
-      currentMedia?.source ?? currentMediaSource;
+  String? get _currentMediaSource => currentMedia?.source ?? currentMediaId;
 
-  PreviousMediaButton({
-    this.currentMedia,
-    this.currentMediaSource,
-    this.previousMedia,
-    this.iconSize = 24
-  });
+  PreviousMediaButton(
+      {this.currentMedia,
+      this.currentMediaId,
+      this.previousMedia,
+      this.iconSize = 24});
 
   @override
   Widget build(BuildContext context) {
     final audioHandler = BlocProvider.getDependency<AudioHandler>();
     final positionSaver = BlocProvider.getDependency<PositionSaver>();
-    final libraryPositionService = BlocProvider.getDependency<LibraryPositionService>();
+    final libraryPositionService =
+        BlocProvider.getDependency<LibraryPositionService>();
 
     return StreamBuilder<PositionState>(
       stream: getPositionState(audioHandler),
       builder: (context, snapshot) {
-        VoidCallback? onPressed = null;
+        VoidCallback? onPressed;
 
         if (_shouldGoToPreviousMedia(snapshot)) {
           onPressed = () {
@@ -45,13 +43,12 @@ class PreviousMediaButton extends StatelessWidget {
             if (snapshot.hasData && snapshot.data!.state.playing)
               audioHandler.playFromMediaId(previousMedia!.source);
 
-            BlocProvider.getDependency<ChosenClassService>().set(
-                source: previousMedia!, isRecent: true
-            );
+            BlocProvider.getDependency<ChosenClassService>()
+                .set(media: previousMedia!, isRecent: true);
           };
         } else if (_shouldGoToBeginningOfCurrentMedia(snapshot)) {
-          onPressed = () =>
-            positionSaver.set(_currentMediaSource!, Duration.zero, handler: audioHandler);
+          onPressed = () => positionSaver
+              .set(_currentMediaSource!, Duration.zero, handler: audioHandler);
         }
 
         return IconButton(
@@ -68,8 +65,9 @@ class PreviousMediaButton extends StatelessWidget {
         _currentAudioPosition(snapshot) < tenSeconds;
   }
 
-  bool _shouldGoToBeginningOfCurrentMedia(AsyncSnapshot<PositionState> snapshot) {
-    return (currentMedia != null || currentMediaSource != null) &&
+  bool _shouldGoToBeginningOfCurrentMedia(
+      AsyncSnapshot<PositionState> snapshot) {
+    return (currentMedia != null || currentMediaId != null) &&
         (previousMedia == null || _currentAudioPosition(snapshot) > tenSeconds);
   }
 

@@ -15,11 +15,12 @@ class WordpressRepository {
   static const customApiPathSeries = 'wp-json/shiur-series/v1';
   final String wordpressDomain;
   final wp.WordPress wordPress;
-  final Map<int, CustomEndpointCategory> _loadedCategories = {};
   final Map<int, CustomEndpointGroup> _loadedGroups = {};
   final Map<int, CustomEndpointPost> _loadedPosts = {};
 
-  Map<int, CustomEndpointCategory> get categories => _loadedCategories;
+  /// How direct children of a section should be sorted.
+  final Map<int, List<int>> contentSort = {};
+
   Map<int, CustomEndpointGroup> get groups => _loadedGroups;
   Map<int, CustomEndpointPost> get posts => _loadedPosts;
 
@@ -37,7 +38,7 @@ class WordpressRepository {
 
   /// Load a category, with all children, recursively.
   Future<void> category(int id) async {
-    if (_loadedCategories.containsKey(id)) {
+    if (_loadedGroups.containsKey(id)) {
       return;
     }
 
@@ -51,17 +52,17 @@ class WordpressRepository {
 
     final category = wp.Category.fromJson(jsonDecode(coreResponse.body));
 
-    _loadedCategories[id] = await _childCategories(category);
+    _loadedGroups[id] = await _childCategories(category);
     return;
   }
 
   /// Load all content of a series-type post.
-  Future<CustomEndpointSeries> _series(CustomEndpointPost base) async {
+  Future<CustomEndpointGroup> _series(CustomEndpointPost base) async {
     assert(base.isSeries);
     final id = base.id;
 
     if (_loadedGroups.containsKey(id)) {
-      return _loadedGroups[id]! as CustomEndpointSeries;
+      return _loadedGroups[id]!;
     }
 
     final url = '$wordpressDomain/$customApiPathSeries/$id';
@@ -80,7 +81,7 @@ class WordpressRepository {
     }
 
     if (jsonResponse == null) {
-      return new CustomEndpointSeries(
+      return new CustomEndpointGroup(
           parents: base.parents,
           id: id,
           name: base.postName,
@@ -91,18 +92,19 @@ class WordpressRepository {
           link: '');
     }
 
-    final group = CustomEndpointSeries(
+    final group = CustomEndpointGroup(
         parents: base.parents,
         id: base.id,
         name: base.postName,
         title: base.postTitle,
         description: base.postContentFiltered,
-        link: '$wordpressDomain/series/${base.postName}',
-        posts: await _usePosts(jsonResponse, id));
+        link: '$wordpressDomain/series/${base.postName}');
 
     group.sort = base.menuOrder;
 
     _loadedGroups[id] = group;
+
+    await _usePosts(jsonResponse, id);
     return group;
   }
 
@@ -130,6 +132,12 @@ class WordpressRepository {
       s.parents.add(id);
     }
 
+    contentSort[id] ??= [];
+    contentSort[id]!.addAll(posts.map((e) => e.id));
+    contentSort[id]!.addAll(series.map((e) => e.id));
+
+    CustomEndpointGroup.setSort(series);
+
     for (int i = 0; i < allPostTypes.length; i++) {
       var raw = allPostTypes[i];
       if (raw.isPost && raw.menuOrder == 0) {
@@ -143,9 +151,9 @@ class WordpressRepository {
 
   /// Load all child categories' content of category given, recursively. Loads any
   /// series in the category.
-  Future<CustomEndpointCategory> _childCategories(wp.Category category) async {
-    if (_loadedCategories.containsKey(category.id)) {
-      return _loadedCategories[category.id]!;
+  Future<CustomEndpointGroup> _childCategories(wp.Category category) async {
+    if (_loadedGroups.containsKey(category.id)) {
+      return _loadedGroups[category.id]!;
     }
 
     final url =
@@ -153,55 +161,44 @@ class WordpressRepository {
     final postsResponse =
         await _withConnectionCount(() => http.get(Uri.parse(url)), url);
 
-    List<CustomEndpointPost>? posts;
-
     if (postsResponse != null && postsResponse.body.trim().isNotEmpty) {
-      posts = await _usePosts(jsonDecode(postsResponse.body), category.id!);
+      await _usePosts(jsonDecode(postsResponse.body), category.id!);
     }
+
+    List<wp.Category>? categories;
 
     // query for children of category causes error if there aren't any children.
     try {
-      final categories = await _withConnectionCount(
+      categories = await _withConnectionCount(
           () => wordPress.fetchCategories(
               params: wp.ParamsCategoryList(parent: category.id),
               fetchAll: true),
           'Fetch categories with parent: ${category.id}');
-
-      if (categories != null) {
-        // Get child categories. Note that we don't save child category to parent category; that
-        // is handled by the child categories parents property.
-        // This prevents us from having a data structure with unknown depth.
-        final customCategories = (await Future.wait(
-                categories.map((e) => _childCategories(e)).toList()))
-            .toList();
-
-        CustomEndpointGroup.setSort(customCategories);
-      }
     } catch (_) {}
 
-    List<CustomEndpointSeries> series = posts != null
-        ? (await Future.wait(
-                posts.where((e) => e.isSeries).map((e) => _series(e)).toList()))
-            .toList()
-        : [];
+    if (categories != null) {
+      // Get child categories. Note that we don't save child category to parent category; that
+      // is handled by the child categories parents property.
+      // This prevents us from having a data structure with unknown depth.
+      final customCategories = (await Future.wait(
+              categories.map((e) => _childCategories(e)).toList()))
+          .toList();
 
-    if (category.id != null) {
-      series.forEach((element) => element.parents.add(category.id!));
+      contentSort[category.id!] ??= [];
+      contentSort[category.id]!.insertAll(0, categories.map((e) => e.id!));
+
+      CustomEndpointGroup.setSort(customCategories);
     }
 
-    CustomEndpointGroup.setSort(series);
-
-    final returnValue = CustomEndpointCategory(
+    final returnValue = CustomEndpointGroup(
         id: category.id ?? 0,
         parents: category.parent != null ? {category.parent!} : {},
         name: category.slug ?? '',
         title: category.name ?? '',
         description: category.description ?? '',
-        link: category.link ?? '',
-        posts: posts?.where((element) => element.isPost).toList() ?? [],
-        series: series);
+        link: category.link ?? '');
 
-    _loadedCategories[category.id!] = returnValue;
+    _loadedGroups[category.id!] = returnValue;
 
     return returnValue;
   }
@@ -211,7 +208,7 @@ class WordpressRepository {
       Future<T> get(), String description) async {
     try {
       while (_connections.value > maxConnections) {
-        await _connections.firstWhere((element) => element < maxConnections);
+        await _connections.firstWhere((element) => element <= maxConnections);
       }
       _connections.add(_connections.value + 1);
 
@@ -227,7 +224,7 @@ class WordpressRepository {
 /// Used for the core category / series data.
 @JsonSerializable(
     fieldRename: FieldRename.snake, explicitToJson: true, createFactory: false)
-abstract class CustomEndpointGroup {
+class CustomEndpointGroup {
   final int id;
 
   /// This is parents, but not from json.
@@ -242,7 +239,6 @@ abstract class CustomEndpointGroup {
   final String title;
   final String description;
   int sort = 0;
-  List<CustomEndpointPost> posts;
 
   /// A URL to site where this content can be seen.
   final String link;
@@ -253,8 +249,7 @@ abstract class CustomEndpointGroup {
       required this.title,
       required this.description,
       required this.link,
-      required this.parents,
-      this.posts = const []});
+      required this.parents});
 
   CustomEndpointGroup.copy(CustomEndpointGroup other)
       : this(
@@ -289,85 +284,8 @@ abstract class CustomEndpointGroup {
       throw "to section parse post: returned null";
     }
 
-    final sectionContent = posts
-        .map((e) => e.toSiteDataBase())
-        .where((element) => element != null)
-        .cast<SiteDataBase>()
-        .map((e) => ContentReference.fromData(data: e))
-        .toList();
-
     // This is one place where we set audio count to 0, because at this point we don't have the whole site yet...
-    return Section.fromBase(base, content: sectionContent, audioCount: 0);
-  }
-}
-
-/// A series is a custom post type which can be a parent to other posts.
-/// Sqlite-wise, it will end up being stored as a post, not a section.
-/// This class could probably be deleted at this point (now that the parents property
-/// was moved up to parent).
-@JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
-class CustomEndpointSeries extends CustomEndpointGroup {
-  CustomEndpointSeries(
-      {List<CustomEndpointPost> posts = const [],
-      required Set<int> parents,
-      required int id,
-      required String name,
-      required String title,
-      required String description,
-      required String link})
-      : super(
-            id: id,
-            name: name,
-            title: title,
-            parents: parents,
-            description: description,
-            link: link,
-            posts: posts);
-
-  factory CustomEndpointSeries.fromJson(Map<String, dynamic> json) =>
-      _$CustomEndpointSeriesFromJson(json);
-  Map<String, dynamic> toJson() => _$CustomEndpointSeriesToJson(this);
-}
-
-@JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
-class CustomEndpointCategory extends CustomEndpointGroup {
-  List<CustomEndpointSeries> series;
-
-  CustomEndpointCategory(
-      {this.series = const [],
-      List<CustomEndpointPost> posts = const [],
-      required int id,
-      required Set<int> parents,
-      required String name,
-      required String title,
-      required String description,
-      required String link})
-      : super(
-            id: id,
-            name: name,
-            title: title,
-            parents: parents,
-            description: description,
-            link: link,
-            posts: posts);
-
-  CustomEndpointCategory.withBase(CustomEndpointGroup group,
-      {required this.series})
-      : super.copy(group);
-
-  factory CustomEndpointCategory.fromJson(Map<String, dynamic> json) =>
-      _$CustomEndpointCategoryFromJson(json);
-  Map<String, dynamic> toJson() => _$CustomEndpointCategoryToJson(this);
-
-  Section toSection() {
-    // This takes care of basic properties
-    final base = super.toSection();
-    base.content.addAll(series
-        .map((e) => e.toSection())
-        .map((e) => ContentReference.fromData(data: e))
-        .toList());
-
-    return base;
+    return Section.fromBase(base, content: [], audioCount: 0);
   }
 }
 

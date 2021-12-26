@@ -6,7 +6,7 @@ import 'package:inside_chassidus/widgets/inside-breadcrumbs.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
 import 'package:inside_chassidus/widgets/media-list/media-item.dart';
 import 'package:inside_chassidus/widgets/section-content-list.dart';
-import 'package:inside_data_flutter/inside_data_flutter.dart';
+import 'package:inside_data/inside_data.dart';
 
 /// Displays contents of a site section. All subsections and lessons.
 class SecondarySectionRoute extends StatelessWidget {

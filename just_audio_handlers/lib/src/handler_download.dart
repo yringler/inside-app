@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:just_audio_handlers/src/extra_settings.dart';
+import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:quiver/async.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:slugify/slugify.dart';
@@ -15,7 +12,7 @@ import 'package:dart_extensions/dart_extensions.dart';
 import 'package:path_provider/path_provider.dart' as paths;
 import 'package:path/path.dart' as p;
 
-class AudioHandlerDownloader extends CompositeAudioHandler {
+class AudioHandlerDownloader extends CompositeAudioHandler with GetOriginalUri {
   final AudioDownloader downloader;
 
   AudioHandlerDownloader(
@@ -26,7 +23,7 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
     downloader.completedStream.listen((uri) async {
       if (!mediaItem.hasValue ||
           mediaItem.value == null ||
-          mediaItem.value!.id != uri.toString()) {
+          originalUriFromMedia(media: mediaItem.value) != uri) {
         return;
       }
 
@@ -42,9 +39,15 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
 
   @override
   Future<void> prepareFromMediaId(String mediaId,
-          [Map<String, dynamic>? extras]) async =>
-      await super.prepareFromMediaId(
-          mediaId, await _getExtras(Uri.parse(mediaId), extras));
+      [Map<String, dynamic>? extras]) async {
+    final uri = await originalUri(mediaId: mediaId);
+
+    if (uri != null) {
+      await super.prepareFromMediaId(mediaId, (await _getExtras(uri, extras)));
+    } else {
+      await super.prepareFromMediaId(mediaId, extras);
+    }
+  }
 
   @override
   Future<void> prepareFromUri(Uri uri, [Map<String, dynamic>? extras]) async =>
@@ -52,9 +55,15 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
 
   @override
   Future<void> playFromMediaId(String mediaId,
-          [Map<String, dynamic>? extras]) async =>
-      await super.playFromMediaId(
-          mediaId, (await _getExtras(Uri.parse(mediaId), extras)));
+      [Map<String, dynamic>? extras]) async {
+    final uri = await originalUri(mediaId: mediaId);
+
+    if (uri != null) {
+      await super.playFromMediaId(mediaId, (await _getExtras(uri, extras)));
+    } else {
+      await super.playFromMediaId(mediaId, extras);
+    }
+  }
 
   @override
   Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async =>
@@ -62,8 +71,8 @@ class AudioHandlerDownloader extends CompositeAudioHandler {
 
   /// Returns extras, adding a final playback URL
   Future<Map<String, dynamic>> _getExtras(
-      Uri mediaId, Map<String, dynamic>? extras) async {
-    final finalUri = await downloader.getPlaybackUriFromUri(mediaId);
+      Uri uri, Map<String, dynamic>? extras) async {
+    final finalUri = await downloader.getPlaybackUriFromUri(uri);
     extras = ExtraSettings.setOverrideUri(extras ?? {}, finalUri);
     return extras;
   }
@@ -253,7 +262,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
     // Make sure to get most recent.
     final tasks = await FlutterDownloader.loadTasksWithRawQuery(
         query:
-            'SELECT * FROM task WHERE url like \'$uri\' ORDER BY time_created desc LIMIT 1');
+            'SELECT * FROM task WHERE url like \'${uri.toString().replaceAll("'", "''")}\' ORDER BY time_created desc LIMIT 1');
 
     final emptyTask = DownloadTask(
         status: DownloadTaskStatus.undefined,

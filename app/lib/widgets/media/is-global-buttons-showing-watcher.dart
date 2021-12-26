@@ -5,7 +5,7 @@ import 'package:inside_chassidus/blocs/is-player-buttons-showing.dart';
 import 'package:rxdart/rxdart.dart';
 
 typedef Widget GlobalMediaButtonsAwareBuilder(BuildContext context,
-    {required bool isGlobalButtonsShowing, String? mediaSource});
+    {required bool isGlobalButtonsShowing, String? mediaId});
 
 class IsGlobalMediaButtonsShowingWatcher extends StatelessWidget {
   final GlobalMediaButtonsAwareBuilder builder;
@@ -29,7 +29,7 @@ class IsGlobalMediaButtonsShowingWatcher extends StatelessWidget {
                 (a, b, c) => StateAndShowing(
                     mediaItem: a, playbackState: b, isGlobalShowing: c)),
         builder: (context, state) => builder(context,
-            mediaSource: state.data?.mediaItem.id ?? null,
+            mediaId: state.data?.mediaItem.id ?? null,
             isGlobalButtonsShowing: (state.data?.isGlobalShowing ?? false) &&
                 _showState(state.data?.playbackState)));
   }
