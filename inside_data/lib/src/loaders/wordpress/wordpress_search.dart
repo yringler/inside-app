@@ -19,7 +19,7 @@ class WordpressSearch extends Wordpress {
   /// before triggering another search.
   /// Note that calling [_search] directly is not debounced.
   ///
-  /// TODO: calling search should cause search results to immidieately be added to [activeResults] steram.
+  /// TODO: calling search should cause search results to immediately be added to [activeResults] steram.
   /// This could be done with some combine latest or something, but isn't so important because debounce shouldn't
   /// be that long anyway.
   final Duration constantSearchDebounceTime;
