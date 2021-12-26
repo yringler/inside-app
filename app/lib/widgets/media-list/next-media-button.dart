@@ -32,9 +32,6 @@ class NextMediaButton extends StatelessWidget {
 
             if (snapshot.hasData && snapshot.data!.state.playing)
               audioHandler.playFromMediaId(media!.id);
-
-            BlocProvider.getDependency<ChosenClassService>()
-                .set(media: media!, isRecent: true);
           };
         }
 

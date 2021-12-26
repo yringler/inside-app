@@ -42,9 +42,6 @@ class PreviousMediaButton extends StatelessWidget {
 
             if (snapshot.hasData && snapshot.data!.state.playing)
               audioHandler.playFromMediaId(previousMedia!.source);
-
-            BlocProvider.getDependency<ChosenClassService>()
-                .set(media: previousMedia!, isRecent: true);
           };
         } else if (_shouldGoToBeginningOfCurrentMedia(snapshot)) {
           onPressed = () => positionSaver.set(_currentMediaId!, Duration.zero,

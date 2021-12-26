@@ -49,10 +49,11 @@ class _AudioButtonBarState extends State<AudioButtonBar> {
 
   @override
   Widget build(BuildContext context) {
+    // Try to get the media section, so we can set up the previous/next medias to play.
+
     if (_section == null) {
-      final mediaFuture = widget.media != null
-          ? Future.value(widget.media)
-          : dataLayer.media(mediaId);
+      final mediaFuture =
+          _media != null ? Future.value(_media) : dataLayer.media(mediaId);
       return FutureBuilder<Media?>(
           future: mediaFuture,
           builder: (context, snapshot) {
@@ -64,11 +65,11 @@ class _AudioButtonBarState extends State<AudioButtonBar> {
               return _buttonBar();
             }
 
-            return _sectionBuilder(media: widget.media!);
+            return _sectionBuilder(media: _media!);
           });
     }
 
-    return _sectionBuilder(media: widget.media!);
+    return _sectionBuilder(media: _media!);
   }
 
   /// Try to get the next/back buttons from section.
