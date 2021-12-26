@@ -27,6 +27,7 @@ class LibraryPositionService extends ChangeNotifier
   /// e.g. when user hits back button)
   Future<List<SitePosition>> setActiveItem(SiteDataBase? item) async {
     if (sections.isNotEmpty && sections.last.data == item) {
+      notifyListeners();
       return sections;
     }
 

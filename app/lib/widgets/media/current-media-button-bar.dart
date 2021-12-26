@@ -20,7 +20,6 @@ class CurrentMediaButtonBar extends StatelessWidget {
             isGlobalButtonsShowing
                 ? Container(
                     child: AudioButtonBar(
-                      media: null,
                       mediaId: mediaId,
                     ),
                     color: Colors.grey.shade300,

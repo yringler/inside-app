@@ -63,8 +63,7 @@ class Media extends SiteDataBase implements Comparable {
             link: link);
 
   Future<Section?> getParent(SiteDataLayer siteBoxes) async {
-    if (parents.isEmpty)
-      return null;
+    if (parents.isEmpty) return null;
 
     final parentSection = await siteBoxes.section(parents.first);
 
@@ -77,25 +76,6 @@ class Media extends SiteDataBase implements Comparable {
     }
 
     return parentSection;
-  }
-
-  Media? getRelativeSibling(Section? parentSection, int relativeIndex) {
-    if (parentSection == null)
-      return null;
-
-    int currContentIndex = -1;
-    for (int i = 0; i < parentSection.content.length; i++) {
-      if (this.id == parentSection.content[i].id) {
-        currContentIndex = i;
-        break;
-      }
-    }
-
-    int siblingIndex = currContentIndex + relativeIndex;
-
-    return siblingIndex >= 0 && siblingIndex < parentSection.content.length ?
-      parentSection.content[siblingIndex].media :
-      null;
   }
 
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
@@ -215,7 +195,21 @@ class Section extends SiteDataBase {
 
   @override
   int get hashCode => _hashcode ??= [id, title].join('').hashCode;
+
+  Media? getRelativeSibling(Media media, SiblingDirection direction) {
+    int indexOfMedia = content
+        .indexWhere((element) => element.isMedia && element.id == media.id);
+
+    final siblingOffset = direction == SiblingDirection.next ? 1 : -1;
+    final siblingIndex = indexOfMedia + siblingOffset;
+
+    return siblingIndex >= 0 && siblingIndex < content.length
+        ? content[siblingIndex].media
+        : null;
+  }
 }
+
+enum SiblingDirection { next, previous }
 
 /// Provides access to site data.
 abstract class SiteDataLayer {

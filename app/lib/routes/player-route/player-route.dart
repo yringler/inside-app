@@ -13,10 +13,9 @@ class PlayerRoute extends StatelessWidget {
 
   final Media media;
   final SiteDataLayer _siteBoxes = BlocProvider.getDependency<SiteDataLayer>();
-  
-  final libraryPositionService =
-    BlocProvider.getDependency<LibraryPositionService>();
 
+  final libraryPositionService =
+      BlocProvider.getDependency<LibraryPositionService>();
 
   PlayerRoute({required this.media});
 
@@ -82,16 +81,10 @@ class PlayerRoute extends StatelessWidget {
     return FutureBuilder<Section?>(
         future: media.getParent(_siteBoxes),
         builder: (context, snapshot) {
-          Media? nextMedia = media.getRelativeSibling(snapshot.data, 1);
-          Media? prevMedia = media.getRelativeSibling(snapshot.data, -1);
-
           return AudioButtonBar(
             media: this.media,
-            nextMedia: nextMedia,
-            previousMedia: prevMedia,
           );
-        }
-    );
+        });
   }
 
   /// Returns lesson title and media title.

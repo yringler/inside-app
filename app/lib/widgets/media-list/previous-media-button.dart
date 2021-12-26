@@ -16,7 +16,7 @@ class PreviousMediaButton extends StatelessWidget {
 
   final String? currentMediaId;
 
-  String? get _currentMediaSource => currentMedia?.source ?? currentMediaId;
+  String? get _currentMediaId => currentMedia?.id ?? currentMediaId;
 
   PreviousMediaButton(
       {this.currentMedia,
@@ -47,8 +47,8 @@ class PreviousMediaButton extends StatelessWidget {
                 .set(media: previousMedia!, isRecent: true);
           };
         } else if (_shouldGoToBeginningOfCurrentMedia(snapshot)) {
-          onPressed = () => positionSaver
-              .set(_currentMediaSource!, Duration.zero, handler: audioHandler);
+          onPressed = () => positionSaver.set(_currentMediaId!, Duration.zero,
+              handler: audioHandler);
         }
 
         return IconButton(
