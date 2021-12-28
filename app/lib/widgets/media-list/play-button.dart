@@ -13,25 +13,20 @@ class PlayButton extends StatelessWidget {
   final double iconSize;
   final VoidCallback? onPressed;
 
+  final audioHandler = BlocProvider.getDependency<AudioHandler>();
+  final dataLayer = BlocProvider.getDependency<SiteDataLayer>();
+
   PlayButton({this.media, String? mediaId, this.onPressed, this.iconSize = 24})
       : mediaId = media?.id ?? mediaId!;
 
   @override
   Widget build(BuildContext context) {
-    final audioHandler = BlocProvider.getDependency<AudioHandler>();
-
     return StreamBuilder<PositionState>(
       stream: getPositionState(audioHandler),
       // Default: play button (in case never gets stream, because from diffirent media not now playing)
       builder: (context, snapshot) {
-        VoidCallback onPressed = () {
-          audioHandler.playFromMediaId(mediaId);
+        VoidCallback onPressed = () => audioHandler.playFromMediaId(mediaId);
 
-          if (media != null) {
-            BlocProvider.getDependency<ChosenClassService>()
-                .set(media: media!, isRecent: true);
-          }
-        };
         var icon = Icons.play_circle_filled;
 
         if (snapshot.hasData && snapshot.data!.mediaItem.id == mediaId) {

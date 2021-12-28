@@ -17,7 +17,7 @@ class PlayerRoute extends StatelessWidget {
   final libraryPositionService =
       BlocProvider.getDependency<LibraryPositionService>();
 
-  PlayerRoute({required this.media});
+  PlayerRoute({required this.media}) : super(key: ValueKey(media.id));
 
   @override
   Widget build(BuildContext context) => Material(
@@ -59,9 +59,7 @@ class PlayerRoute extends StatelessWidget {
               ProgressBar(
                 media: media,
               ),
-              AudioButtonBar(
-                media: media,
-              )
+              AudioButtonBar.fromMedia(media: media)
             ],
           ),
         ),

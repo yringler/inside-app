@@ -477,6 +477,21 @@ class DbAccessAudioTask extends AudioHandlerJustAudio {
                 start: Duration.zero, originalUri: Uri.parse(media.source))
             .toExtra());
   }
+
+  @override
+  Future<void> playFromMediaId(String mediaId,
+      [Map<String, dynamic>? extras]) async {
+    // Add the playing media id to recent classes.
+
+    final media = await layer.media(mediaId);
+
+    if (media != null) {
+      BlocProvider.getDependency<ChosenClassService>()
+          .set(media: media, isRecent: true);
+    }
+
+    return super.playFromMediaId(mediaId, extras);
+  }
 }
 
 enum TabType { libraryHome, recent, favorites, search, nowPlaying }

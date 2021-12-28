@@ -11,13 +11,16 @@ class AudioButtonBar extends StatefulWidget {
   final Media? media;
 
   /// Set [_mediaId] if [media] isn't available.
-  final String? mediaId;
+  final String mediaId;
 
-  AudioButtonBar({this.media, this.mediaId});
+  AudioButtonBar({required this.mediaId, this.media})
+      : super(key: ValueKey(mediaId));
+
+  AudioButtonBar.fromMedia({required Media media})
+      : this(media: media, mediaId: media.id);
 
   @override
-  State<AudioButtonBar> createState() =>
-      _AudioButtonBarState(mediaId: (media?.id ?? mediaId)!);
+  State<AudioButtonBar> createState() => _AudioButtonBarState();
 
   /// Speeds, in integer percentages.
   static const speeds = [.75, 1.0, 1.25, 1.5, 2.0];
@@ -27,7 +30,7 @@ class _AudioButtonBarState extends State<AudioButtonBar> {
   Media? _media;
   Section? _section;
 
-  final String mediaId;
+  String get mediaId => widget.mediaId;
 
   final PositionSaver positionSaver =
       BlocProvider.getDependency<PositionSaver>();
@@ -35,8 +38,6 @@ class _AudioButtonBarState extends State<AudioButtonBar> {
   final AudioHandler handler = BlocProvider.getDependency<AudioHandler>();
 
   final SiteDataLayer dataLayer = BlocProvider.getDependency<SiteDataLayer>();
-
-  _AudioButtonBarState({required this.mediaId});
 
   @override
   void initState() {
