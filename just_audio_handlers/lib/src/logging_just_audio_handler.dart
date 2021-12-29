@@ -1,4 +1,3 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 
 class LoggingJustAudioHandler extends CompositeAudioHandler {

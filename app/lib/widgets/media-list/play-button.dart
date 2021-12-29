@@ -1,6 +1,5 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 
