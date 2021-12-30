@@ -7,9 +7,9 @@ import 'package:just_audio_handlers/just_audio_handlers.dart';
 typedef Widget ProgressStreamBuilder(Duration state);
 
 class ProgressBar extends StatelessWidget {
-  final Media? media;
+  final Media media;
 
-  ProgressBar({this.media});
+  ProgressBar({required this.media});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class ProgressBar extends StatelessWidget {
     // the position that you're at.
 
     return FutureBuilder<Duration>(
-      future: positionManager.get(media!.id),
+      future: positionManager.get(media.id),
       initialData: Duration.zero,
       builder: (context, snapshot) => _progressBar(mediaManager, snapshot.data),
     );
@@ -29,7 +29,7 @@ class ProgressBar extends StatelessWidget {
   Widget _progressBar(AudioHandler handler, Duration? start) {
     final stream = getPositionStateWithPersisted(
         handler, BlocProvider.getDependency<PositionSaver>(),
-        mediaId: media!.id);
+        mediaId: media.id);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -48,13 +48,13 @@ class ProgressBar extends StatelessWidget {
         _stateDurationStreamBuilder(stream,
             inactiveBuilder: (_) => _time(start),
             builder: (data) => _time(data)),
-        if (media!.length != null)
+        if (media.length != null)
           // Show time remaining in class.
           _stateDurationStreamBuilder(
-              getPositionStateFiltered(handler, media!.id)
+              getPositionStateFiltered(handler, media.id)
                   .map((event) => event.state.position),
-              inactiveBuilder: (_) => _time(media!.length! - start!),
-              builder: (position) => _time(media!.length! - position))
+              inactiveBuilder: (_) => _time(media.length! - start!),
+              builder: (position) => _time(media.length! - position))
       ],
     );
   }
@@ -62,14 +62,14 @@ class ProgressBar extends StatelessWidget {
   Widget _slider(AudioHandler handler,
       {Duration? start, required Stream<Duration> stream}) {
     final positionSaver = BlocProvider.getDependency<PositionSaver>();
-    final maxSliderValue = media!.length?.inMilliseconds.toDouble() ?? 0;
+    final maxSliderValue = media.length?.inMilliseconds.toDouble() ?? 0;
 
     if (maxSliderValue == 0) {
       return Container(child: Slider(onChanged: null, value: 0, max: 0));
     }
 
     final onChanged = (double newProgress) => positionSaver.set(
-        media!.id, Duration(milliseconds: newProgress.round()),
+        media.id, Duration(milliseconds: newProgress.round()),
         handler: handler);
 
     return Container(

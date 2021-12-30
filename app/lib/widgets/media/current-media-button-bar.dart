@@ -17,10 +17,9 @@ class CurrentMediaButtonBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return IsGlobalMediaButtonsShowingWatcher(
         builder: (context, {required isGlobalButtonsShowing, mediaId}) =>
-            isGlobalButtonsShowing
+            isGlobalButtonsShowing && mediaId != null
                 ? Container(
                     child: AudioButtonBar(
-                      media: null,
                       mediaId: mediaId,
                     ),
                     color: Colors.grey.shade300,

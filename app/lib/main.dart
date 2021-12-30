@@ -184,13 +184,11 @@ class MyAppState extends State<MyApp> {
     BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
         .isOtherButtonsShowing(isShowing: isOnPlayer);
 
-    if (!(_currentTab == TabType.libraryHome || isOnPlayer)) {
+    if (_currentTab != TabType.libraryHome) {
       _previousTab = _currentTab;
       setState(() {
         _currentTab = TabType.libraryHome;
       });
-    } else {
-      _previousTab = null;
     }
   }
 
@@ -303,6 +301,10 @@ class MyAppState extends State<MyApp> {
   }
 
   void _onBottomNavigationTap(intValue) {
+    // We keep track of where user was, so that back button can go across tabs.
+    // This is only cleared when user resets position by pressing on bottom navigation himself.
+    _previousTab = null;
+
     final value = TabType.values[intValue];
 
     // If the home button is pressed when already on home section, we show the
@@ -474,6 +476,21 @@ class DbAccessAudioTask extends AudioHandlerJustAudio {
         extras: ExtraSettings(
                 start: Duration.zero, originalUri: Uri.parse(media.source))
             .toExtra());
+  }
+
+  @override
+  Future<void> playFromMediaId(String mediaId,
+      [Map<String, dynamic>? extras]) async {
+    // Add the playing media id to recent classes.
+
+    final media = await layer.media(mediaId);
+
+    if (media != null) {
+      BlocProvider.getDependency<ChosenClassService>()
+          .set(media: media, isRecent: true);
+    }
+
+    return super.playFromMediaId(mediaId, extras);
   }
 }
 

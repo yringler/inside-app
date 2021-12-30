@@ -6,7 +6,8 @@ import 'package:inside_data/inside_data.dart';
 class InsideDataCard extends StatefulWidget {
   final Section insideData;
 
-  InsideDataCard({required this.insideData});
+  InsideDataCard({required this.insideData})
+      : super(key: ValueKey(insideData.id));
 
   @override
   State<StatefulWidget> createState() => _InsideDataCardData();

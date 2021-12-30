@@ -62,6 +62,22 @@ class Media extends SiteDataBase implements Comparable {
             parents: parents,
             link: link);
 
+  Future<Section?> getParent(SiteDataLayer siteBoxes) async {
+    if (parents.isEmpty) return null;
+
+    final parentSection = await siteBoxes.section(parents.first);
+
+    // Make sure that the parent exists, and that it really has the data.
+    // This is done in case IDs change etc - we don't want to navigate to library,
+    // to some random place.
+    if (parentSection == null ||
+        !parentSection.content.any((c) => c.media == this)) {
+      return null;
+    }
+
+    return parentSection;
+  }
+
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
   Map<String, dynamic> toJson() => _$MediaToJson(this);
 
@@ -179,7 +195,21 @@ class Section extends SiteDataBase {
 
   @override
   int get hashCode => _hashcode ??= [id, title].join('').hashCode;
+
+  Media? getRelativeSibling(Media media, SiblingDirection direction) {
+    int indexOfMedia = content
+        .indexWhere((element) => element.isMedia && element.id == media.id);
+
+    final siblingOffset = direction == SiblingDirection.next ? 1 : -1;
+    final siblingIndex = indexOfMedia + siblingOffset;
+
+    return siblingIndex >= 0 && siblingIndex < content.length
+        ? content[siblingIndex].media
+        : null;
+  }
 }
+
+enum SiblingDirection { next, previous }
 
 /// Provides access to site data.
 abstract class SiteDataLayer {

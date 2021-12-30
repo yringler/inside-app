@@ -12,13 +12,12 @@ class PlayerRoute extends StatelessWidget {
   static const String routeName = '/library/playerroute';
 
   final Media media;
-
   final SiteDataLayer _siteBoxes = BlocProvider.getDependency<SiteDataLayer>();
 
   final libraryPositionService =
       BlocProvider.getDependency<LibraryPositionService>();
 
-  PlayerRoute({required this.media});
+  PlayerRoute({required this.media}) : super(key: ValueKey(media.id));
 
   @override
   Widget build(BuildContext context) => Material(
@@ -60,9 +59,7 @@ class PlayerRoute extends StatelessWidget {
               ProgressBar(
                 media: media,
               ),
-              AudioButtonBar(
-                media: media,
-              )
+              AudioButtonBar.fromMedia(media: media)
             ],
           ),
         ),
@@ -70,7 +67,7 @@ class PlayerRoute extends StatelessWidget {
 
   FutureBuilder<SiteDataBase?> _navigateToLibraryButton() =>
       FutureBuilder<SiteDataBase?>(
-        future: _getParent(),
+        future: media.getParent(_siteBoxes),
         builder: (context, snapshot) => snapshot.data != null
             ? IconButton(
                 padding: EdgeInsets.zero,
@@ -81,24 +78,6 @@ class PlayerRoute extends StatelessWidget {
                 icon: Icon(FontAwesomeIcons.chevronDown))
             : Container(),
       );
-
-  Future<SiteDataBase?> _getParent() async {
-    if (media.parents.isEmpty) {
-      return null;
-    }
-
-    final parentSection = await _siteBoxes.section(media.parents.first);
-
-    // Make sure that the parent exists, and that it really has the data.
-    // This is done in case IDs change etc - we don't want to navigate to library,
-    // to some random place.
-    if (parentSection == null ||
-        !parentSection.content.any((c) => c.media == media)) {
-      return null;
-    }
-
-    return parentSection;
-  }
 
   /// Returns lesson title and media title.
   /// If the media doesn't have a title, just returns lesson title as title.
