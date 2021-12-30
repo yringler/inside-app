@@ -16,9 +16,89 @@ class PrimarySectionsRoute extends StatelessWidget {
           if (!snapshot.hasData) {
             return Container();
           }
-          return _sections(context, snapshot.data!, layer);
+          return ListView(
+            children: [
+              ..._promotedContent(context),
+              HomepageSection(
+                  context: context,
+                  title: 'Browse Categories',
+                  child: _sections(context, snapshot.data!, layer))
+            ],
+            padding: EdgeInsets.all(15),
+          );
         });
   }
+
+  List<Widget> _promotedContent(BuildContext context) => [
+        HomepageSection(
+            context: context,
+            title: 'Featured Classes',
+            child: AspectRatio(
+              aspectRatio: 9 / 3,
+              child: Image.network(
+                'https://media.insidechassidus.org/wp-content/uploads/20211125105910/chanuka.gif',
+              ),
+            )),
+        HomepageSection(
+            context: context,
+            title: 'Daily Study',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 7.5),
+                        child: ElevatedButton(
+                          onPressed: () => null,
+                          child: Text('Tanya'),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 7.5),
+                        child: ElevatedButton(
+                          onPressed: () => null,
+                          child: Text('Hayom Yom'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                OutlinedButton(
+                  onPressed: () => null,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 5),
+                        //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
+                        child: Icon(Icons.signal_cellular_alt),
+                      ),
+                      Text('Most Popular Classes'),
+                      Spacer(),
+                      Icon(Icons.arrow_forward_ios)
+                    ],
+                  ),
+                ),
+                OutlinedButton(
+                  onPressed: () => null,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 5),
+                        child: Icon(Icons.schedule),
+                      ),
+                      Text('Recently Uploaded Classes'),
+                      Spacer(),
+                      Icon(Icons.arrow_forward_ios)
+                    ],
+                  ),
+                ),
+              ],
+            )),
+      ];
 
   Widget _sections(BuildContext context, List<Section> topLevel,
           SiteDataLayer dataLayer) =>
@@ -63,6 +143,37 @@ class PrimarySectionsRoute extends StatelessWidget {
                   maxLines: 3)),
         ],
       ),
+    );
+  }
+}
+
+class HomepageSection extends StatelessWidget {
+  const HomepageSection({
+    Key? key,
+    required this.context,
+    required this.title,
+    required this.child,
+  }) : super(key: key);
+
+  final BuildContext context;
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 10,
+          ),
+          child: Text(title,
+              style: TextStyle(
+                  fontSize: Theme.of(context).textTheme.headline6!.fontSize)),
+        ),
+        child
+      ],
     );
   }
 }

@@ -56,7 +56,7 @@ class LibraryNavigator extends RouterDelegate
         if (bookPages.isEmpty || pagesHasTopParent)
           MaterialPage(
               key: ValueKey("PrimarySectionsRoute"),
-              child: getPrimary(context)),
+              child: PrimarySectionsRoute()),
         ...bookPages
       ],
     );
@@ -64,116 +64,6 @@ class LibraryNavigator extends RouterDelegate
 
   @override
   Future<void> setNewRoutePath(configuration) async {}
-
-  Widget getPrimary(BuildContext context) {
-    //TODO: Hardcoding all of this for now. Perhaps some of it can be made dynamic down the line.
-    final children = [
-      getItem(
-          context: context,
-          title: 'Featured Classes',
-          child: AspectRatio(
-            aspectRatio: 9 / 3,
-            child: Image.network(
-              'https://media.insidechassidus.org/wp-content/uploads/20211125105910/chanuka.gif',
-            ),
-          )),
-      getItem(
-          context: context,
-          title: 'Daily Study',
-          //TODO: Size buttons according to mockup
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 7.5),
-                      child: ElevatedButton(
-                        onPressed: () => null,
-                        child: Text('Tanya'),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 7.5),
-                      child: ElevatedButton(
-                        onPressed: () => null,
-                        child: Text('Hayom Yom'),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              OutlinedButton(
-                onPressed: () => null,
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 5),
-                      //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
-                      child: Icon(Icons.signal_cellular_alt),
-                    ),
-                    Text('Most Popular Classes'),
-                    Spacer(),
-                    Icon(Icons.arrow_forward_ios)
-                  ],
-                ),
-              ),
-              OutlinedButton(
-                onPressed: () => null,
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 5),
-                      child: Icon(Icons.schedule),
-                    ),
-                    Text('Recently Uploaded Classes'),
-                    Spacer(),
-                    Icon(Icons.arrow_forward_ios)
-                  ],
-                ),
-              ),
-            ],
-          )),
-      getItem(
-        context: context,
-        title: 'Browse Categories',
-        child: PrimarySectionsRoute(),
-      ),
-    ];
-
-    return ListView.separated(
-      padding: EdgeInsets.all(15),
-      itemBuilder: (context, index) => children[index],
-      separatorBuilder: (context, index) => Padding(
-        padding: EdgeInsets.symmetric(vertical: 15),
-      ),
-      itemCount: children.length,
-    );
-  }
-
-  //TODO: Make into widget if using BuildContext?
-  Widget getItem(
-      {required BuildContext context,
-      required String title,
-      required Widget child}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 10,
-          ),
-          child: Text(title,
-              style: TextStyle(
-                  fontSize: Theme.of(context).textTheme.headline6!.fontSize)),
-        ),
-        child
-      ],
-    );
-  }
 
   Widget getChild(SitePosition book) {
     // (The only time it won't be section is if it's set to media on back to
