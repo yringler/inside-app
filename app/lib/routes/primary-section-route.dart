@@ -31,6 +31,7 @@ class PrimarySectionsRoute extends StatelessWidget {
 
   List<Widget> _promotedContent(BuildContext context) => [
         HomepageSection(
+            isFirst: true,
             context: context,
             title: 'Featured Classes',
             child: AspectRatio(
@@ -39,65 +40,69 @@ class PrimarySectionsRoute extends StatelessWidget {
                 'https://media.insidechassidus.org/wp-content/uploads/20211125105910/chanuka.gif',
               ),
             )),
-        HomepageSection(
-            context: context,
-            title: 'Daily Study',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 7.5),
-                        child: ElevatedButton(
-                          onPressed: () => null,
-                          child: Text('Tanya'),
+        OutlinedButtonTheme(
+          data: OutlinedButtonThemeData(
+              style: OutlinedButton.styleFrom(primary: Colors.grey.shade700)),
+          child: HomepageSection(
+              context: context,
+              title: 'Daily Study',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 7.5),
+                          child: ElevatedButton(
+                            onPressed: () => null,
+                            child: Text('Tanya'),
+                          ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 7.5),
-                        child: ElevatedButton(
-                          onPressed: () => null,
-                          child: Text('Hayom Yom'),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 7.5),
+                          child: ElevatedButton(
+                            onPressed: () => null,
+                            child: Text('Hayom Yom'),
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                  OutlinedButton(
+                    onPressed: () => null,
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 5),
+                          //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
+                          child: Icon(Icons.signal_cellular_alt),
+                        ),
+                        Text('Most Popular Classes'),
+                        Spacer(),
+                        Icon(Icons.arrow_forward_ios)
+                      ],
                     ),
-                  ],
-                ),
-                OutlinedButton(
-                  onPressed: () => null,
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 5),
-                        //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
-                        child: Icon(Icons.signal_cellular_alt),
-                      ),
-                      Text('Most Popular Classes'),
-                      Spacer(),
-                      Icon(Icons.arrow_forward_ios)
-                    ],
                   ),
-                ),
-                OutlinedButton(
-                  onPressed: () => null,
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 5),
-                        child: Icon(Icons.schedule),
-                      ),
-                      Text('Recently Uploaded Classes'),
-                      Spacer(),
-                      Icon(Icons.arrow_forward_ios)
-                    ],
+                  OutlinedButton(
+                    onPressed: () => null,
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 5),
+                          child: Icon(Icons.schedule),
+                        ),
+                        Text('Recently Uploaded Classes'),
+                        Spacer(),
+                        Icon(Icons.arrow_forward_ios)
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            )),
+                ],
+              )),
+        ),
       ];
 
   Widget _sections(BuildContext context, List<Section> topLevel,
@@ -148,16 +153,18 @@ class PrimarySectionsRoute extends StatelessWidget {
 }
 
 class HomepageSection extends StatelessWidget {
-  const HomepageSection({
-    Key? key,
-    required this.context,
-    required this.title,
-    required this.child,
-  }) : super(key: key);
+  const HomepageSection(
+      {Key? key,
+      required this.context,
+      required this.title,
+      required this.child,
+      this.isFirst = false})
+      : super(key: key);
 
   final BuildContext context;
   final String title;
   final Widget child;
+  final bool isFirst;
 
   @override
   Widget build(BuildContext context) {
@@ -165,12 +172,15 @@ class HomepageSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 10,
+          padding: EdgeInsets.only(top: isFirst ? 0 : 10, bottom: 5),
+          child: Text(
+            title,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade800,
+                fontSize: Theme.of(context).textTheme.headline6!.fontSize),
+            textScaleFactor: .8,
           ),
-          child: Text(title,
-              style: TextStyle(
-                  fontSize: Theme.of(context).textTheme.headline6!.fontSize)),
         ),
         child
       ],
