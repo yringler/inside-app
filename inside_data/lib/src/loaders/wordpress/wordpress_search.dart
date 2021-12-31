@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:inside_data/inside_data.dart';
 import 'package:http/http.dart' as http;
-import 'package:inside_data/src/loaders/wordpress/parsing_tools.dart';
 import 'package:inside_data/src/loaders/wordpress/wordpress.dart';
+import 'package:inside_data/src/wordpress-base.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -137,7 +137,8 @@ class WordpressSearch extends Wordpress {
 /// There are also tags in the API response, though...
 /// So I give the fields a default value.
 @JsonSerializable(fieldRename: FieldRename.snake)
-class SearchResultItem {
+class SearchResultItem extends WordpressContent with DerivedResultType {
+  @override
   @JsonKey(name: "ID")
   final int id;
 
@@ -151,6 +152,7 @@ class SearchResultItem {
   final String postContentFiltered;
 
   /// Yeah, bad name. There are 2 contents returned by wordpress, takes better.
+  @override
   String get postContentContent =>
       postContent.trim().isNotEmpty ? postContent : postContentFiltered;
 
@@ -162,39 +164,6 @@ class SearchResultItem {
 
   factory SearchResultItem.fromJson(Map<String, dynamic> json) =>
       _$SearchResultItemFromJson(json);
-
-  ContentType? get type {
-    // This happens for results which are tags.
-    if (postType.isEmpty) {
-      return null;
-    }
-
-    if (postType != 'post') {
-      return ContentType.section;
-    }
-
-    // If it's a post, it might still be a section, if the post contains more than one media.
-
-    final content = parsePost(
-        SiteDataBase(
-            id: id.toString(),
-            title: '',
-            description: postContentContent,
-            sort: 0,
-            link: '',
-            parents: {}),
-        requireAudio: false);
-
-    if (content == null) {
-      return null;
-    }
-
-    if (content is Media) {
-      return ContentType.media;
-    }
-
-    return ContentType.section;
-  }
 }
 
 class CompleterState<T> {
