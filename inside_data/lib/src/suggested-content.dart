@@ -1,16 +1,29 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:dio_cache_interceptor_db_store/dio_cache_interceptor_db_store.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:inside_data/src/wordpress-base.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:http/http.dart' as http;
 
 part 'suggested-content.g.dart';
 
 class SuggestedContentLoader {
   final SiteDataLayer dataLayer;
+  final String cachePath;
+  late final Dio dio;
 
-  SuggestedContentLoader({required this.dataLayer});
+  CacheOptions get cacheOptions => CacheOptions(
+      policy: CachePolicy.forceCache,
+      store: DbCacheStore(
+          databasePath: cachePath,
+          databaseName: 'suggestedCacheDb',
+          logStatements: false));
+
+  SuggestedContentLoader({required this.dataLayer, required this.cachePath}) {
+    dio = Dio()..interceptors.add(DioCacheInterceptor(options: cacheOptions));
+  }
 
   /// Get suggested content.
   /// Doesn't request new data more than once every few hours.
@@ -29,19 +42,18 @@ class SuggestedContentLoader {
   Future<TimelyContent?> _timelyContent() async {
     try {
       final responses = await Future.wait([
-        http.get(Uri.parse(
-            'https://insidechassidus.org/wp-json/ics_recurring_api/v1/category')),
-        http.get(Uri.parse(
-            'https://insidechassidus.org/wp-json/ics_recurring_api/v1/daily'))
+        dio.get(
+            'https://insidechassidus.org/wp-json/ics_recurring_api/v1/category'),
+        dio.get(
+            'https://insidechassidus.org/wp-json/ics_recurring_api/v1/daily')
       ]);
 
       final timelyResponse = responses[0];
       final dailyResponse = responses[1];
 
       final timelyContent =
-          _TimelyContentResponse.fromJson(json.decode(timelyResponse.body));
-      final dailyContent =
-          _DailyClasses.fromJson(json.decode(dailyResponse.body));
+          _TimelyContentResponse.fromJson(timelyResponse.data);
+      final dailyContent = _DailyClasses.fromJson(dailyResponse.data);
 
       return TimelyContent(
           parsha: await _content(timelyContent.parsha),
@@ -58,18 +70,23 @@ class SuggestedContentLoader {
 
   Future<List<ContentReference>> _popular() async {
     try {
-      final popularResponse = await http.get(Uri.parse(
-          'https://insidechassidus.org/wp-json/wordpress-popular-posts/v1/popular-posts'));
+      final popularResponse = await dio.get<List<dynamic>>(
+          'https://insidechassidus.org/wp-json/wordpress-popular-posts/v1/popular-posts',
+          options:
+              _options());
 
-      final popularData = (await Future.wait(
-              (json.decode(popularResponse.body) as List<dynamic>)
-                  .cast<Map<String, dynamic>>()
-                  .map(_PopularPost.fromJson)
-                  .map((e) async => e.type == ContentType.section
-                      ? ContentReference.fromDataOrNull(
-                          data: await dataLayer.section(e.id.toString()))
-                      : await _content(e.id))
-                  .toList()))
+      if (popularResponse.data == null) {
+        return [];
+      }
+
+      final popularData = (await Future.wait(popularResponse.data!
+              .cast<Map<String, dynamic>>()
+              .map(_PopularPost.fromJson)
+              .map((e) async => e.type == ContentType.section
+                  ? ContentReference.fromDataOrNull(
+                      data: await dataLayer.section(e.id.toString()))
+                  : await _content(e.id))
+              .toList()))
           .where((element) => element != null)
           .cast<ContentReference>()
           .toList();
@@ -84,20 +101,26 @@ class SuggestedContentLoader {
     }
   }
 
+  Options _options(Duration stale) =>  cacheOptions.copyWith(maxStale: stale).toOptions();
+
   Future<List<FeaturedSectionVerified>> _featured() async {
     try {
-      final featuredResponse = await http.get(Uri.parse(
-          'https://insidechassidus.org/wp-json/ics_slider_api/v1/featured'));
-      final featuredData = (await Future.wait(
-              ((json.decode(featuredResponse.body) as List<dynamic>)
-                  .cast<Map<String, dynamic>>()
-                  .map(_Featured.fromJson)
-                  .map((e) async => FeaturedSection(
-                      title: e.title,
-                      section: await dataLayer.section(e.category.toString()),
-                      imageUrl: e.imageUrl,
-                      buttonText: e.buttonText))
-                  .toList())))
+      final featuredResponse = await dio.get<List<dynamic>>(
+          'https://insidechassidus.org/wp-json/ics_slider_api/v1/featured', options: );
+
+      if (featuredResponse.data == null) {
+        return [];
+      }
+
+      final featuredData = (await Future.wait(featuredResponse.data!
+              .cast<Map<String, dynamic>>()
+              .map(_Featured.fromJson)
+              .map((e) async => FeaturedSection(
+                  title: e.title,
+                  section: await dataLayer.section(e.category.toString()),
+                  imageUrl: e.imageUrl,
+                  buttonText: e.buttonText))
+              .toList()))
           .where((element) => element.section != null)
           .map((e) => FeaturedSectionVerified(
               title: e.title,
