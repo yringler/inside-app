@@ -33,15 +33,15 @@ Map<String, dynamic> _$DailyClassesToJson(_DailyClasses instance) =>
 _Featured _$FeaturedFromJson(Map<String, dynamic> json) => _Featured(
       json['title'] as String,
       json['category'] as int,
-      json['imageUrl'] as String,
-      json['buttonText'] as String,
+      json['image_url'] as String,
+      json['button_text'] as String,
     );
 
 Map<String, dynamic> _$FeaturedToJson(_Featured instance) => <String, dynamic>{
       'title': instance.title,
       'category': instance.category,
-      'imageUrl': instance.imageUrl,
-      'buttonText': instance.buttonText,
+      'image_url': instance.imageUrl,
+      'button_text': instance.buttonText,
     };
 
 _PopularPost _$PopularPostFromJson(Map<String, dynamic> json) => _PopularPost(

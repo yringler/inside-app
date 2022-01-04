@@ -16,6 +16,7 @@ class SuggestedContentLoader {
 
   CacheOptions get cacheOptions => CacheOptions(
       policy: CachePolicy.forceCache,
+      maxStale: Duration(hours: 12),
       store: DbCacheStore(
           databasePath: cachePath,
           databaseName: 'suggestedCacheDb',
@@ -43,9 +44,11 @@ class SuggestedContentLoader {
     try {
       final responses = await Future.wait([
         dio.get(
-            'https://insidechassidus.org/wp-json/ics_recurring_api/v1/category'),
+            'https://insidechassidus.org/wp-json/ics_recurring_api/v1/category',
+            options: _options(Duration(days: 1))),
         dio.get(
-            'https://insidechassidus.org/wp-json/ics_recurring_api/v1/daily')
+            'https://insidechassidus.org/wp-json/ics_recurring_api/v1/daily',
+            options: _options(Duration(hours: 3)))
       ]);
 
       final timelyResponse = responses[0];
@@ -72,8 +75,7 @@ class SuggestedContentLoader {
     try {
       final popularResponse = await dio.get<List<dynamic>>(
           'https://insidechassidus.org/wp-json/wordpress-popular-posts/v1/popular-posts',
-          options:
-              _options());
+          options: _options(Duration(days: 1)));
 
       if (popularResponse.data == null) {
         return [];
@@ -101,12 +103,14 @@ class SuggestedContentLoader {
     }
   }
 
-  Options _options(Duration stale) =>  cacheOptions.copyWith(maxStale: stale).toOptions();
+  Options _options(Duration stale) =>
+      cacheOptions.copyWith(maxStale: stale).toOptions();
 
   Future<List<FeaturedSectionVerified>> _featured() async {
     try {
       final featuredResponse = await dio.get<List<dynamic>>(
-          'https://insidechassidus.org/wp-json/ics_slider_api/v1/featured', options: );
+          'https://insidechassidus.org/wp-json/ics_slider_api/v1/featured',
+          options: _options(Duration(days: 1)));
 
       if (featuredResponse.data == null) {
         return [];
@@ -211,7 +215,7 @@ class _DailyClasses {
       _$DailyClassesFromJson(json);
 }
 
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class _Featured {
   final String title;
   final int category;
