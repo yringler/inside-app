@@ -27,17 +27,17 @@ class SuggestedContentLoader {
   }
 
   Future<TimelyContent?> _timelyContent() async {
-    final responses = await Future.wait([
-      http.get(Uri.parse(
-          'https://insidechassidus.org/wp-json/ics_recurring_api/v1/category')),
-      http.get(Uri.parse(
-          'https://insidechassidus.org/wp-json/ics_recurring_api/v1/daily'))
-    ]);
-
-    final timelyResponse = responses[0];
-    final dailyResponse = responses[1];
-
     try {
+      final responses = await Future.wait([
+        http.get(Uri.parse(
+            'https://insidechassidus.org/wp-json/ics_recurring_api/v1/category')),
+        http.get(Uri.parse(
+            'https://insidechassidus.org/wp-json/ics_recurring_api/v1/daily'))
+      ]);
+
+      final timelyResponse = responses[0];
+      final dailyResponse = responses[1];
+
       final timelyContent =
           _TimelyContentResponse.fromJson(json.decode(timelyResponse.body));
       final dailyContent =
@@ -57,13 +57,63 @@ class SuggestedContentLoader {
   }
 
   Future<List<ContentReference>> _popular() async {
-    final popularResponse = await http.get(Uri.parse(
-        'https://insidechassidus.org/wp-json/wordpress-popular-posts/v1/popular-posts'));
+    try {
+      final popularResponse = await http.get(Uri.parse(
+          'https://insidechassidus.org/wp-json/wordpress-popular-posts/v1/popular-posts'));
+
+      final popularData = (await Future.wait(
+              (json.decode(popularResponse.body) as List<dynamic>)
+                  .cast<Map<String, dynamic>>()
+                  .map(_PopularPost.fromJson)
+                  .map((e) async => e.type == ContentType.section
+                      ? ContentReference.fromDataOrNull(
+                          data: await dataLayer.section(e.id.toString()))
+                      : await _content(e.id))
+                  .toList()))
+          .where((element) => element != null)
+          .cast<ContentReference>()
+          .toList();
+
+      return popularData;
+    } catch (err) {
+      // Only throw in debug.
+      // ignore: unnecessary_null_comparison
+      assert(err == null);
+      print(err);
+      return [];
+    }
   }
 
-  Future<List<FeaturedSection>> _featured() async {
-    final featuredResponse = await http.get(Uri.parse(
-        'https://insidechassidus.org/wp-json/ics_slider_api/v1/featured'));
+  Future<List<FeaturedSectionVerified>> _featured() async {
+    try {
+      final featuredResponse = await http.get(Uri.parse(
+          'https://insidechassidus.org/wp-json/ics_slider_api/v1/featured'));
+      final featuredData = (await Future.wait(
+              ((json.decode(featuredResponse.body) as List<dynamic>)
+                  .cast<Map<String, dynamic>>()
+                  .map(_Featured.fromJson)
+                  .map((e) async => FeaturedSection(
+                      title: e.title,
+                      section: await dataLayer.section(e.category.toString()),
+                      imageUrl: e.imageUrl,
+                      buttonText: e.buttonText))
+                  .toList())))
+          .where((element) => element.section != null)
+          .map((e) => FeaturedSectionVerified(
+              title: e.title,
+              section: e.section!,
+              imageUrl: e.imageUrl,
+              buttonText: e.buttonText))
+          .toList();
+
+      return featuredData;
+    } catch (err) {
+      // Only throw in debug.
+      // ignore: unnecessary_null_comparison
+      assert(err == null);
+      print(err);
+      return [];
+    }
   }
 
   Future<ContentReference?> _content(int id) async =>
@@ -95,9 +145,22 @@ class FeaturedSection {
   final String title;
   final String imageUrl;
   final String buttonText;
-  final Section section;
+  final Section? section;
 
   FeaturedSection(
+      {required this.title,
+      this.section,
+      required this.imageUrl,
+      required this.buttonText});
+}
+
+class FeaturedSectionVerified {
+  final String title;
+  final String imageUrl;
+  final String buttonText;
+  final Section section;
+
+  FeaturedSectionVerified(
       {required this.title,
       required this.section,
       required this.imageUrl,
