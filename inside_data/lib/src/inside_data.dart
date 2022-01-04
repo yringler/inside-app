@@ -126,6 +126,9 @@ class ContentReference implements Comparable {
         id: data.id, contentType: type, media: media, section: section);
   }
 
+  static ContentReference? fromDataOrNull({SiteDataBase? data}) =>
+      data == null ? null : ContentReference.fromData(data: data);
+
   factory ContentReference.fromJson(Map<String, dynamic> json) =>
       _$ContentReferenceFromJson(json);
   Map<String, dynamic> toJson() => _$ContentReferenceToJson(this);
@@ -217,6 +220,12 @@ abstract class SiteDataLayer {
   Future<List<Section>> topLevel();
   Future<Section?> section(String id);
   Future<Media?> media(String id);
+
+  /// If you don't know what the ID references, this will return first not null of media
+  /// or section with given ID.
+  Future<SiteDataBase?> mediaOrSection(String id) async =>
+      (await media(id)) ?? (await section(id));
+
   Future<DateTime?> lastUpdate();
 
   String? getImageFor(String id) => topImagesInside[int.tryParse(id)];
