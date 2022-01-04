@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:dio_cache_interceptor_db_store/dio_cache_interceptor_db_store.dart';
@@ -149,20 +147,25 @@ class SuggestedContentLoader {
 }
 
 class SuggestedContent {
-  final TimelyContent timelyContent;
-  final List<ContentReference> popular;
-  final List<FeaturedSection> featured;
+  final TimelyContent? timelyContent;
+  final List<ContentReference>? popular;
+  final List<FeaturedSection>? featured;
 
   SuggestedContent(
-      {required this.timelyContent,
-      required this.popular,
-      required this.featured});
+      {TimelyContent? timelyContent,
+      List<ContentReference>? popular,
+      List<FeaturedSection>? featured})
+      : timelyContent = timelyContent?.hasData ?? false ? timelyContent : null,
+        popular = popular?.isNotEmpty ?? false ? popular : null,
+        featured = featured?.isNotEmpty ?? false ? featured : null;
 }
 
 class TimelyContent {
   final ContentReference? parsha;
   final ContentReference? tanya;
   final ContentReference? hayomYom;
+
+  bool get hasData => parsha != null || tanya != null || hayomYom != null;
 
   TimelyContent(
       {required this.parsha, required this.tanya, required this.hayomYom});
