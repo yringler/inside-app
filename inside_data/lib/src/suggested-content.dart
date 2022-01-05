@@ -73,7 +73,7 @@ class SuggestedContentLoader {
                     data: await dataLayer.section(e.id.toString()))
                 : await _content(e.id))
             .toList()))
-        .where((element) => element != null)
+        .where((element) => element?.hasValue ?? false)
         .cast<ContentReference>()
         .toList();
 
