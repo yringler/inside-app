@@ -15,10 +15,7 @@ class SuggestedContentLoader {
   CacheOptions get cacheOptions => CacheOptions(
       policy: CachePolicy.forceCache,
       maxStale: Duration(hours: 12),
-      store: DbCacheStore(
-          databasePath: cachePath,
-          databaseName: 'suggestedCacheDb',
-          logStatements: false));
+      store: DbCacheStore(databasePath: cachePath, logStatements: false));
 
   SuggestedContentLoader({required this.dataLayer, required this.cachePath}) {
     dio = Dio()..interceptors.add(DioCacheInterceptor(options: cacheOptions));
@@ -33,7 +30,7 @@ class SuggestedContentLoader {
     final suggestedContent = SuggestedContent(
         timelyContent: content[0] as TimelyContent,
         popular: content[1] as List<ContentReference>,
-        featured: content[2] as List<FeaturedSection>);
+        featured: content[2] as List<FeaturedSectionVerified>);
 
     return suggestedContent;
   }
@@ -149,12 +146,12 @@ class SuggestedContentLoader {
 class SuggestedContent {
   final TimelyContent? timelyContent;
   final List<ContentReference>? popular;
-  final List<FeaturedSection>? featured;
+  final List<FeaturedSectionVerified>? featured;
 
   SuggestedContent(
       {TimelyContent? timelyContent,
       List<ContentReference>? popular,
-      List<FeaturedSection>? featured})
+      List<FeaturedSectionVerified>? featured})
       : timelyContent = timelyContent?.hasData ?? false ? timelyContent : null,
         popular = popular?.isNotEmpty ?? false ? popular : null,
         featured = featured?.isNotEmpty ?? false ? featured : null;

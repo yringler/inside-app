@@ -53,7 +53,7 @@ class LibraryNavigator extends RouterDelegate
         // *or* if user hasn't gone anywhere yet (you have to start somewhere).
         // This means that if library is navigated to from a diffirent tab, back button will not bring
         // to library home - it is up to the app to catch the pop and show the right tab.
-        if (bookPages.isEmpty || pagesHasTopParent)
+        if (bookPages.isEmpty || pagesHasTopParent || appState.backToTop)
           MaterialPage(
               key: ValueKey("PrimarySectionsRoute"),
               child: PrimarySectionsRoute()),

@@ -1,11 +1,17 @@
+import 'dart:async';
+
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/widgets/navigate-to-section.dart';
 import 'package:inside_data/inside_data.dart';
 
 class PrimarySectionsRoute extends StatelessWidget {
   static const String routeName = '/library';
+  final SuggestedContentLoader suggestedContentLoader =
+      BlocProvider.getDependency<SuggestedContentLoader>();
+  final positionService = BlocProvider.getDependency<LibraryPositionService>();
 
   @override
   Widget build(BuildContext context) {
@@ -29,81 +35,109 @@ class PrimarySectionsRoute extends StatelessWidget {
         });
   }
 
-  List<Widget> _promotedContent(BuildContext context) => [
-        HomepageSection(
-            isFirst: true,
-            context: context,
-            title: 'Featured Classes',
-            child: AspectRatio(
-              aspectRatio: 9 / 3,
-              child: Image.network(
-                'https://media.insidechassidus.org/wp-content/uploads/20211125105910/chanuka.gif',
-              ),
-            )),
-        OutlinedButtonTheme(
-          data: OutlinedButtonThemeData(
-              style: OutlinedButton.styleFrom(primary: Colors.grey.shade700)),
-          child: HomepageSection(
-              context: context,
-              title: 'Daily Study',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
+  List<Widget> _promotedContent(BuildContext context) {
+    final data = suggestedContentLoader.load();
+
+    return [
+      PossibleContentBuilder<SuggestedContent, List<FeaturedSectionVerified>>(
+          future: data,
+          mapper: (p0) => p0.featured,
+          onTap: (featuredSections) => positionService
+              .setActiveItem(featuredSections.first.section, backToTop: true),
+          builder: (context, data, onPressed) {
+            return HomepageSection(
+                isFirst: true,
+                context: context,
+                title: 'Featured Classes',
+                child: AspectRatio(
+                  aspectRatio: 9 / 3,
+                  child: Stack(
+                    alignment: AlignmentDirectional.centerStart,
                     children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 7.5),
-                          child: ElevatedButton(
-                            onPressed: () => null,
-                            child: Text('Tanya'),
-                          ),
+                      Positioned.fill(
+                        child: Image.network(
+                          data?.first.imageUrl ??
+                              'https://media.insidechassidus.org/wp-content/uploads/20211125105910/chanuka.gif',
                         ),
                       ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 7.5),
-                          child: ElevatedButton(
-                            onPressed: () => null,
-                            child: Text('Hayom Yom'),
-                          ),
-                        ),
-                      ),
+                      Column(
+                        children: [
+                          Text(data?.first.title ?? 'Featured class'),
+                          ElevatedButton(
+                              onPressed: onPressed,
+                              child:
+                                  Text(data?.first.buttonText ?? 'Learn More'))
+                        ],
+                      )
                     ],
                   ),
-                  OutlinedButton(
-                    onPressed: () => null,
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(right: 5),
-                          //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
-                          child: Icon(Icons.signal_cellular_alt),
+                ));
+          }),
+      OutlinedButtonTheme(
+        data: OutlinedButtonThemeData(
+            style: OutlinedButton.styleFrom(primary: Colors.grey.shade700)),
+        child: HomepageSection(
+            context: context,
+            title: 'Daily Study',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 7.5),
+                        child: ElevatedButton(
+                          onPressed: () => null,
+                          child: Text('Tanya'),
                         ),
-                        Text('Most Popular Classes'),
-                        Spacer(),
-                        Icon(Icons.arrow_forward_ios)
-                      ],
+                      ),
                     ),
-                  ),
-                  OutlinedButton(
-                    onPressed: () => null,
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(right: 5),
-                          child: Icon(Icons.schedule),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 7.5),
+                        child: ElevatedButton(
+                          onPressed: () => null,
+                          child: Text('Hayom Yom'),
                         ),
-                        Text('Recently Uploaded Classes'),
-                        Spacer(),
-                        Icon(Icons.arrow_forward_ios)
-                      ],
+                      ),
                     ),
+                  ],
+                ),
+                OutlinedButton(
+                  onPressed: () => null,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 5),
+                        //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
+                        child: Icon(Icons.signal_cellular_alt),
+                      ),
+                      Text('Most Popular Classes'),
+                      Spacer(),
+                      Icon(Icons.arrow_forward_ios)
+                    ],
                   ),
-                ],
-              )),
-        ),
-      ];
+                ),
+                OutlinedButton(
+                  onPressed: () => null,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 5),
+                        child: Icon(Icons.schedule),
+                      ),
+                      Text('Recently Uploaded Classes'),
+                      Spacer(),
+                      Icon(Icons.arrow_forward_ios)
+                    ],
+                  ),
+                ),
+              ],
+            )),
+      ),
+    ];
+  }
 
   Widget _sections(BuildContext context, List<Section> topLevel,
           SiteDataLayer dataLayer) =>
@@ -185,5 +219,93 @@ class HomepageSection extends StatelessWidget {
         child
       ],
     );
+  }
+}
+
+/*
+  widget: PossibleContentBuilder<InputT, UseT>
+  args: FutureOrValue which resolves to data to use
+  mapper UseT func(InputT) (default identity function) which extracts needed data
+  builder(context, UseT?, voidcallback?) - if there's no data, the callback will open a toast with a message.
+  If there's data, void callback will be null.
+
+  (timely content is used for a few buttons, so for that we'd make the request outside, and pass in a value)
+ */
+
+/// Build a widget which hopes to get some dynamic content.
+typedef Widget PossibleContentCallback<T>(
+    BuildContext context, T? data, VoidCallback? onTap);
+
+/// A callback to call if we manage to get data.
+typedef void PossibleContentOnTap<T>(T data);
+
+class PossibleContentBuilder<InputT, UseT> extends StatelessWidget {
+  final PossibleContentCallback<UseT> builder;
+
+  /// Call for child to call when tapped, if and when we get data.
+  final PossibleContentOnTap<UseT> onTap;
+  final Future<InputT> future;
+  late final UseT? Function(InputT) mapper;
+
+  PossibleContentBuilder(
+      {Key? key,
+      required this.builder,
+      required this.onTap,
+      required this.future,
+      UseT? Function(InputT)? mapper})
+      : super(key: key) {
+    this.mapper = mapper ?? (input) => input as UseT?;
+  }
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<InputT>(
+        future: future,
+        builder: (context, snapshot) {
+          VoidCallback onClick;
+          if (snapshot.connectionState == ConnectionState.waiting ||
+              snapshot.connectionState == ConnectionState.active) {
+            onClick = () => _showMessage(
+                context: context,
+                message:
+                    "The classes are not loaded yet. Please try again soon.");
+          }
+
+          if (snapshot.hasError) {
+            onClick = () => _showMessage(
+                context: context,
+                message:
+                    'An error occured. Classes could not be retrieved. Do you have an internet connection?'
+                    'Classes may not be available now.'
+                    'If this error continues, please let us know.'
+                    'Error: ${snapshot.error}');
+          }
+
+          final mappedData =
+              snapshot.data == null ? null : mapper(snapshot.data!);
+
+          if (mappedData == null) {
+            onClick = () => _showMessage(
+                context: context,
+                message:
+                    "These classes aren't available right now. Please try again later");
+          } else {
+            onClick = () => onTap(mappedData);
+          }
+
+          return builder(context, mappedData, onClick);
+        },
+      );
+
+  Future<void> _showMessage(
+      {required BuildContext context, required String message}) async {
+    await showDialog(
+        context: context,
+        builder: (BuildContext c) => AlertDialog(
+              title: Text(message),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context), child: Text('Ok'))
+              ],
+            ));
   }
 }

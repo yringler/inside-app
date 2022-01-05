@@ -7,3 +7,4 @@ export 'package:inside_data/src/loaders/wordpress/wordpress_search.dart';
 export 'package:inside_data/src/loaders/json_loader.dart';
 export 'package:inside_data/src/loaders/memory_loader.dart';
 export 'package:inside_data/src/constants.dart';
+export 'package:inside_data/src/suggested-content.dart';

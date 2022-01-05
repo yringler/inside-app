@@ -52,6 +52,9 @@ void main() async {
   final chosenService = await ChosenClassService.create(siteBoxes);
   final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
+  final suggestedContent = SuggestedContentLoader(
+      dataLayer: siteBoxes,
+      cachePath: p.join((await getApplicationSupportDirectory()).path, ''));
   final PositionSaver positionSaver = HivePositionSaver();
   final searchService = WordpressSearch(
       wordpressDomain: activeSourceDomain, siteBoxes: siteBoxes);
@@ -87,7 +90,8 @@ void main() async {
     Dependency((i) => downloadManager),
     Dependency((i) => libraryPositionService),
     Dependency((i) => searchService),
-    Dependency((i) => audioHandler)
+    Dependency((i) => audioHandler),
+    Dependency((i) => suggestedContent)
   ], blocs: [
     Bloc((i) => IsPlayerButtonsShowingBloc())
   ], child: AppRouterWidget()));
