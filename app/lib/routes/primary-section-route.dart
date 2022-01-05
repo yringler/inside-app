@@ -131,6 +131,8 @@ class PrimarySectionsRoute extends StatelessWidget {
                 ),
               ],
             ),
+            // TODO: Parsha
+            // TODO: month classes, when API is updated
             OutlinedButton(
               onPressed: () => null,
               child: Row(
