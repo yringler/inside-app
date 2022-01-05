@@ -54,8 +54,8 @@ class PrimarySectionsRoute extends StatelessWidget {
                   child: Stack(
                     children: [
                       Positioned.fill(
-                        child: Image.network(
-                          data?.first.imageUrl ??
+                        child: CachedNetworkImage(
+                          imageUrl: data?.first.imageUrl ??
                               'https://media.insidechassidus.org/wp-content/uploads/20211125105910/chanuka.gif',
                         ),
                       ),
@@ -287,28 +287,23 @@ class PossibleContentBuilder<UseT> extends StatelessWidget {
         future: future,
         builder: (context, snapshot) {
           VoidCallback onClick;
+          final mappedData =
+              snapshot.data == null ? null : mapper(snapshot.data!);
+
           if (snapshot.connectionState == ConnectionState.waiting ||
               snapshot.connectionState == ConnectionState.active) {
             onClick = () => _showMessage(
                 context: context,
                 message:
                     "The classes are not loaded yet. Please try again soon.");
-          }
-
-          if (snapshot.hasError) {
+          } else if (snapshot.hasError) {
             onClick = () => _showMessage(
                 context: context,
                 message:
                     'An error occured. Classes could not be retrieved. Do you have an internet connection?'
-                    'Classes may not be available now.'
-                    'If this error continues, please let us know.'
-                    'Error: ${snapshot.error}');
-          }
-
-          final mappedData =
-              snapshot.data == null ? null : mapper(snapshot.data!);
-
-          if (mappedData == null) {
+                    ' Classes may not be available now.'
+                    ' If this error continues, please let us know.');
+          } else if (mappedData == null) {
             onClick = () => _showMessage(
                 context: context,
                 message:

@@ -36,106 +36,80 @@ class SuggestedContentLoader {
   }
 
   Future<TimelyContent?> _timelyContent() async {
-    try {
-      final responses = await Future.wait([
-        dio.get(
-            'https://insidechassidus.org/wp-json/ics_recurring_api/v1/category',
-            options: _options(Duration(days: 1))),
-        dio.get(
-            'https://insidechassidus.org/wp-json/ics_recurring_api/v1/daily',
-            options: _options(Duration(hours: 3)))
-      ]);
+    final responses = await Future.wait([
+      dio.get(
+          'https://insidechassidus.org/wp-json/ics_recurring_api/v1/category',
+          options: _options(Duration(days: 1))),
+      dio.get('https://insidechassidus.org/wp-json/ics_recurring_api/v1/daily',
+          options: _options(Duration(hours: 3)))
+    ]);
 
-      final timelyResponse = responses[0];
-      final dailyResponse = responses[1];
+    final timelyResponse = responses[0];
+    final dailyResponse = responses[1];
 
-      final timelyContent =
-          _TimelyContentResponse.fromJson(timelyResponse.data);
-      final dailyContent = _DailyClasses.fromJson(dailyResponse.data);
+    final timelyContent = _TimelyContentResponse.fromJson(timelyResponse.data);
+    final dailyContent = _DailyClasses.fromJson(dailyResponse.data);
 
-      return TimelyContent(
-          parsha: await _content(timelyContent.parsha),
-          tanya: await _content(dailyContent.tanyaId),
-          hayomYom: await _content(dailyContent.hayomYomId));
-    } catch (err) {
-      // Only throw in debug.
-      // ignore: unnecessary_null_comparison
-      assert(err == null);
-      print(err);
-      return null;
-    }
+    return TimelyContent(
+        parsha: await _content(timelyContent.parsha),
+        tanya: await _content(dailyContent.tanyaId),
+        hayomYom: await _content(dailyContent.hayomYomId));
   }
 
   Future<List<ContentReference>> _popular() async {
-    try {
-      final popularResponse = await dio.get<List<dynamic>>(
-          'https://insidechassidus.org/wp-json/wordpress-popular-posts/v1/popular-posts',
-          options: _options(Duration(days: 1)));
+    final popularResponse = await dio.get<List<dynamic>>(
+        'https://insidechassidus.org/wp-json/wordpress-popular-posts/v1/popular-posts',
+        options: _options(Duration(days: 1)));
 
-      if (popularResponse.data == null) {
-        return [];
-      }
-
-      final popularData = (await Future.wait(popularResponse.data!
-              .cast<Map<String, dynamic>>()
-              .map(_PopularPost.fromJson)
-              .map((e) async => e.type == ContentType.section
-                  ? ContentReference.fromDataOrNull(
-                      data: await dataLayer.section(e.id.toString()))
-                  : await _content(e.id))
-              .toList()))
-          .where((element) => element != null)
-          .cast<ContentReference>()
-          .toList();
-
-      return popularData;
-    } catch (err) {
-      // Only throw in debug.
-      // ignore: unnecessary_null_comparison
-      assert(err == null);
-      print(err);
+    if (popularResponse.data == null) {
       return [];
     }
+
+    final popularData = (await Future.wait(popularResponse.data!
+            .cast<Map<String, dynamic>>()
+            .map(_PopularPost.fromJson)
+            .map((e) async => e.type == ContentType.section
+                ? ContentReference.fromDataOrNull(
+                    data: await dataLayer.section(e.id.toString()))
+                : await _content(e.id))
+            .toList()))
+        .where((element) => element != null)
+        .cast<ContentReference>()
+        .toList();
+
+    return popularData;
   }
 
   Options _options(Duration stale) =>
       cacheOptions.copyWith(maxStale: stale).toOptions();
 
   Future<List<FeaturedSectionVerified>> _featured() async {
-    try {
-      final featuredResponse = await dio.get<List<dynamic>>(
-          'https://insidechassidus.org/wp-json/ics_slider_api/v1/featured',
-          options: _options(Duration(days: 1)));
+    final featuredResponse = await dio.get<List<dynamic>>(
+        'https://insidechassidus.org/wp-json/ics_slider_api/v1/featured',
+        options: _options(Duration(days: 1)));
 
-      if (featuredResponse.data == null) {
-        return [];
-      }
-
-      final featuredData = (await Future.wait(featuredResponse.data!
-              .cast<Map<String, dynamic>>()
-              .map(_Featured.fromJson)
-              .map((e) async => FeaturedSection(
-                  title: e.title,
-                  section: await dataLayer.section(e.category.toString()),
-                  imageUrl: e.imageUrl,
-                  buttonText: e.buttonText))
-              .toList()))
-          .where((element) => element.section != null)
-          .map((e) => FeaturedSectionVerified(
-              title: e.title,
-              section: e.section!,
-              imageUrl: e.imageUrl,
-              buttonText: e.buttonText))
-          .toList();
-
-      return featuredData;
-    } catch (err) {
-      // Only throw in debug.
-      // ignore: unnecessary_null_comparison
-      assert(err == null);
-      print(err);
+    if (featuredResponse.data == null) {
       return [];
     }
+
+    final featuredData = (await Future.wait(featuredResponse.data!
+            .cast<Map<String, dynamic>>()
+            .map(_Featured.fromJson)
+            .map((e) async => FeaturedSection(
+                title: e.title,
+                section: await dataLayer.section(e.category.toString()),
+                imageUrl: e.imageUrl,
+                buttonText: e.buttonText))
+            .toList()))
+        .where((element) => element.section != null)
+        .map((e) => FeaturedSectionVerified(
+            title: e.title,
+            section: e.section!,
+            imageUrl: e.imageUrl,
+            buttonText: e.buttonText))
+        .toList();
+
+    return featuredData;
   }
 
   Future<ContentReference?> _content(int id) async =>
