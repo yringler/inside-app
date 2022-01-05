@@ -329,7 +329,9 @@ class PossibleContentBuilder<UseT> extends StatelessWidget {
               title: Text(message),
               actions: [
                 TextButton(
-                    onPressed: () => Navigator.pop(context), child: Text('Ok'))
+                    onPressed: () =>
+                        Navigator.of(context, rootNavigator: true).pop(),
+                    child: Text('Ok'))
               ],
             ));
   }
