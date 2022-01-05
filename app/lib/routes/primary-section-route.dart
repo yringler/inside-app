@@ -52,7 +52,6 @@ class PrimarySectionsRoute extends StatelessWidget {
                 child: AspectRatio(
                   aspectRatio: 9 / 3,
                   child: Stack(
-                    alignment: AlignmentDirectional.centerStart,
                     children: [
                       Positioned.fill(
                         child: Image.network(
@@ -60,14 +59,24 @@ class PrimarySectionsRoute extends StatelessWidget {
                               'https://media.insidechassidus.org/wp-content/uploads/20211125105910/chanuka.gif',
                         ),
                       ),
-                      Column(
-                        children: [
-                          Text(data?.first.title ?? 'Featured class'),
-                          ElevatedButton(
-                              onPressed: onPressed,
-                              child:
-                                  Text(data?.first.buttonText ?? 'Learn More'))
-                        ],
+                      Padding(
+                        padding: const EdgeInsets.only(left: 15),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(data?.first.title ?? 'Featured class',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headline6!
+                                    .copyWith(color: Colors.white)),
+                            ElevatedButton(
+                                onPressed: onPressed,
+                                child: Text(
+                                  data?.first.buttonText ?? 'Learn More',
+                                ))
+                          ],
+                        ),
                       )
                     ],
                   ),
