@@ -39,7 +39,7 @@ class PrimarySectionsRoute extends StatelessWidget {
     final data = suggestedContentLoader.load();
 
     return [
-      PossibleContentBuilder<SuggestedContent, List<FeaturedSectionVerified>>(
+      PossibleContentBuilder<List<FeaturedSectionVerified>>(
           future: data,
           mapper: (p0) => p0.featured,
           onTap: (featuredSections) => positionService
@@ -83,69 +83,85 @@ class PrimarySectionsRoute extends StatelessWidget {
                 ));
           }),
       OutlinedButtonTheme(
-        data: OutlinedButtonThemeData(
-            style: OutlinedButton.styleFrom(primary: Colors.grey.shade700)),
-        child: HomepageSection(
-            context: context,
-            title: 'Daily Study',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          data: OutlinedButtonThemeData(
+              style: OutlinedButton.styleFrom(primary: Colors.grey.shade700)),
+          child: _restOfPromotedContent(context, data)),
+    ];
+  }
+
+  HomepageSection _restOfPromotedContent(
+      BuildContext context, Future<SuggestedContent> data) {
+    return HomepageSection(
+        context: context,
+        title: 'Daily Study',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 7.5),
-                        child: ElevatedButton(
-                          onPressed: () => null,
-                          child: Text('Tanya'),
-                        ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 7.5),
+                    child: PossibleContentBuilder<SiteDataBase>(
+                      future: data,
+                      mapper: (p0) => p0.timelyContent?.tanya?.value,
+                      onTap: (data) =>
+                          positionService.setActiveItem(data, backToTop: true),
+                      builder: (context, data, onTap) => ElevatedButton(
+                        onPressed: onTap,
+                        child: Text('Tanya'),
                       ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 7.5),
-                        child: ElevatedButton(
-                          onPressed: () => null,
-                          child: Text('Hayom Yom'),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                OutlinedButton(
-                  onPressed: () => null,
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 5),
-                        //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
-                        child: Icon(Icons.signal_cellular_alt),
-                      ),
-                      Text('Most Popular Classes'),
-                      Spacer(),
-                      Icon(Icons.arrow_forward_ios)
-                    ],
                   ),
                 ),
-                OutlinedButton(
-                  onPressed: () => null,
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 5),
-                        child: Icon(Icons.schedule),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 7.5),
+                    child: PossibleContentBuilder<SiteDataBase>(
+                      future: data,
+                      mapper: (p0) => p0.timelyContent?.hayomYom?.value,
+                      onTap: (data) =>
+                          positionService.setActiveItem(data, backToTop: true),
+                      builder: (context, data, onTap) => ElevatedButton(
+                        onPressed: onTap,
+                        child: Text('Hayom Yom'),
                       ),
-                      Text('Recently Uploaded Classes'),
-                      Spacer(),
-                      Icon(Icons.arrow_forward_ios)
-                    ],
+                    ),
                   ),
                 ),
               ],
-            )),
-      ),
-    ];
+            ),
+            OutlinedButton(
+              onPressed: () => null,
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 5),
+                    //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
+                    child: Icon(Icons.signal_cellular_alt),
+                  ),
+                  Text('Most Popular Classes'),
+                  Spacer(),
+                  Icon(Icons.arrow_forward_ios)
+                ],
+              ),
+            ),
+            OutlinedButton(
+              onPressed: () => null,
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 5),
+                    child: Icon(Icons.schedule),
+                  ),
+                  Text('Recently Uploaded Classes'),
+                  Spacer(),
+                  Icon(Icons.arrow_forward_ios)
+                ],
+              ),
+            ),
+          ],
+        ));
   }
 
   Widget _sections(BuildContext context, List<Section> topLevel,
@@ -248,26 +264,26 @@ typedef Widget PossibleContentCallback<T>(
 /// A callback to call if we manage to get data.
 typedef void PossibleContentOnTap<T>(T data);
 
-class PossibleContentBuilder<InputT, UseT> extends StatelessWidget {
+class PossibleContentBuilder<UseT> extends StatelessWidget {
   final PossibleContentCallback<UseT> builder;
 
   /// Call for child to call when tapped, if and when we get data.
   final PossibleContentOnTap<UseT> onTap;
-  final Future<InputT> future;
-  late final UseT? Function(InputT) mapper;
+  final Future<SuggestedContent> future;
+  late final UseT? Function(SuggestedContent) mapper;
 
   PossibleContentBuilder(
       {Key? key,
       required this.builder,
       required this.onTap,
       required this.future,
-      UseT? Function(InputT)? mapper})
+      UseT? Function(SuggestedContent)? mapper})
       : super(key: key) {
     this.mapper = mapper ?? (input) => input as UseT?;
   }
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<InputT>(
+  Widget build(BuildContext context) => FutureBuilder<SuggestedContent>(
         future: future,
         builder: (context, snapshot) {
           VoidCallback onClick;
