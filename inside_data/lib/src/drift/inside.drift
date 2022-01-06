@@ -2,3 +2,8 @@ import 'drift_inside_data.dart';
 
 test: SELECT id, title FROM section_table
 WHERE id = :id;
+
+latest: SELECT parent.**, media.** FROM media_table media
+INNER JOIN media_parents_table parent ON parent.media_id = media.id
+ORDER BY created DESC
+LIMIT :limit;

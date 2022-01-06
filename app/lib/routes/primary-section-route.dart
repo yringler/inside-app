@@ -12,6 +12,7 @@ class PrimarySectionsRoute extends StatelessWidget {
   final SuggestedContentLoader suggestedContentLoader =
       BlocProvider.getDependency<SuggestedContentLoader>();
   final positionService = BlocProvider.getDependency<LibraryPositionService>();
+  final SiteDataLayer dataLayer = BlocProvider.getDependency<SiteDataLayer>();
 
   @override
   Widget build(BuildContext context) {
@@ -155,19 +156,33 @@ class PrimarySectionsRoute extends StatelessWidget {
                 );
               },
             ),
-            OutlinedButton(
-              onPressed: () => null,
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 5),
-                    child: Icon(Icons.schedule),
+            FutureBuilder<List<Media>>(
+              future: dataLayer.recent(),
+              builder: (context, data) {
+                VoidCallback? onPressed;
+
+                if (data.hasData) {
+                  onPressed = () => positionService.setVirtualSection(
+                      content: data.data!
+                          .map((e) => ContentReference.fromData(data: e))
+                          .toList());
+                }
+
+                return OutlinedButton(
+                  onPressed: onPressed,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 5),
+                        child: Icon(Icons.schedule),
+                      ),
+                      Text('Recently Uploaded Classes'),
+                      Spacer(),
+                      Icon(Icons.arrow_forward_ios)
+                    ],
                   ),
-                  Text('Recently Uploaded Classes'),
-                  Spacer(),
-                  Icon(Icons.arrow_forward_ios)
-                ],
-              ),
+                );
+              },
             ),
           ],
         ));

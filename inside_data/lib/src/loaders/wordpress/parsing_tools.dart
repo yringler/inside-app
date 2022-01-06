@@ -44,6 +44,7 @@ SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
     return requireAudio
         ? null
         : SiteDataBase(
+            created: post.created,
             parents: post.parents,
             id: post.id,
             title: post.title,
@@ -59,6 +60,7 @@ SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
         order: post.sort,
         link: post.link,
         id: post.id,
+        created: post.created,
         parents: post.parents);
 
     return media;
@@ -67,6 +69,7 @@ SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
   int sort = 0;
   final medias = audios
       .map((e) => _toMedia(e,
+          created: post.created,
           description: '',
           title: '',
           // Oooh sneaky. I haven't done a sneaky post fix increment like that
@@ -112,6 +115,7 @@ Media? _toMedia(Element element,
     required int order,
     required String link,
     required Set<String> parents,
+    required DateTime? created,
     String? id}) {
   final audioSource = element.querySelector('audio')?.attributes['src'];
   final audioTitle = title.isNotEmpty
@@ -124,6 +128,7 @@ Media? _toMedia(Element element,
 
   return Media(
       id: id ?? audioSource!,
+      created: created,
       parents: parents,
       link: link,
       source: audioSource!,

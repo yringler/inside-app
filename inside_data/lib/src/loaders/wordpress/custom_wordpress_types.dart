@@ -133,6 +133,7 @@ class CustomEndpointPost {
             description:
                 postContent.isNotEmpty ? postContent : postContentFiltered,
             sort: menuOrder,
+            created: date,
             link: url),
         requireAudio: isPost);
 

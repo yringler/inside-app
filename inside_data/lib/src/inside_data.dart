@@ -19,13 +19,16 @@ class SiteDataBase implements Comparable {
   bool get hasParent => parents.isNotEmpty;
   bool hasParentId(String id) => parents.contains(id);
 
+  final DateTime? created;
+
   SiteDataBase(
       {required this.id,
       required this.title,
       required this.description,
       required this.sort,
       required this.link,
-      required this.parents});
+      required this.parents,
+      this.created});
 
   SiteDataBase.copy(SiteDataBase other)
       : id = other.id,
@@ -33,7 +36,8 @@ class SiteDataBase implements Comparable {
         description = other.description,
         sort = other.sort,
         parents = other.parents,
-        link = other.link;
+        link = other.link,
+        created = other.created;
 
   @override
   int compareTo(other) => this.sort.compareTo(other.sort);
@@ -53,13 +57,15 @@ class Media extends SiteDataBase implements Comparable {
       required String title,
       required String description,
       String link = '',
-      required Set<String> parents})
+      required Set<String> parents,
+      DateTime? created})
       : super(
             id: id,
             title: title,
             description: description,
             sort: sort,
             parents: parents,
+            created: created,
             link: link);
 
   Future<Section?> getParent(SiteDataLayer siteBoxes) async {
@@ -220,6 +226,7 @@ abstract class SiteDataLayer {
   Future<List<Section>> topLevel();
   Future<Section?> section(String id);
   Future<Media?> media(String id);
+  Future<List<Media>> recent();
 
   /// If you don't know what the ID references, this will return first not null of media
   /// or section with given ID.
