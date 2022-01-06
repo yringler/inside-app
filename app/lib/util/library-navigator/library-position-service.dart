@@ -22,6 +22,9 @@ class LibraryPositionService extends ChangeNotifier
   SitePositionCollection sectionCollection =
       SitePositionCollection(positions: []);
 
+  bool get hasContent =>
+      sections.isNotEmpty || sectionCollection.virtualSection.isNotEmpty;
+
   LibraryPositionService({required this.siteBoxes});
 
   /// Ensure that next to last item is parent of new item, or clear the list.
@@ -42,9 +45,25 @@ class LibraryPositionService extends ChangeNotifier
     return sections;
   }
 
+  setVirtualSection({required List<ContentReference> content}) {
+    if (content.isEmpty) {
+      return;
+    }
+
+    sectionCollection = SitePositionCollection(virtualSection: content);
+
+    notifyListeners();
+  }
+
   bool removeLast() {
-    if (sections.isNotEmpty) {
+    if (sections.where((element) => element.wasNavigatedTo).isNotEmpty) {
       sections.removeLast();
+      notifyListeners();
+      return true;
+    }
+
+    if (sectionCollection.virtualSection.isNotEmpty) {
+      sectionCollection = sectionCollection.copyWith(virtualSection: []);
       notifyListeners();
       return true;
     }
@@ -53,8 +72,8 @@ class LibraryPositionService extends ChangeNotifier
   }
 
   clear() {
-    if (sections.isNotEmpty) {
-      sections.clear();
+    if (hasContent) {
+      sectionCollection = SitePositionCollection();
       notifyListeners();
     }
   }
@@ -117,11 +136,21 @@ class LibraryPositionService extends ChangeNotifier
     final lastHadParent = sections.any((element) =>
         element.data != null && item.hasParentId(element.data!.id));
 
+    // If this is clicked from a virtual section to a child.
+    final isClickFromVirtual = sectionCollection.virtualSection
+        .where((element) => element.id == item.id)
+        .isNotEmpty;
+
     // User can back up to home page if that was forced from argument.
     // Or, user is navigating between children of a section which had that forced.
 
     sectionCollection = SitePositionCollection(
         positions: newSections,
+        // We keep the virtual section if clicked a virtual content, or has been navigating around
+        // to related content from there.
+        virtualSection: isClickFromVirtual || lastHadParent
+            ? sectionCollection.virtualSection
+            : [],
         forceCanPopToHome:
             (lastHadParent && sectionCollection.forceCanPopToHome) ||
                 backToTop);
@@ -132,14 +161,23 @@ class SitePositionCollection {
   final bool forceCanPopToHome;
   final List<SitePosition> positions;
 
+  /// A collection of content we want to show (eg, popular classes) which isn't
+  /// actually a section in the local DB.
+  final List<ContentReference> virtualSection;
+
   SitePositionCollection(
-      {this.forceCanPopToHome = false, required this.positions});
+      {this.forceCanPopToHome = false,
+      this.positions = const [],
+      this.virtualSection = const []});
 
   SitePositionCollection copyWith(
-          {bool? forceCanPopToHome, List<SitePosition>? positions}) =>
+          {bool? forceCanPopToHome,
+          List<SitePosition>? positions,
+          List<ContentReference>? virtualSection}) =>
       SitePositionCollection(
           positions: positions ?? this.positions,
-          forceCanPopToHome: forceCanPopToHome ?? this.forceCanPopToHome);
+          forceCanPopToHome: forceCanPopToHome ?? this.forceCanPopToHome,
+          virtualSection: virtualSection ?? this.virtualSection);
 }
 
 class SitePosition {

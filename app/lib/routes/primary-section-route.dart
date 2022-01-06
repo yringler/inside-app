@@ -133,20 +133,27 @@ class PrimarySectionsRoute extends StatelessWidget {
             ),
             // TODO: Parsha
             // TODO: month classes, when API is updated
-            OutlinedButton(
-              onPressed: () => null,
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 5),
-                    //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
-                    child: Icon(Icons.signal_cellular_alt),
+            PossibleContentBuilder<List<ContentReference>>(
+              future: data,
+              mapper: (p0) => p0.popular,
+              onTap: (data) => positionService.setVirtualSection(content: data),
+              builder: (context, data, onTap) {
+                return OutlinedButton(
+                  onPressed: onTap,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 5),
+                        //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
+                        child: Icon(Icons.signal_cellular_alt),
+                      ),
+                      Text('Most Popular Classes'),
+                      Spacer(),
+                      Icon(Icons.arrow_forward_ios)
+                    ],
                   ),
-                  Text('Most Popular Classes'),
-                  Spacer(),
-                  Icon(Icons.arrow_forward_ios)
-                ],
-              ),
+                );
+              },
             ),
             OutlinedButton(
               onPressed: () => null,

@@ -311,11 +311,11 @@ class MyAppState extends State<MyApp> {
 
     final value = TabType.values[intValue];
 
-    // If the home button is pressed when already on home section, we show the
+    // If the home button is pressed when already on home section, we stay on the
     // lesson tab, but go back to root.
     if (value == TabType.libraryHome &&
         _currentTab == TabType.libraryHome &&
-        positionService.sections.isNotEmpty) {
+        positionService.hasContent) {
       positionService.clear();
     }
 
@@ -360,7 +360,7 @@ class MyAppState extends State<MyApp> {
   bool _getCanPop() {
     switch (_currentTab) {
       case TabType.libraryHome:
-        return positionService.sections.isNotEmpty;
+        return positionService.hasContent;
       case TabType.recent:
         return widget.recentState.hasMedia();
       case TabType.favorites:
