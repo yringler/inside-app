@@ -23,7 +23,8 @@ class LibraryPositionService extends ChangeNotifier
       SitePositionCollection(positions: []);
 
   bool get hasContent =>
-      sections.isNotEmpty || sectionCollection.virtualSection.isNotEmpty;
+      sections.where((element) => element.wasNavigatedTo).isNotEmpty ||
+      sectionCollection.virtualSection.isNotEmpty;
 
   LibraryPositionService({required this.siteBoxes});
 
