@@ -38,6 +38,8 @@ class MediaTable extends Table {
   TextColumn get description => text().nullable()();
   IntColumn get created => integer().withDefault(const Constant(0))();
 
+  TextColumn get link => text().withDefault(const Constant(''))();
+
   /// How long the class is, in milliseconds.
   IntColumn get duration => integer().nullable()();
 }
@@ -98,7 +100,7 @@ class InsideDatabase extends _$InsideDatabase {
       : super(_openConnection(folder: folder, number: number));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(onCreate: (Migrator m) {
@@ -107,6 +109,9 @@ class InsideDatabase extends _$InsideDatabase {
         if (from == 1) {
           // we added the dueDate property in the change from version 1
           await m.addColumn(mediaTable, mediaTable.created);
+        }
+        if (from == 2) {
+          await m.addColumn(mediaTable, mediaTable.link);
         }
       });
 
@@ -156,6 +161,7 @@ class InsideDatabase extends _$InsideDatabase {
         .map((e) => MediaTableCompanion.insert(
             id: e.id,
             source: e.source,
+            link: Value(e.link),
             sort: e.sort,
             duration: Value(e.length?.inMilliseconds),
             description: Value(e.description),
@@ -216,6 +222,8 @@ class InsideDatabase extends _$InsideDatabase {
         source: media.source,
         id: id,
         sort: media.sort,
+        created: DateTime.fromMillisecondsSinceEpoch(media.created),
+        link: media.link,
         title: media.title ?? '',
         length: media.duration == null
             ? null
@@ -301,6 +309,8 @@ class InsideDatabase extends _$InsideDatabase {
                 source: e.source,
                 id: e.id,
                 sort: e.sort,
+                link: e.link,
+                created: DateTime.fromMillisecondsSinceEpoch(e.created),
                 title: e.title ?? "'",
                 length: e.duration == null
                     ? null
@@ -344,6 +354,7 @@ class InsideDatabase extends _$InsideDatabase {
           length: base.duration == null
               ? null
               : Duration(milliseconds: base.duration!),
+          link: base.link,
           id: base.id,
           sort: base.sort,
           title: base.title ?? '',
@@ -533,7 +544,7 @@ Iterable<List<T>> groupsOf<T>(List<T> list, int groupSize) sync* {
   // }
 }
 
-const dataVersion = 8;
+const dataVersion = 9;
 
 /// Downloads newer DB from API if we don't already have the latest.
 Future<List<int>?> _getLatestDb(DateTime lastLoadTime) async {

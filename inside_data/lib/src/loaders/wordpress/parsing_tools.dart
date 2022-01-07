@@ -130,6 +130,8 @@ Media? _toMedia(Element element,
       id: id ?? audioSource!,
       created: created,
       parents: parents,
+      // We don't know the length yet.
+      length: null,
       link: link,
       source: audioSource!,
       title: audioTitle ?? '',

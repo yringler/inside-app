@@ -51,12 +51,12 @@ class Media extends SiteDataBase implements Comparable {
 
   Media(
       {required this.source,
-      this.length,
+      required this.length,
       required String id,
       required int sort,
       required String title,
       required String description,
-      String link = '',
+      required String link,
       required Set<String> parents,
       DateTime? created})
       : super(
