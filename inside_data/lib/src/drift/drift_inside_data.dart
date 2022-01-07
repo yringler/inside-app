@@ -340,6 +340,10 @@ class InsideDatabase extends _$InsideDatabase {
 
       return Media(
           source: base.source,
+          created: DateTime.fromMillisecondsSinceEpoch(base.created),
+          length: base.duration == null
+              ? null
+              : Duration(milliseconds: base.duration!),
           id: base.id,
           sort: base.sort,
           title: base.title ?? '',
