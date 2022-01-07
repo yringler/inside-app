@@ -60,6 +60,7 @@ class PrimarySectionsRoute extends StatelessWidget {
                         Positioned.fill(
                           child: CachedNetworkImage(
                             imageUrl: data!.first.imageUrl,
+                            fadeInDuration: Duration.zero,
                           ),
                         ),
                       Padding(
@@ -75,6 +76,8 @@ class PrimarySectionsRoute extends StatelessWidget {
                                     .copyWith(color: Colors.white)),
                             ElevatedButton(
                                 onPressed: onPressed,
+                                style: ElevatedButton.styleFrom(
+                                    primary: Colors.white),
                                 child: Text(
                                   data?.first.buttonText ?? 'Learn More',
                                 ))
@@ -85,10 +88,7 @@ class PrimarySectionsRoute extends StatelessWidget {
                   ),
                 ));
           }),
-      OutlinedButtonTheme(
-          data: OutlinedButtonThemeData(
-              style: OutlinedButton.styleFrom(primary: Colors.grey.shade700)),
-          child: _restOfPromotedContent(context, data)),
+      _restOfPromotedContent(context, data),
     ];
   }
 
@@ -97,101 +97,101 @@ class PrimarySectionsRoute extends StatelessWidget {
     return HomepageSection(
         context: context,
         title: 'Daily Study',
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 7.5),
-                    child: PossibleContentBuilder<SiteDataBase>(
-                      future: data,
-                      mapper: (p0) => p0.timelyContent?.tanya?.value,
-                      onTap: (data) =>
-                          positionService.setActiveItem(data, backToTop: true),
-                      builder: (context, data, onTap) => ElevatedButton(
-                        onPressed: onTap,
-                        child: Text('Tanya'),
+        child: ElevatedButtonTheme(
+          data: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                  primary: Colors.black45, onPrimary: Colors.white)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 15),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 7.5),
+                        child: PossibleContentBuilder<SiteDataBase>(
+                          future: data,
+                          mapper: (p0) => p0.timelyContent?.tanya?.value,
+                          onTap: (data) => positionService.setActiveItem(data,
+                              backToTop: true),
+                          builder: (context, data, onTap) => ElevatedButton(
+                            onPressed: onTap,
+                            child: Text('Tanya'),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 7.5),
-                    child: PossibleContentBuilder<SiteDataBase>(
-                      future: data,
-                      mapper: (p0) => p0.timelyContent?.hayomYom?.value,
-                      onTap: (data) =>
-                          positionService.setActiveItem(data, backToTop: true),
-                      builder: (context, data, onTap) => ElevatedButton(
-                        onPressed: onTap,
-                        child: Text('Hayom Yom'),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 7.5),
+                        child: PossibleContentBuilder<SiteDataBase>(
+                          future: data,
+                          mapper: (p0) => p0.timelyContent?.hayomYom?.value,
+                          onTap: (data) => positionService.setActiveItem(data,
+                              backToTop: true),
+                          builder: (context, data, onTap) => ElevatedButton(
+                            onPressed: onTap,
+                            child: Text('Hayom Yom'),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            PossibleContentBuilder<SiteDataBase>(
-              onTap: (data) =>
-                  positionService.setActiveItem(data, backToTop: true),
-              future: data,
-              mapper: (p0) => p0.timelyContent?.parsha?.value,
-              builder: (context, data, onTap) => _FullWidthButton(
-                  onTap: onTap,
-                  title: 'Current Parsha',
-                  icon: FontAwesomeIcons.bookOpen),
-            ),
-            PossibleContentBuilder<SiteDataBase>(
-              onTap: (data) =>
-                  positionService.setActiveItem(data, backToTop: true),
-              future: data,
-              mapper: (p0) => p0.timelyContent?.monthly?.value,
-              builder: (context, data, onTap) => _FullWidthButton(
-                  onTap: onTap,
-                  title: 'This Month',
-                  icon: Icons.calendar_today),
-            ),
-            PossibleContentBuilder<List<ContentReference>>(
-              future: data,
-              mapper: (p0) => p0.popular,
-              onTap: (data) => positionService.setVirtualSection(content: data),
-              builder: (context, data, onTap) => _FullWidthButton(
-                  icon: Icons.signal_cellular_alt,
-                  onTap: onTap,
-                  title: 'Most Popular Classes'),
-            ),
-            FutureBuilder<List<Media>>(
-              future: dataLayer.recent(),
-              builder: (context, data) {
-                VoidCallback? onPressed;
+              ),
+              PossibleContentBuilder<SiteDataBase>(
+                onTap: (data) =>
+                    positionService.setActiveItem(data, backToTop: true),
+                future: data,
+                mapper: (p0) => p0.timelyContent?.parsha?.value,
+                builder: (context, data, onTap) => _FullWidthButton(
+                    onTap: onTap,
+                    title: 'Current Parsha',
+                    icon: FontAwesomeIcons.bookOpen),
+              ),
+              PossibleContentBuilder<SiteDataBase>(
+                onTap: (data) =>
+                    positionService.setActiveItem(data, backToTop: true),
+                future: data,
+                mapper: (p0) => p0.timelyContent?.monthly?.value,
+                builder: (context, data, onTap) => _FullWidthButton(
+                    onTap: onTap,
+                    title: 'This Month',
+                    icon: Icons.calendar_today),
+              ),
+              PossibleContentBuilder<List<ContentReference>>(
+                future: data,
+                mapper: (p0) => p0.popular,
+                onTap: (data) =>
+                    positionService.setVirtualSection(content: data),
+                builder: (context, data, onTap) => _FullWidthButton(
+                    icon: Icons.signal_cellular_alt,
+                    onTap: onTap,
+                    title: 'Most Popular Classes'),
+              ),
+              FutureBuilder<List<Media>>(
+                future: dataLayer.recent(),
+                builder: (context, data) {
+                  VoidCallback? onPressed;
 
-                if (data.hasData) {
-                  onPressed = () => positionService.setVirtualSection(
-                      content: data.data!
-                          .map((e) => ContentReference.fromData(data: e))
-                          .toList());
-                }
+                  if (data.hasData) {
+                    onPressed = () => positionService.setVirtualSection(
+                        content: data.data!
+                            .map((e) => ContentReference.fromData(data: e))
+                            .toList());
+                  }
 
-                return OutlinedButton(
-                  onPressed: onPressed,
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 5),
-                        child: Icon(Icons.schedule),
-                      ),
-                      Text('Recently Uploaded Classes'),
-                      Spacer(),
-                      Icon(Icons.arrow_forward_ios)
-                    ],
-                  ),
-                );
-              },
-            ),
-          ],
+                  return _FullWidthButton(
+                    icon: Icons.schedule,
+                    onTap: onPressed ?? () {},
+                    title: 'Recently Uploaded Classes',
+                  );
+                },
+              ),
+            ],
+          ),
         ));
   }
 
@@ -254,11 +254,14 @@ class _FullWidthButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+          primary: Colors.grey.shade800,
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5)),
       onPressed: onTap,
       child: Row(
         children: [
           Padding(
-            padding: const EdgeInsets.only(right: 5),
+            padding: const EdgeInsets.only(right: 15),
             //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
             child: Icon(icon),
           ),
@@ -287,22 +290,25 @@ class HomepageSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(top: isFirst ? 0 : 10, bottom: 5),
-          child: Text(
-            title,
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade800,
-                fontSize: Theme.of(context).textTheme.headline6!.fontSize),
-            textScaleFactor: .8,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: isFirst ? 0 : 10, bottom: 5),
+            child: Text(
+              title,
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade700,
+                  fontSize: Theme.of(context).textTheme.headline6!.fontSize),
+              textScaleFactor: .8,
+            ),
           ),
-        ),
-        child
-      ],
+          child
+        ],
+      ),
     );
   }
 }
