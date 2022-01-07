@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/widgets/navigate-to-section.dart';
 import 'package:inside_data/inside_data.dart';
@@ -54,12 +56,12 @@ class PrimarySectionsRoute extends StatelessWidget {
                   aspectRatio: 9 / 3,
                   child: Stack(
                     children: [
-                      Positioned.fill(
-                        child: CachedNetworkImage(
-                          imageUrl: data?.first.imageUrl ??
-                              'https://media.insidechassidus.org/wp-content/uploads/20211125105910/chanuka.gif',
+                      if ((data?.first.imageUrl ?? '').isNotEmpty)
+                        Positioned.fill(
+                          child: CachedNetworkImage(
+                            imageUrl: data!.first.imageUrl,
+                          ),
                         ),
-                      ),
                       Padding(
                         padding: const EdgeInsets.only(left: 15),
                         child: Column(
@@ -132,29 +134,34 @@ class PrimarySectionsRoute extends StatelessWidget {
                 ),
               ],
             ),
-            // TODO: Parsha
-            // TODO: month classes, when API is updated
+            PossibleContentBuilder<SiteDataBase>(
+              onTap: (data) =>
+                  positionService.setActiveItem(data, backToTop: true),
+              future: data,
+              mapper: (p0) => p0.timelyContent?.parsha?.value,
+              builder: (context, data, onTap) => _FullWidthButton(
+                  onTap: onTap,
+                  title: 'Current Parsha',
+                  icon: FontAwesomeIcons.bookOpen),
+            ),
+            PossibleContentBuilder<SiteDataBase>(
+              onTap: (data) =>
+                  positionService.setActiveItem(data, backToTop: true),
+              future: data,
+              mapper: (p0) => p0.timelyContent?.monthly?.value,
+              builder: (context, data, onTap) => _FullWidthButton(
+                  onTap: onTap,
+                  title: 'This Month',
+                  icon: Icons.calendar_today),
+            ),
             PossibleContentBuilder<List<ContentReference>>(
               future: data,
               mapper: (p0) => p0.popular,
               onTap: (data) => positionService.setVirtualSection(content: data),
-              builder: (context, data, onTap) {
-                return OutlinedButton(
-                  onPressed: onTap,
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 5),
-                        //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
-                        child: Icon(Icons.signal_cellular_alt),
-                      ),
-                      Text('Most Popular Classes'),
-                      Spacer(),
-                      Icon(Icons.arrow_forward_ios)
-                    ],
-                  ),
-                );
-              },
+              builder: (context, data, onTap) => _FullWidthButton(
+                  icon: Icons.signal_cellular_alt,
+                  onTap: onTap,
+                  title: 'Most Popular Classes'),
             ),
             FutureBuilder<List<Media>>(
               future: dataLayer.recent(),
@@ -235,6 +242,35 @@ class PrimarySectionsRoute extends StatelessWidget {
   }
 }
 
+class _FullWidthButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final String title;
+  final IconData icon;
+
+  _FullWidthButton(
+      {Key? key, required this.onTap, required this.title, required this.icon})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: onTap,
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 5),
+            //TODO: We use this icon across the board, is it good? Should we make it smaller? Change it everywhere perhaps?
+            child: Icon(icon),
+          ),
+          Text(title),
+          Spacer(),
+          Icon(Icons.arrow_forward_ios)
+        ],
+      ),
+    );
+  }
+}
+
 class HomepageSection extends StatelessWidget {
   const HomepageSection(
       {Key? key,
@@ -283,7 +319,7 @@ class HomepageSection extends StatelessWidget {
 
 /// Build a widget which hopes to get some dynamic content.
 typedef Widget PossibleContentCallback<T>(
-    BuildContext context, T? data, VoidCallback? onTap);
+    BuildContext context, T? data, VoidCallback onTap);
 
 /// A callback to call if we manage to get data.
 typedef void PossibleContentOnTap<T>(T data);
@@ -296,13 +332,13 @@ class PossibleContentBuilder<UseT> extends StatelessWidget {
   final Future<SuggestedContent> future;
   late final UseT? Function(SuggestedContent) mapper;
 
-  PossibleContentBuilder(
-      {Key? key,
-      required this.builder,
-      required this.onTap,
-      required this.future,
-      UseT? Function(SuggestedContent)? mapper})
-      : super(key: key) {
+  PossibleContentBuilder({
+    Key? key,
+    required this.onTap,
+    required this.future,
+    UseT? Function(SuggestedContent)? mapper,
+    required this.builder,
+  }) : super(key: key) {
     this.mapper = mapper ?? (input) => input as UseT?;
   }
 

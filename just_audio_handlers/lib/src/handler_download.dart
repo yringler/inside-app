@@ -158,7 +158,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
           url: uri.toString(),
           savedDir: await _getDownloadFolder(),
           fileName: getFileName(uri: uri),
-          openFileFromNotification: false);
+          openFileFromNotification: true);
     } else if (status == DownloadTaskStatus.paused) {
       id = await FlutterDownloader.resume(taskId: downloadTask.taskId);
     }

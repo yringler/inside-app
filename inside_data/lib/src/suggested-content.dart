@@ -13,7 +13,7 @@ class SuggestedContentLoader {
   late final Dio dio;
 
   CacheOptions get cacheOptions => CacheOptions(
-      policy: CachePolicy.forceCache,
+      policy: CachePolicy.request,
       maxStale: Duration(hours: 12),
       store: DbCacheStore(databasePath: cachePath, logStatements: false));
 
@@ -52,6 +52,7 @@ class SuggestedContentLoader {
 
     return TimelyContent(
         parsha: await _content(timelyContent.parsha),
+        monthly: await _content(timelyContent.monthly),
         tanya: await _content(dailyContent.tanyaId),
         hayomYom: await _content(dailyContent.hayomYomId));
   }
@@ -135,11 +136,16 @@ class TimelyContent {
   final ContentReference? parsha;
   final ContentReference? tanya;
   final ContentReference? hayomYom;
+  final ContentReference? monthly;
 
-  bool get hasData => parsha != null || tanya != null || hayomYom != null;
+  bool get hasData =>
+      parsha != null || tanya != null || hayomYom != null || monthly != null;
 
   TimelyContent(
-      {required this.parsha, required this.tanya, required this.hayomYom});
+      {required this.parsha,
+      required this.tanya,
+      required this.hayomYom,
+      required this.monthly});
 }
 
 class FeaturedSection {
@@ -171,8 +177,9 @@ class FeaturedSectionVerified {
 @JsonSerializable()
 class _TimelyContentResponse {
   final int parsha;
+  final int monthly;
 
-  _TimelyContentResponse(this.parsha);
+  _TimelyContentResponse(this.parsha, this.monthly);
 
   factory _TimelyContentResponse.fromJson(Map<String, dynamic> json) =>
       _$TimelyContentResponseFromJson(json);

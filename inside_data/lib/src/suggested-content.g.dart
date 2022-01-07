@@ -10,12 +10,14 @@ _TimelyContentResponse _$TimelyContentResponseFromJson(
         Map<String, dynamic> json) =>
     _TimelyContentResponse(
       json['parsha'] as int,
+      json['monthly'] as int,
     );
 
 Map<String, dynamic> _$TimelyContentResponseToJson(
         _TimelyContentResponse instance) =>
     <String, dynamic>{
       'parsha': instance.parsha,
+      'monthly': instance.monthly,
     };
 
 _DailyClasses _$DailyClassesFromJson(Map<String, dynamic> json) =>
