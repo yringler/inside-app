@@ -24,6 +24,13 @@ dependencies:
   dio_cache_interceptor_db_store: ^4.0.0
   dio: ^4.0.4
   collection: ^1.15.0
+
+# dependency_overrides:
+#   dio_cache_interceptor:
+#     path: ../../dio_cache_interceptor/dio_cache_interceptor
+#   dio_cache_interceptor_db_store:
+#       path: ../../dio_cache_interceptor/dio_cache_interceptor_db_store
+
 dev_dependencies: 
   build_runner: ^2.1.0
   json_serializable: ^6.1.3

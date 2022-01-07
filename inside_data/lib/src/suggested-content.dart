@@ -7,6 +7,27 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'suggested-content.g.dart';
 
+class AddCacheHeaders extends Interceptor {
+  // final Duration maxAge;
+
+  // AddCacheHeaders({required this.maxAge});
+
+  @override
+  void onResponse(
+    Response response,
+    ResponseInterceptorHandler handler,
+  ) {
+    final options = CacheOptions.fromExtra(response.requestOptions);
+
+    if (options?.maxStale != null && options!.maxStale! > Duration.zero) {
+      response.headers.add(
+          'Cache-Control', 'public, max-age=${options.maxStale!.inSeconds}');
+    }
+
+    super.onResponse(response, handler);
+  }
+}
+
 class SuggestedContentLoader {
   final SiteDataLayer dataLayer;
   final String cachePath;
@@ -14,11 +35,12 @@ class SuggestedContentLoader {
 
   CacheOptions get cacheOptions => CacheOptions(
       policy: CachePolicy.request,
-      maxStale: Duration(hours: 12),
       store: DbCacheStore(databasePath: cachePath, logStatements: false));
 
   SuggestedContentLoader({required this.dataLayer, required this.cachePath}) {
-    dio = Dio()..interceptors.add(DioCacheInterceptor(options: cacheOptions));
+    dio = Dio()
+      ..interceptors.addAll(
+          [AddCacheHeaders(), DioCacheInterceptor(options: cacheOptions)]);
   }
 
   /// Get suggested content.
