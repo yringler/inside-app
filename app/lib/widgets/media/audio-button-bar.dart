@@ -129,7 +129,7 @@ class _AudioButtonBarState extends State<AudioButtonBar> {
             .where((speed) => speed != 0),
         initialData: 1,
         builder: (context, state) {
-          double currentSpeed = state.data!;
+          double currentSpeed = state.data ?? 1;
 
           final nextSpeedIndex =
               AudioButtonBar.speeds.indexOf(currentSpeed) + 1;
