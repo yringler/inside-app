@@ -1,6 +1,7 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:inside_chassidus/util/preferences.dart';
 import 'package:inside_chassidus/widgets/media-list/next-media-button.dart';
 import 'package:inside_chassidus/widgets/media-list/previous-media-button.dart';
 import 'package:inside_data/inside_data.dart';
@@ -38,6 +39,9 @@ class _AudioButtonBarState extends State<AudioButtonBar> {
   final AudioHandler handler = BlocProvider.getDependency<AudioHandler>();
 
   final SiteDataLayer dataLayer = BlocProvider.getDependency<SiteDataLayer>();
+
+  final InsidePreferences preferences =
+      BlocProvider.getDependency<InsidePreferences>();
 
   @override
   void initState() {
@@ -122,27 +126,27 @@ class _AudioButtonBarState extends State<AudioButtonBar> {
     );
   }
 
-  _speedButton(AudioHandler audioHandler) => StreamBuilder<double>(
-        stream: audioHandler.playbackState
-            .map((event) => event.speed)
-            .distinct()
-            .where((speed) => speed != 0),
-        initialData: 1,
-        builder: (context, state) {
-          double currentSpeed = state.data ?? 1;
+  _speedButton(AudioHandler audioHandler) =>
+      FutureBuilder(builder: (context, snapshot) {
+        return StreamBuilder<double>(
+          stream: preferences.speedStream,
+          initialData: preferences.currentSpeed,
+          builder: (context, state) {
+            double currentSpeed = state.data ?? 1;
 
-          final nextSpeedIndex =
-              AudioButtonBar.speeds.indexOf(currentSpeed) + 1;
-          final nextSpeed = AudioButtonBar.speeds[
-              nextSpeedIndex >= AudioButtonBar.speeds.length
-                  ? 0
-                  : nextSpeedIndex];
-          final currentDisplaySpeed =
-              currentSpeed.toStringAsFixed(2).replaceAll('.00', '');
+            final nextSpeedIndex =
+                AudioButtonBar.speeds.indexOf(currentSpeed) + 1;
+            final nextSpeed = AudioButtonBar.speeds[
+                nextSpeedIndex >= AudioButtonBar.speeds.length
+                    ? 0
+                    : nextSpeedIndex];
+            final currentDisplaySpeed =
+                currentSpeed.toStringAsFixed(2).replaceAll('.00', '');
 
-          return MaterialButton(
-              onPressed: () => audioHandler.setSpeed(nextSpeed),
-              child: Text('$currentDisplaySpeed x'));
-        },
-      );
+            return MaterialButton(
+                onPressed: () => audioHandler.setSpeed(nextSpeed),
+                child: Text('$currentDisplaySpeed x'));
+          },
+        );
+      });
 }

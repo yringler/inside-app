@@ -18,6 +18,7 @@ import 'package:inside_chassidus/tabs/search-tab.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
+import 'package:inside_chassidus/util/preferences.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart';
@@ -61,6 +62,7 @@ void main() async {
   final PositionSaver positionSaver = HivePositionSaver();
   final searchService = WordpressSearch(
       wordpressDomain: activeSourceDomain, siteBoxes: siteBoxes);
+  final insidePreferences = await InsidePreferences.newAsync();
 
   final session = await AudioSession.instance;
   await session.configure(AudioSessionConfiguration.speech());
@@ -74,8 +76,10 @@ void main() async {
           positionRepository: positionSaver,
           inner: LoggingJustAudioHandler(
               logger: AnalyticsLogger(),
-              inner:
-                  DbAccessAudioTask(layer: siteBoxes, player: AudioPlayer())),
+              inner: DbAccessAudioTask(
+                  layer: siteBoxes,
+                  preferences: insidePreferences,
+                  player: AudioPlayer())),
         )),
     config: AudioServiceConfig(
         androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
@@ -94,7 +98,8 @@ void main() async {
     Dependency((i) => libraryPositionService),
     Dependency((i) => searchService),
     Dependency((i) => audioHandler),
-    Dependency((i) => suggestedContent)
+    Dependency((i) => suggestedContent),
+    Dependency((i) => insidePreferences)
   ], blocs: [
     Bloc((i) => IsPlayerButtonsShowingBloc())
   ], child: AppRouterWidget()));
@@ -463,9 +468,15 @@ class AnalyticsLogger extends AudioLogger {
 
 class DbAccessAudioTask extends AudioHandlerJustAudio {
   final SiteDataLayer layer;
+  final InsidePreferences preferences;
 
-  DbAccessAudioTask({required this.layer, required AudioPlayer player})
-      : super(player: player);
+  DbAccessAudioTask(
+      {required this.layer,
+      required this.preferences,
+      required AudioPlayer player})
+      : super(player: player) {
+    player.setSpeed(preferences.currentSpeed);
+  }
 
   @override
   Future<MediaItem?> getMediaItem(String mediaId) async {
@@ -507,6 +518,12 @@ class DbAccessAudioTask extends AudioHandlerJustAudio {
     }
 
     return super.playFromMediaId(mediaId, extras);
+  }
+
+  @override
+  Future<void> setSpeed(double speed) async {
+    preferences.setSpeed(speed);
+    await super.setSpeed(speed);
   }
 }
 
