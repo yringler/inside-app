@@ -20,7 +20,7 @@ class AddCacheHeaders extends Interceptor {
     final options = CacheOptions.fromExtra(response.requestOptions);
 
     if (options?.maxStale != null && options!.maxStale! > Duration.zero) {
-      response.headers.add(
+      response.headers.set(
           'Cache-Control', 'public, max-age=${options.maxStale!.inSeconds}');
     }
 
