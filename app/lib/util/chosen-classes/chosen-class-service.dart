@@ -28,18 +28,20 @@ class ChosenClassService {
   final HiveImpl? hive;
   final Box<ChoosenClass>? classes;
 
-  Stream<Media?> get mostRecent {
+  Stream<Media?> get mostRecentStream => Rx.concat([
+        classes!
+            .watch()
+            .where((event) => event.value != null)
+            .map((event) => event.value)
+            .cast<ChoosenClass>()
+            .where((event) => event.isRecent ?? false)
+            .map((event) => event.media!)
+      ]);
+
+  ChoosenClass? mostRecent() {
     final current = getSorted(recent: true);
 
-    return Rx.concat([
-      if (current.isNotEmpty) Stream.value(current.first.media!),
-      classes!
-          .watch()
-          .where((event) => event.value != null)
-          .cast<ChoosenClass>()
-          .where((event) => event.isRecent ?? false)
-          .map((event) => event.media!)
-    ]);
+    return current.isNotEmpty ? current.first : null;
   }
 
   ChosenClassService({this.hive, this.classes});
