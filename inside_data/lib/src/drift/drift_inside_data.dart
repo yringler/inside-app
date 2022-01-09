@@ -106,11 +106,11 @@ class InsideDatabase extends _$InsideDatabase {
   MigrationStrategy get migration => MigrationStrategy(onCreate: (Migrator m) {
         return m.createAll();
       }, onUpgrade: (Migrator m, int from, int to) async {
-        if (from == 1) {
+        if (from < 2) {
           // we added the dueDate property in the change from version 1
           await m.addColumn(mediaTable, mediaTable.created);
         }
-        if (from == 2) {
+        if (from < 3) {
           await m.addColumn(mediaTable, mediaTable.link);
         }
       });
