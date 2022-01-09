@@ -25,6 +25,9 @@ import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
+/// When we want to force users to use latest asset on load, use this.
+const assetVersion = 1;
+
 void main() async {
   runApp(MaterialApp(
       home: Scaffold(
@@ -396,16 +399,21 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   final resourceFileFolder = (await getApplicationSupportDirectory()).path;
   final resourceFile = File(_getResourceFilePath(resourceFileFolder));
 
+  final resourceExists = await resourceFile.exists();
+
   // Create resource file which can be used from background isolate.
-  if (!await resourceFile.exists()) {
-    final blob = await rootBundle.load('assets/site.sqllite.gz');
+  if (!resourceExists) {
+    final blob = await rootBundle.load('assets/site.$assetVersion.sqlite.gz');
     await File(_getResourceFilePath(resourceFileFolder)).writeAsBytes(
         gzip.decode(
             blob.buffer.asUint8List(blob.offsetInBytes, blob.lengthInBytes)),
         flush: true);
   }
 
-  await compute(_ensureDataLoaded, [resourceFileFolder]);
+  // The second argument is if we should force reload DB from resource.
+  // If the requested resource doesn't exist, that means the app version changed, and
+  // we want to use the resource version.
+  await compute(_ensureDataLoaded, [resourceFileFolder, !resourceExists]);
 
   final siteData = DriftInsideData.fromFolder(
       folder: resourceFileFolder,
@@ -420,20 +428,24 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   return siteData;
 }
 
-String _getResourceFilePath(String folder) => p.join(folder, 'resource.sqlite');
+String _getResourceFilePath(String folder) =>
+    p.join(folder, 'resource.$assetVersion.sqlite');
 
 /// NOTE: This is expected to be run in another isolate.
 /// Do not connect to DB on main isolate before this returns.
 /// Make sure that there is data loaded.
 Future<void> _ensureDataLoaded(List<dynamic> args) async {
   final dbFolder = args[0] as String;
+  final forceRefreshFromResource = args[1] as bool;
 
   final siteData = DriftInsideData.fromFolder(
       folder: dbFolder,
       loader: JsonLoader(),
       topIds: topImagesInside.keys.map((e) => e.toString()).toList());
 
-  await siteData.init(preloadedDatabase: File(_getResourceFilePath(dbFolder)));
+  await siteData.init(
+      preloadedDatabase: File(_getResourceFilePath(dbFolder)),
+      forceRefresh: forceRefreshFromResource);
 
   await siteData.close();
 }

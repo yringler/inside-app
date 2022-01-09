@@ -438,8 +438,12 @@ class DriftInsideData extends SiteDataLayer {
       {required this.loader, required this.topIds, required this.folder})
       : _databases = _DataBasePair(folder: folder);
 
+  /// Init the database. The [preloadedDatabase] will be used if we don't have a database
+  /// already. If there's already a DB, it will not be used, unless [forceRefresh] forces it
+  /// to be updated from the resource. For example, app upgrade.
   @override
-  Future<void> init({File? preloadedDatabase}) async {
+  Future<void> init(
+      {File? preloadedDatabase, bool forceRefresh = false}) async {
     await _databases.init();
 
     final lastUpdate = await database.getUpdateTime();
@@ -449,7 +453,7 @@ class DriftInsideData extends SiteDataLayer {
      * Or, trigger a new load of one of the databases in the background.
      */
 
-    if (lastUpdate == null && preloadedDatabase != null) {
+    if ((lastUpdate == null || forceRefresh) && preloadedDatabase != null) {
       final writeFile = await _databases.writeFile();
       await writeFile.writeAsBytes(await preloadedDatabase.readAsBytes());
 
