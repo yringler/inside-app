@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:inside_data/src/wordpress-base.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:rxdart/rxdart.dart';
 
 part 'suggested-content.g.dart';
 
@@ -32,6 +35,7 @@ class SuggestedContentLoader {
   final String cachePath;
   late final Dio dio;
   late final CacheStore cacheStore;
+  late final ValueStream<SuggestedContent> suggestedContent;
 
   CacheOptions get cacheOptions =>
       CacheOptions(policy: CachePolicy.request, store: cacheStore);
@@ -43,6 +47,7 @@ class SuggestedContentLoader {
     dio = Dio()
       ..interceptors.addAll(
           [AddCacheHeaders(), DioCacheInterceptor(options: cacheOptions)]);
+    suggestedContent = Stream.fromFuture(load()).shareValue();
   }
 
   /// Get suggested content.

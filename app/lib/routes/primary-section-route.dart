@@ -37,11 +37,8 @@ class PrimarySectionsRoute extends StatelessWidget {
   }
 
   List<Widget> _promotedContent(BuildContext context) {
-    final data = suggestedContentLoader.load();
-
     return [
       PossibleContentBuilder<List<FeaturedSectionVerified>>(
-          future: data,
           mapper: (p0) => p0.featured,
           onTap: (featuredSections) => positionService
               .setActiveItem(featuredSections.first.section, backToTop: true),
@@ -50,48 +47,51 @@ class PrimarySectionsRoute extends StatelessWidget {
                 isFirst: true,
                 context: context,
                 title: 'Featured Classes',
-                child: AspectRatio(
-                  aspectRatio: 9 / 3,
-                  child: Stack(
-                    children: [
-                      if ((data?.first.imageUrl ?? '').isNotEmpty)
-                        Positioned.fill(
-                          child: CachedNetworkImage(
-                            imageUrl: data!.first.imageUrl,
-                            fadeInDuration: Duration.zero,
-                          ),
-                        ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(data?.first.title ?? 'Featured class',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headline6!
-                                    .copyWith(color: Colors.white)),
-                            ElevatedButton(
-                                onPressed: onPressed,
-                                style: ElevatedButton.styleFrom(
-                                    primary: Colors.white),
-                                child: Text(
-                                  data?.first.buttonText ?? 'Learn More',
-                                ))
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ));
+                child: _featuredClass(
+                    data: data, context: context, onPressed: onPressed));
           }),
-      _restOfPromotedContent(context, data),
+      _restOfPromotedContent(context),
     ];
   }
 
-  HomepageSection _restOfPromotedContent(
-      BuildContext context, Future<SuggestedContent> data) {
+  AspectRatio _featuredClass(
+      {List<FeaturedSectionVerified>? data,
+      required BuildContext context,
+      required VoidCallback onPressed}) {
+    return AspectRatio(
+      aspectRatio: 9 / 3,
+      child: Stack(
+        children: [
+          if ((data?.first.imageUrl ?? '').isNotEmpty)
+            Positioned.fill(
+              child: CachedNetworkImage(imageUrl: data!.first.imageUrl),
+            ),
+          Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(data?.first.title ?? 'Featured class',
+                    style: Theme.of(context)
+                        .textTheme
+                        .headline6!
+                        .copyWith(color: Colors.white)),
+                ElevatedButton(
+                    onPressed: onPressed,
+                    style: ElevatedButton.styleFrom(primary: Colors.white),
+                    child: Text(
+                      data?.first.buttonText ?? 'Learn More',
+                    ))
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  HomepageSection _restOfPromotedContent(BuildContext context) {
     return HomepageSection(
         context: context,
         title: 'Daily Study',
@@ -110,7 +110,6 @@ class PrimarySectionsRoute extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.only(right: 7.5),
                         child: PossibleContentBuilder<SiteDataBase>(
-                          future: data,
                           mapper: (p0) => p0.timelyContent?.tanya?.value,
                           onTap: (data) => positionService.setActiveItem(data,
                               backToTop: true),
@@ -125,7 +124,6 @@ class PrimarySectionsRoute extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 7.5),
                         child: PossibleContentBuilder<SiteDataBase>(
-                          future: data,
                           mapper: (p0) => p0.timelyContent?.hayomYom?.value,
                           onTap: (data) => positionService.setActiveItem(data,
                               backToTop: true),
@@ -142,7 +140,6 @@ class PrimarySectionsRoute extends StatelessWidget {
               PossibleContentBuilder<SiteDataBase>(
                 onTap: (data) =>
                     positionService.setActiveItem(data, backToTop: true),
-                future: data,
                 mapper: (p0) => p0.timelyContent?.parsha?.value,
                 builder: (context, data, onTap) => _FullWidthButton(
                     onTap: onTap,
@@ -152,7 +149,6 @@ class PrimarySectionsRoute extends StatelessWidget {
               PossibleContentBuilder<SiteDataBase>(
                 onTap: (data) =>
                     positionService.setActiveItem(data, backToTop: true),
-                future: data,
                 mapper: (p0) => p0.timelyContent?.monthly?.value,
                 builder: (context, data, onTap) => _FullWidthButton(
                     onTap: onTap,
@@ -160,7 +156,6 @@ class PrimarySectionsRoute extends StatelessWidget {
                     icon: Icons.calendar_today),
               ),
               PossibleContentBuilder<List<ContentReference>>(
-                future: data,
                 mapper: (p0) => p0.popular,
                 onTap: (data) =>
                     positionService.setVirtualSection(content: data),
@@ -333,13 +328,13 @@ class PossibleContentBuilder<UseT> extends StatelessWidget {
 
   /// Call for child to call when tapped, if and when we get data.
   final PossibleContentOnTap<UseT> onTap;
-  final Future<SuggestedContent> future;
+  final suggestedContent =
+      BlocProvider.getDependency<SuggestedContentLoader>().suggestedContent;
   late final UseT? Function(SuggestedContent) mapper;
 
   PossibleContentBuilder({
     Key? key,
     required this.onTap,
-    required this.future,
     UseT? Function(SuggestedContent)? mapper,
     required this.builder,
   }) : super(key: key) {
@@ -347,8 +342,9 @@ class PossibleContentBuilder<UseT> extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<SuggestedContent>(
-        future: future,
+  Widget build(BuildContext context) => StreamBuilder<SuggestedContent?>(
+        stream: suggestedContent,
+        initialData: suggestedContent.valueOrNull,
         builder: (context, snapshot) {
           VoidCallback onClick;
           final mappedData =
