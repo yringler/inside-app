@@ -34,7 +34,7 @@ class WordpressSearch extends Wordpress {
   /// Stream of results.
   Stream<List<ContentReference>> get activeResults => activeTermStream
       .debounceTime(Duration(milliseconds: 20))
-      .asyncMap(_search);
+      .switchMap((term) => Stream.fromFuture(_search(term)));
 
   Future<bool> get hasResults async {
     final currentTerm = _recentTerm.valueOrNull;

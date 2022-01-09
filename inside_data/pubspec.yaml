@@ -21,7 +21,6 @@ dependencies:
   drift: ^1.1.0
   sqlite3_flutter_libs: ^0.5.2
   dio_cache_interceptor: ^3.1.0
-  dio_cache_interceptor_db_store: ^4.0.0
   dio: ^4.0.4
   collection: ^1.15.0
 

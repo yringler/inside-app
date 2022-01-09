@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:dio_cache_interceptor_db_store/dio_cache_interceptor_db_store.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:inside_data/src/wordpress-base.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -32,12 +31,15 @@ class SuggestedContentLoader {
   final SiteDataLayer dataLayer;
   final String cachePath;
   late final Dio dio;
+  late final CacheStore cacheStore;
 
-  CacheOptions get cacheOptions => CacheOptions(
-      policy: CachePolicy.request,
-      store: DbCacheStore(databasePath: cachePath, logStatements: false));
+  CacheOptions get cacheOptions =>
+      CacheOptions(policy: CachePolicy.request, store: cacheStore);
 
-  SuggestedContentLoader({required this.dataLayer, required this.cachePath}) {
+  SuggestedContentLoader(
+      {required this.dataLayer,
+      required this.cachePath,
+      required this.cacheStore}) {
     dio = Dio()
       ..interceptors.addAll(
           [AddCacheHeaders(), DioCacheInterceptor(options: cacheOptions)]);
