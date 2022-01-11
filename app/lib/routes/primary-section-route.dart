@@ -190,17 +190,19 @@ class PrimarySectionsRoute extends StatelessWidget {
 
   Widget _sections(BuildContext context, List<Section> topLevel,
           SiteDataLayer dataLayer) =>
-      GridView.extent(
-          physics: NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          maxCrossAxisExtent: 200,
-          padding: const EdgeInsets.all(4),
-          mainAxisSpacing: 4,
-          crossAxisSpacing: 4,
-          children: [
-            for (var topItem in topLevel)
-              _primarySection(dataLayer, topItem, context)
-          ]);
+      FutureBuilder<bool>(
+          future: waitForConnected(),
+          builder: (context, snapshot) => GridView.extent(
+                  physics: NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  maxCrossAxisExtent: 200,
+                  padding: const EdgeInsets.all(4),
+                  mainAxisSpacing: 4,
+                  crossAxisSpacing: 4,
+                  children: [
+                    for (var topItem in topLevel)
+                      _primarySection(dataLayer, topItem, context)
+                  ]));
 
   Widget _primarySection(
       SiteDataLayer dataLayer, Section primaryInside, BuildContext context) {
@@ -355,13 +357,12 @@ class PossibleContentBuilder<UseT> extends StatelessWidget {
             onClick = () => _showMessage(
                 context: context,
                 message:
-                    "The classes are not loaded yet. Please try again soon.");
+                    "The classes are not loaded yet. Please try again soon. Ensure you have an active internet connection.");
           } else if (snapshot.hasError) {
             onClick = () => _showMessage(
                 context: context,
                 message:
-                    'An error occured. Classes could not be retrieved. Do you have an internet connection?'
-                    ' Classes may not be available now.'
+                    'An error occured. Classes could not be retrieved, and may not be available now.'
                     ' If this error continues, please let us know.');
           } else if (mappedData == null) {
             onClick = () => _showMessage(

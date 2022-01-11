@@ -23,6 +23,8 @@ dependencies:
   dio_cache_interceptor: ^3.1.0
   dio: ^4.0.4
   collection: ^1.15.0
+  connectivity_plus: ^2.2.0
+  flutter_fgbg: ^0.1.0
 
 dev_dependencies: 
   build_runner: ^2.1.0

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:audio_session/audio_session.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
-import 'package:dio_cache_interceptor_hive_store/dio_cache_interceptor_hive_store.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:dart_extensions/dart_extensions.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -44,7 +43,7 @@ void main() async {
   // This is only to be used for confirming that reports are being
   // submitted as expected. It is not intended to be used for everyday
   // development.
-  FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+  FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(kReleaseMode);
 
   // Pass all uncaught errors from the framework to Crashlytics.
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
@@ -58,8 +57,6 @@ void main() async {
   final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
   final suggestedContent = SuggestedContentLoader(
-      cacheStore:
-          HiveCacheStore((await getApplicationDocumentsDirectory()).path),
       dataLayer: siteBoxes,
       cachePath: p.join((await getApplicationSupportDirectory()).path, ''));
   final PositionSaver positionSaver = HivePositionSaver();

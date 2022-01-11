@@ -15,7 +15,7 @@ Media _$MediaFromJson(Map<String, dynamic> json) => Media(
       sort: json['sort'] as int,
       title: json['title'] as String,
       description: json['description'] as String,
-      link: json['link'] as String? ?? '',
+      link: json['link'] as String,
       parents:
           (json['parents'] as List<dynamic>).map((e) => e as String).toSet(),
       created: json['created'] == null

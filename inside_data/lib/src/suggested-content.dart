@@ -1,58 +1,61 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:inside_data/src/wordpress-base.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:path/path.dart' as p;
 
 part 'suggested-content.g.dart';
-
-class AddCacheHeaders extends Interceptor {
-  // final Duration maxAge;
-
-  // AddCacheHeaders({required this.maxAge});
-
-  @override
-  void onResponse(
-    Response response,
-    ResponseInterceptorHandler handler,
-  ) {
-    final options = CacheOptions.fromExtra(response.requestOptions);
-
-    if (options?.maxStale != null && options!.maxStale! > Duration.zero) {
-      response.headers.set(
-          'Cache-Control', 'public, max-age=${options.maxStale!.inSeconds}');
-    }
-
-    super.onResponse(response, handler);
-  }
-}
 
 class SuggestedContentLoader {
   final SiteDataLayer dataLayer;
   final String cachePath;
   late final Dio dio;
-  late final CacheStore cacheStore;
   late final ValueStream<SuggestedContent> suggestedContent;
 
-  CacheOptions get cacheOptions =>
-      CacheOptions(policy: CachePolicy.request, store: cacheStore);
+  SuggestedContentLoader({required this.dataLayer, required this.cachePath}) {
+    dio = Dio()..interceptors;
+    suggestedContent = _contentStream().shareValue();
+  }
 
-  SuggestedContentLoader(
-      {required this.dataLayer,
-      required this.cachePath,
-      required this.cacheStore}) {
-    dio = Dio()
-      ..interceptors.addAll(
-          [AddCacheHeaders(), DioCacheInterceptor(options: cacheOptions)]);
-    suggestedContent = Stream.fromFuture(load()).shareValue();
+  Stream<SuggestedContent> _contentStream() async* {
+    final cacheFile = File(p.join(cachePath, 'suggested.json'));
+
+    // Try to load from cache.
+    // If the cache is old, we'll also load from APIs, after.
+    if (await cacheFile.exists()) {
+      try {
+        final suggestedJson = jsonDecode(await cacheFile.readAsString());
+        yield SuggestedContent.fromJson(suggestedJson);
+      } catch (ex) {
+        assert(ex == null, ex.toString());
+        print(ex);
+      }
+
+      // Only request new data from API if the cache is more than 3 hours old.
+      final staleDate =
+          (await cacheFile.lastModified()).add(Duration(hours: 3));
+      if (staleDate.isAfter(DateTime.now())) {
+        return;
+      }
+    }
+
+    await waitForConnected();
+
+    final content = await _httpLoad();
+
+    yield content;
+
+    cacheFile.writeAsString(jsonEncode(content));
   }
 
   /// Get suggested content.
   /// Doesn't request new data more than once every few hours.
-  Future<SuggestedContent> load() async {
+  Future<SuggestedContent> _httpLoad() async {
     final content =
         await Future.wait([_timelyContent(), _popular(), _featured()]);
 
@@ -67,10 +70,8 @@ class SuggestedContentLoader {
   Future<TimelyContent?> _timelyContent() async {
     final responses = await Future.wait([
       dio.get(
-          'https://insidechassidus.org/wp-json/ics_recurring_api/v1/category',
-          options: _options(Duration(days: 1))),
-      dio.get('https://insidechassidus.org/wp-json/ics_recurring_api/v1/daily',
-          options: _options(Duration(hours: 3)))
+          'https://insidechassidus.org/wp-json/ics_recurring_api/v1/category'),
+      dio.get('https://insidechassidus.org/wp-json/ics_recurring_api/v1/daily')
     ]);
 
     final timelyResponse = responses[0];
@@ -88,8 +89,7 @@ class SuggestedContentLoader {
 
   Future<List<ContentReference>> _popular() async {
     final popularResponse = await dio.get<List<dynamic>>(
-        'https://insidechassidus.org/wp-json/wordpress-popular-posts/v1/popular-posts',
-        options: _options(Duration(days: 1)));
+        'https://insidechassidus.org/wp-json/wordpress-popular-posts/v1/popular-posts');
 
     if (popularResponse.data == null) {
       return [];
@@ -110,13 +110,9 @@ class SuggestedContentLoader {
     return popularData;
   }
 
-  Options _options(Duration stale) =>
-      cacheOptions.copyWith(maxStale: stale).toOptions();
-
   Future<List<FeaturedSectionVerified>> _featured() async {
     final featuredResponse = await dio.get<List<dynamic>>(
-        'https://insidechassidus.org/wp-json/ics_slider_api/v1/featured',
-        options: _options(Duration(days: 1)));
+        'https://insidechassidus.org/wp-json/ics_slider_api/v1/featured');
 
     if (featuredResponse.data == null) {
       return [];
@@ -147,6 +143,7 @@ class SuggestedContentLoader {
           data: await dataLayer.mediaOrSection(id.toString()));
 }
 
+@JsonSerializable()
 class SuggestedContent {
   final TimelyContent? timelyContent;
   final List<ContentReference>? popular;
@@ -159,8 +156,13 @@ class SuggestedContent {
       : timelyContent = timelyContent?.hasData ?? false ? timelyContent : null,
         popular = popular?.isNotEmpty ?? false ? popular : null,
         featured = featured?.isNotEmpty ?? false ? featured : null;
+
+  factory SuggestedContent.fromJson(Map<String, dynamic> json) =>
+      _$SuggestedContentFromJson(json);
+  Map<String, dynamic> toJson() => _$SuggestedContentToJson(this);
 }
 
+@JsonSerializable()
 class TimelyContent {
   final ContentReference? parsha;
   final ContentReference? tanya;
@@ -175,8 +177,13 @@ class TimelyContent {
       required this.tanya,
       required this.hayomYom,
       required this.monthly});
+
+  factory TimelyContent.fromJson(Map<String, dynamic> json) =>
+      _$TimelyContentFromJson(json);
+  Map<String, dynamic> toJson() => _$TimelyContentToJson(this);
 }
 
+@JsonSerializable()
 class FeaturedSection {
   final String title;
   final String imageUrl;
@@ -188,8 +195,13 @@ class FeaturedSection {
       this.section,
       required this.imageUrl,
       required this.buttonText});
+
+  factory FeaturedSection.fromJson(Map<String, dynamic> json) =>
+      _$FeaturedSectionFromJson(json);
+  Map<String, dynamic> toJson() => _$FeaturedSectionToJson(this);
 }
 
+@JsonSerializable()
 class FeaturedSectionVerified {
   final String title;
   final String imageUrl;
@@ -201,6 +213,10 @@ class FeaturedSectionVerified {
       required this.section,
       required this.imageUrl,
       required this.buttonText});
+
+  factory FeaturedSectionVerified.fromJson(Map<String, dynamic> json) =>
+      _$FeaturedSectionVerifiedFromJson(json);
+  Map<String, dynamic> toJson() => _$FeaturedSectionVerifiedToJson(this);
 }
 
 @JsonSerializable()
