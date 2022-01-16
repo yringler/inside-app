@@ -10,7 +10,8 @@ class NowPlayingTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Media?>(
-        stream: chosenClassService.mostRecent,
+        stream: chosenClassService.mostRecentStream,
+        initialData: chosenClassService.mostRecent()?.media,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(

@@ -17,7 +17,14 @@ abstract class IRoutDataService {
 class LibraryPositionService extends ChangeNotifier
     implements IRoutDataService {
   final SiteDataLayer siteBoxes;
-  List<SitePosition> sections = [];
+  List<SitePosition> get sections => sectionCollection.positions;
+  bool get backToTop => sectionCollection.forceCanPopToHome;
+  SitePositionCollection sectionCollection =
+      SitePositionCollection(positions: []);
+
+  bool get hasContent =>
+      sections.where((element) => element.wasNavigatedTo).isNotEmpty ||
+      sectionCollection.virtualSection.isNotEmpty;
 
   LibraryPositionService({required this.siteBoxes});
 
@@ -25,21 +32,39 @@ class LibraryPositionService extends ChangeNotifier
   /// If new parent isn't in list, replace the list with it and its ancestors.
   /// Make note that they were never navigated to (and so shouldn't show up
   /// e.g. when user hits back button)
-  Future<List<SitePosition>> setActiveItem(SiteDataBase? item) async {
+  /// If [backToTop] is true, force enable navigate to home page.
+  Future<List<SitePosition>> setActiveItem(SiteDataBase? item,
+      {bool backToTop = false}) async {
     if (sections.isNotEmpty && sections.last.data == item) {
       notifyListeners();
       return sections;
     }
 
-    await _clearTo(item!);
+    await _clearTo(item!, backToTop: backToTop);
 
     notifyListeners();
     return sections;
   }
 
+  setVirtualSection({required List<ContentReference> content}) {
+    if (content.isEmpty) {
+      return;
+    }
+
+    sectionCollection = SitePositionCollection(virtualSection: content);
+
+    notifyListeners();
+  }
+
   bool removeLast() {
-    if (sections.isNotEmpty) {
+    if (sections.where((element) => element.wasNavigatedTo).isNotEmpty) {
       sections.removeLast();
+      notifyListeners();
+      return true;
+    }
+
+    if (sectionCollection.virtualSection.isNotEmpty) {
+      sectionCollection = sectionCollection.copyWith(virtualSection: []);
       notifyListeners();
       return true;
     }
@@ -48,14 +73,14 @@ class LibraryPositionService extends ChangeNotifier
   }
 
   clear() {
-    if (sections.isNotEmpty) {
-      sections.clear();
+    if (hasContent) {
+      sectionCollection = SitePositionCollection();
       notifyListeners();
     }
   }
 
   /// Clear the saved list, and reset to the given item and all of its parents.
-  Future<void> _clearTo(SiteDataBase item) async {
+  Future<void> _clearTo(SiteDataBase item, {bool backToTop = false}) async {
     if (item is Section && item.content.isEmpty) {
       // A query of a section does not return child content IDs, so in router get
       // that info.
@@ -71,8 +96,9 @@ class LibraryPositionService extends ChangeNotifier
         .cast<String>()
         .toSet();
 
-    sections.clear();
-    sections.add(SitePosition(data: item, level: 0, wasNavigatedTo: true));
+    final newSections = [
+      SitePosition(data: item, level: 0, wasNavigatedTo: true)
+    ];
 
     // Add all the parents to the list. These aren't used for some navigation (the
     // back button won't get you there), but they are used for explicit navigation
@@ -89,24 +115,70 @@ class LibraryPositionService extends ChangeNotifier
 
       // (Removed code dealing with old Lesson type)
 
-      sections.insert(
+      newSections.insert(
           0,
           SitePosition(
               data: parentSection,
-              level: sections.length,
+              level: newSections.length,
               wasNavigatedTo: wasNavigatedTo.contains(parentSection.id)));
       lastItemAdded = parentSection;
     }
 
-    for (int i = 0; i < sections.length; i++) {
-      sections[i].level = i;
+    for (int i = 0; i < newSections.length; i++) {
+      newSections[i].level = i;
 
       // TODO: implement optimize data here?
       // if (sections[i].data is Section) {
       //   await siteBoxes.resolve(sections[i].data as Section);
       // }
     }
+
+    // If this navigation was a click on a list of section content.
+    final lastHadParent = sections.any((element) =>
+        element.data != null && item.hasParentId(element.data!.id));
+
+    // If this is clicked from a virtual section to a child.
+    final isClickFromVirtual = sectionCollection.virtualSection
+        .where((element) => element.id == item.id)
+        .isNotEmpty;
+
+    // User can back up to home page if that was forced from argument.
+    // Or, user is navigating between children of a section which had that forced.
+
+    sectionCollection = SitePositionCollection(
+        positions: newSections,
+        // We keep the virtual section if clicked a virtual content, or has been navigating around
+        // to related content from there.
+        virtualSection: isClickFromVirtual || lastHadParent
+            ? sectionCollection.virtualSection
+            : [],
+        forceCanPopToHome:
+            (lastHadParent && sectionCollection.forceCanPopToHome) ||
+                backToTop);
   }
+}
+
+class SitePositionCollection {
+  final bool forceCanPopToHome;
+  final List<SitePosition> positions;
+
+  /// A collection of content we want to show (eg, popular classes) which isn't
+  /// actually a section in the local DB.
+  final List<ContentReference> virtualSection;
+
+  SitePositionCollection(
+      {this.forceCanPopToHome = false,
+      this.positions = const [],
+      this.virtualSection = const []});
+
+  SitePositionCollection copyWith(
+          {bool? forceCanPopToHome,
+          List<SitePosition>? positions,
+          List<ContentReference>? virtualSection}) =>
+      SitePositionCollection(
+          positions: positions ?? this.positions,
+          forceCanPopToHome: forceCanPopToHome ?? this.forceCanPopToHome,
+          virtualSection: virtualSection ?? this.virtualSection);
 }
 
 class SitePosition {

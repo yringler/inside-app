@@ -5,6 +5,7 @@ import 'package:inside_data/inside_data.dart';
 import 'package:drift/native.dart';
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
+import 'package:collection/collection.dart';
 
 part 'drift_inside_data.g.dart';
 
@@ -35,6 +36,9 @@ class MediaTable extends Table {
   IntColumn get sort => integer()();
   TextColumn get title => text().nullable()();
   TextColumn get description => text().nullable()();
+  IntColumn get created => integer().withDefault(const Constant(0))();
+
+  TextColumn get link => text().withDefault(const Constant(''))();
 
   /// How long the class is, in milliseconds.
   IntColumn get duration => integer().nullable()();
@@ -96,7 +100,20 @@ class InsideDatabase extends _$InsideDatabase {
       : super(_openConnection(folder: folder, number: number));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(onCreate: (Migrator m) {
+        return m.createAll();
+      }, onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          // we added the dueDate property in the change from version 1
+          await m.addColumn(mediaTable, mediaTable.created);
+        }
+        if (from < 3) {
+          await m.addColumn(mediaTable, mediaTable.link);
+        }
+      });
 
   Future<void> addSections(
       Iterable<Section> sections, Map<String, List<String>> contentSort) async {
@@ -144,9 +161,11 @@ class InsideDatabase extends _$InsideDatabase {
         .map((e) => MediaTableCompanion.insert(
             id: e.id,
             source: e.source,
+            link: Value(e.link),
             sort: e.sort,
             duration: Value(e.length?.inMilliseconds),
             description: Value(e.description),
+            created: Value(e.created!.millisecondsSinceEpoch),
             title: Value(e.title)))
         .toList();
 
@@ -203,6 +222,8 @@ class InsideDatabase extends _$InsideDatabase {
         source: media.source,
         id: id,
         sort: media.sort,
+        created: DateTime.fromMillisecondsSinceEpoch(media.created),
+        link: media.link,
         title: media.title ?? '',
         length: media.duration == null
             ? null
@@ -288,6 +309,8 @@ class InsideDatabase extends _$InsideDatabase {
                 source: e.source,
                 id: e.id,
                 sort: e.sort,
+                link: e.link,
+                created: DateTime.fromMillisecondsSinceEpoch(e.created),
                 title: e.title ?? "'",
                 length: e.duration == null
                     ? null
@@ -314,6 +337,37 @@ class InsideDatabase extends _$InsideDatabase {
     return row == null
         ? null
         : DateTime.fromMillisecondsSinceEpoch(row.updateTime);
+  }
+
+  Future<List<Media>> latestMedia() async {
+    final latestMediaRows = await latest(10).get();
+
+    final parentsMap =
+        groupBy<LatestResult, String>(latestMediaRows, (row) => row.media.id);
+
+    final medias = parentsMap.keys.map((e) {
+      final base = parentsMap[e]!.first.media;
+
+      return Media(
+          source: base.source,
+          created: DateTime.fromMillisecondsSinceEpoch(base.created),
+          length: base.duration == null
+              ? null
+              : Duration(milliseconds: base.duration!),
+          link: base.link,
+          id: base.id,
+          sort: base.sort,
+          title: base.title ?? '',
+          description: base.description ?? '',
+          parents: parentsMap[e]!.map((e) => e.parent.parentSection).toSet());
+    }).toList();
+
+    medias.sort((m1, m2) => latestMediaRows
+        .indexWhere((element) => element.media.id == m2.id)
+        .compareTo(latestMediaRows
+            .indexWhere((element) => element.media.id == m1.id)));
+
+    return medias;
   }
 }
 
@@ -384,8 +438,12 @@ class DriftInsideData extends SiteDataLayer {
       {required this.loader, required this.topIds, required this.folder})
       : _databases = _DataBasePair(folder: folder);
 
+  /// Init the database. The [preloadedDatabase] will be used if we don't have a database
+  /// already. If there's already a DB, it will not be used, unless [forceRefresh] forces it
+  /// to be updated from the resource. For example, app upgrade.
   @override
-  Future<void> init({File? preloadedDatabase}) async {
+  Future<void> init(
+      {File? preloadedDatabase, bool forceRefresh = false}) async {
     await _databases.init();
 
     final lastUpdate = await database.getUpdateTime();
@@ -395,7 +453,7 @@ class DriftInsideData extends SiteDataLayer {
      * Or, trigger a new load of one of the databases in the background.
      */
 
-    if (lastUpdate == null && preloadedDatabase != null) {
+    if ((lastUpdate == null || forceRefresh) && preloadedDatabase != null) {
       final writeFile = await _databases.writeFile();
       await writeFile.writeAsBytes(await preloadedDatabase.readAsBytes());
 
@@ -472,6 +530,9 @@ class DriftInsideData extends SiteDataLayer {
 
   @override
   Future<DateTime?> lastUpdate() => database.getUpdateTime();
+
+  @override
+  Future<List<Media>> recent() => database.latestMedia();
 }
 
 Iterable<List<T>> groupsOf<T>(List<T> list, int groupSize) sync* {
@@ -487,7 +548,7 @@ Iterable<List<T>> groupsOf<T>(List<T> list, int groupSize) sync* {
   // }
 }
 
-const dataVersion = 7;
+const dataVersion = 9;
 
 /// Downloads newer DB from API if we don't already have the latest.
 Future<List<int>?> _getLatestDb(DateTime lastLoadTime) async {

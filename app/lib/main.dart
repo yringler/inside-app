@@ -18,12 +18,16 @@ import 'package:inside_chassidus/tabs/search-tab.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
+import 'package:inside_chassidus/util/preferences.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart';
 import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+
+/// When we want to force users to use latest asset on load, use this.
+const assetVersion = 1;
 
 void main() async {
   runApp(MaterialApp(
@@ -39,7 +43,7 @@ void main() async {
   // This is only to be used for confirming that reports are being
   // submitted as expected. It is not intended to be used for everyday
   // development.
-  FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+  FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(kReleaseMode);
 
   // Pass all uncaught errors from the framework to Crashlytics.
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
@@ -52,9 +56,13 @@ void main() async {
   final chosenService = await ChosenClassService.create(siteBoxes);
   final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
+  final suggestedContent = SuggestedContentLoader(
+      dataLayer: siteBoxes,
+      cachePath: p.join((await getApplicationSupportDirectory()).path, ''));
   final PositionSaver positionSaver = HivePositionSaver();
   final searchService = WordpressSearch(
       wordpressDomain: activeSourceDomain, siteBoxes: siteBoxes);
+  final insidePreferences = await InsidePreferences.newAsync();
 
   final session = await AudioSession.instance;
   await session.configure(AudioSessionConfiguration.speech());
@@ -68,8 +76,10 @@ void main() async {
           positionRepository: positionSaver,
           inner: LoggingJustAudioHandler(
               logger: AnalyticsLogger(),
-              inner:
-                  DbAccessAudioTask(layer: siteBoxes, player: AudioPlayer())),
+              inner: DbAccessAudioTask(
+                  layer: siteBoxes,
+                  preferences: insidePreferences,
+                  player: AudioPlayer())),
         )),
     config: AudioServiceConfig(
         androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
@@ -87,7 +97,9 @@ void main() async {
     Dependency((i) => downloadManager),
     Dependency((i) => libraryPositionService),
     Dependency((i) => searchService),
-    Dependency((i) => audioHandler)
+    Dependency((i) => audioHandler),
+    Dependency((i) => suggestedContent),
+    Dependency((i) => insidePreferences)
   ], blocs: [
     Bloc((i) => IsPlayerButtonsShowingBloc())
   ], child: AppRouterWidget()));
@@ -307,11 +319,11 @@ class MyAppState extends State<MyApp> {
 
     final value = TabType.values[intValue];
 
-    // If the home button is pressed when already on home section, we show the
+    // If the home button is pressed when already on home section, we stay on the
     // lesson tab, but go back to root.
     if (value == TabType.libraryHome &&
         _currentTab == TabType.libraryHome &&
-        positionService.sections.isNotEmpty) {
+        positionService.hasContent) {
       positionService.clear();
     }
 
@@ -356,7 +368,7 @@ class MyAppState extends State<MyApp> {
   bool _getCanPop() {
     switch (_currentTab) {
       case TabType.libraryHome:
-        return positionService.sections.isNotEmpty;
+        return positionService.hasContent;
       case TabType.recent:
         return widget.recentState.hasMedia();
       case TabType.favorites:
@@ -392,16 +404,21 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   final resourceFileFolder = (await getApplicationSupportDirectory()).path;
   final resourceFile = File(_getResourceFilePath(resourceFileFolder));
 
+  final resourceExists = await resourceFile.exists();
+
   // Create resource file which can be used from background isolate.
-  if (!await resourceFile.exists()) {
-    final blob = await rootBundle.load('assets/site.sqllite.gz');
+  if (!resourceExists) {
+    final blob = await rootBundle.load('assets/site.$assetVersion.sqlite.gz');
     await File(_getResourceFilePath(resourceFileFolder)).writeAsBytes(
         gzip.decode(
             blob.buffer.asUint8List(blob.offsetInBytes, blob.lengthInBytes)),
         flush: true);
   }
 
-  await compute(_ensureDataLoaded, [resourceFileFolder]);
+  // The second argument is if we should force reload DB from resource.
+  // If the requested resource doesn't exist, that means the app version changed, and
+  // we want to use the resource version.
+  await compute(_ensureDataLoaded, [resourceFileFolder, !resourceExists]);
 
   final siteData = DriftInsideData.fromFolder(
       folder: resourceFileFolder,
@@ -416,20 +433,24 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   return siteData;
 }
 
-String _getResourceFilePath(String folder) => p.join(folder, 'resource.sqlite');
+String _getResourceFilePath(String folder) =>
+    p.join(folder, 'resource.$assetVersion.sqlite');
 
 /// NOTE: This is expected to be run in another isolate.
 /// Do not connect to DB on main isolate before this returns.
 /// Make sure that there is data loaded.
 Future<void> _ensureDataLoaded(List<dynamic> args) async {
   final dbFolder = args[0] as String;
+  final forceRefreshFromResource = args[1] as bool;
 
   final siteData = DriftInsideData.fromFolder(
       folder: dbFolder,
       loader: JsonLoader(),
       topIds: topImagesInside.keys.map((e) => e.toString()).toList());
 
-  await siteData.init(preloadedDatabase: File(_getResourceFilePath(dbFolder)));
+  await siteData.init(
+      preloadedDatabase: File(_getResourceFilePath(dbFolder)),
+      forceRefresh: forceRefreshFromResource);
 
   await siteData.close();
 }
@@ -447,9 +468,15 @@ class AnalyticsLogger extends AudioLogger {
 
 class DbAccessAudioTask extends AudioHandlerJustAudio {
   final SiteDataLayer layer;
+  final InsidePreferences preferences;
 
-  DbAccessAudioTask({required this.layer, required AudioPlayer player})
-      : super(player: player);
+  DbAccessAudioTask(
+      {required this.layer,
+      required this.preferences,
+      required AudioPlayer player})
+      : super(player: player) {
+    player.setSpeed(preferences.currentSpeed);
+  }
 
   @override
   Future<MediaItem?> getMediaItem(String mediaId) async {
@@ -491,6 +518,12 @@ class DbAccessAudioTask extends AudioHandlerJustAudio {
     }
 
     return super.playFromMediaId(mediaId, extras);
+  }
+
+  @override
+  Future<void> setSpeed(double speed) async {
+    preferences.setSpeed(speed);
+    await super.setSpeed(speed);
   }
 }
 
