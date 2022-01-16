@@ -54,39 +54,46 @@ class PrimarySectionsRoute extends StatelessWidget {
     ];
   }
 
-  AspectRatio _featuredClass(
+  Widget _featuredClass(
       {List<FeaturedSectionVerified>? data,
       required BuildContext context,
       required VoidCallback onPressed}) {
-    return AspectRatio(
-      aspectRatio: 9 / 3,
-      child: Stack(
-        children: [
-          if ((data?.first.imageUrl ?? '').isNotEmpty)
-            Positioned.fill(
-              child: CachedNetworkImage(imageUrl: data!.first.imageUrl),
-            ),
-          Padding(
-            padding: const EdgeInsets.only(left: 15),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(data?.first.title ?? 'Featured class',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headline6!
-                        .copyWith(color: Colors.white)),
-                ElevatedButton(
-                    onPressed: onPressed,
-                    style: ElevatedButton.styleFrom(primary: Colors.white),
-                    child: Text(
-                      data?.first.buttonText ?? 'Learn More',
-                    ))
-              ],
-            ),
-          )
-        ],
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: screenHeight / 3),
+        child: AspectRatio(
+          aspectRatio: 9 / 3,
+          child: Stack(
+            children: [
+              if ((data?.first.imageUrl ?? '').isNotEmpty)
+                Positioned.fill(
+                  child: CachedNetworkImage(imageUrl: data!.first.imageUrl),
+                ),
+              Padding(
+                padding: const EdgeInsets.only(left: 15),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(data?.first.title ?? 'Featured class',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headline6!
+                            .copyWith(color: Colors.white)),
+                    ElevatedButton(
+                        onPressed: onPressed,
+                        style: ElevatedButton.styleFrom(primary: Colors.white),
+                        child: Text(
+                          data?.first.buttonText ?? 'Learn More',
+                        ))
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
