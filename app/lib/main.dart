@@ -17,6 +17,7 @@ import 'package:inside_chassidus/tabs/recent-tab.dart';
 import 'package:inside_chassidus/tabs/search-tab.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
+import 'package:inside_chassidus/util/connected.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/util/preferences.dart';
 import 'package:inside_data/inside_data.dart';
@@ -57,6 +58,7 @@ void main() async {
   final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
   final suggestedContent = SuggestedContentLoader(
+      isConnected: waitForConnected(),
       dataLayer: siteBoxes,
       cachePath: p.join((await getApplicationSupportDirectory()).path, ''));
   final PositionSaver positionSaver = HivePositionSaver();

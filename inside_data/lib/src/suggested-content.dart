@@ -14,10 +14,16 @@ part 'suggested-content.g.dart';
 class SuggestedContentLoader {
   final SiteDataLayer dataLayer;
   final String cachePath;
+
+  /// Future that resolves when there is internet connection.
+  final Future<void> isConnected;
   late final Dio dio;
   late final ValueStream<SuggestedContent> suggestedContent;
 
-  SuggestedContentLoader({required this.dataLayer, required this.cachePath}) {
+  SuggestedContentLoader(
+      {required this.dataLayer,
+      required this.cachePath,
+      required this.isConnected}) {
     dio = Dio()..interceptors;
     suggestedContent = _contentStream().shareValue();
   }
@@ -44,7 +50,7 @@ class SuggestedContentLoader {
       }
     }
 
-    await waitForConnected();
+    await isConnected;
 
     final content = await _httpLoad();
 
