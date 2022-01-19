@@ -215,7 +215,14 @@ class MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-            title: Text(appTitle),
+            centerTitle: true,
+            title: SizedBox(
+                height: .6 * kToolbarHeight,
+                child: Image.asset(
+                  'assets/logo.png',
+                  errorBuilder: (context, error, stackTrace) =>
+                      Text('Inside Chassidus'),
+                )),
             leading: _getCanPop()
                 ? BackButton(
                     onPressed: () async {
