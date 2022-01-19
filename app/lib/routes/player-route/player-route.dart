@@ -10,7 +10,6 @@ import 'package:inside_chassidus/widgets/media/audio-button-bar.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:share_plus/share_plus.dart' as SharePlus;
-import 'package:esys_flutter_share/esys_flutter_share.dart' as OldShare;
 
 class PlayerRoute extends StatelessWidget {
   static const String routeName = '/library/playerroute';
@@ -96,9 +95,6 @@ class PlayerRoute extends StatelessWidget {
                                     .toFilePath();
 
                             assert(File(path).existsSync());
-
-                            // await OldShare.Share.file('file', 'name here',
-                            //     (await File(path).readAsBytes()), 'audio/mpeg');
 
                             SharePlus.Share.shareFiles([path],
                                 text: 'Listen to this class!',

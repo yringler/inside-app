@@ -304,15 +304,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0"
-  esys_flutter_share:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: "nullsafety+embedding-2"
-      resolved-ref: "8beaa496e338b159509c7e9a6eb066ec83b563f9"
-      url: "https://github.com/cihadturhan/esys-flutter-share.git"
-    source: git
-    version: "1.0.2"
   expandable:
     dependency: "direct main"
     description:
