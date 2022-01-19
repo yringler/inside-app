@@ -40,20 +40,29 @@ class PlayerRoute extends StatelessWidget {
                 data: Theme.of(context).copyWith(
                   iconTheme: IconThemeData(size: 30),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _favoriteButton(context),
-                    DownloadButton(
-                      buttonBuilder: (icon, onPressed) => IconButton(
-                          onPressed: onPressed,
-                          icon: Icon(
-                            icon,
-                          )),
-                      audioSource: media.source,
-                      downloader: BlocProvider.getDependency<AudioDownloader>(),
-                    )
-                  ],
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400, width: 1),
+                      borderRadius: BorderRadius.all(Radius.circular(10))),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _favoriteButton(context),
+                      DownloadButton(
+                        buttonBuilder: (icon, onPressed) => IconButton(
+                            onPressed: onPressed,
+                            icon: Icon(
+                              icon,
+                            )),
+                        audioSource: media.source,
+                        downloader:
+                            BlocProvider.getDependency<AudioDownloader>(),
+                      ),
+                      IconButton(onPressed: () => {}, icon: Icon(Icons.share))
+                    ],
+                  ),
                 ),
               ),
               ProgressBar(
@@ -131,6 +140,7 @@ class PlayerRoute extends StatelessWidget {
       media.id,
       builder: (context, isFavorite) => Center(
         child: IconButton(
+          tooltip: 'Favorite',
           iconSize: Theme.of(context).iconTheme.size!,
           onPressed: () =>
               chosenService.set(media: media, isFavorite: !isFavorite),
