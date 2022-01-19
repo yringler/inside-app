@@ -223,12 +223,16 @@ class PrimarySectionsRoute extends StatelessWidget {
         children: <Widget>[
           if (image != null)
             CachedNetworkImage(
-                errorWidget: (context, url, error) => SizedBox(
-                      height: 500,
-                      width: 500,
-                      child: Container(
-                        decoration: BoxDecoration(color: Colors.grey.shade600),
+                errorWidget: (context, url, error) => FutureBuilder<void>(
+                      builder: (context, snapshot) => SizedBox(
+                        height: 500,
+                        width: 500,
+                        child: Container(
+                          decoration:
+                              BoxDecoration(color: Colors.grey.shade700),
+                        ),
                       ),
+                      future: CachedNetworkImage.evictFromCache(url),
                     ),
                 imageUrl: image,
                 repeat: ImageRepeat.noRepeat,
