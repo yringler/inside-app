@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -7,6 +9,8 @@ import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
+import 'package:share_plus/share_plus.dart' as SharePlus;
+import 'package:esys_flutter_share/esys_flutter_share.dart' as OldShare;
 
 class PlayerRoute extends StatelessWidget {
   static const String routeName = '/library/playerroute';
@@ -16,6 +20,8 @@ class PlayerRoute extends StatelessWidget {
 
   final libraryPositionService =
       BlocProvider.getDependency<LibraryPositionService>();
+
+  final downloader = BlocProvider.getDependency<AudioDownloader>();
 
   PlayerRoute({required this.media}) : super(key: ValueKey(media.id));
 
@@ -52,15 +58,56 @@ class PlayerRoute extends StatelessWidget {
                       _favoriteButton(context),
                       DownloadButton(
                         buttonBuilder: (icon, onPressed) => IconButton(
+                            tooltip: 'Download class',
                             onPressed: onPressed,
                             icon: Icon(
-                              icon,
+                              icon == Icons.delete
+                                  ? FontAwesomeIcons.trash
+                                  : FontAwesomeIcons.download,
                             )),
                         audioSource: media.source,
-                        downloader:
-                            BlocProvider.getDependency<AudioDownloader>(),
+                        downloader: downloader,
                       ),
-                      IconButton(onPressed: () => {}, icon: Icon(Icons.share))
+                      if (media.link.isNotEmpty)
+                        IconButton(
+                            tooltip: 'Share link',
+                            onPressed: () => SharePlus.Share.share(
+                                'Take a look at this class! ${media.link}'),
+                            icon: Icon(FontAwesomeIcons.share)),
+                      IconButton(
+                          tooltip: 'Share downloaded file',
+                          onPressed: () async {
+                            await downloader
+                                .downloadFromUri(Uri.parse(media.source));
+                            final status = await downloader
+                                .getDownloadStateStream(Uri.parse(media.source))
+                                .firstWhere((element) => {
+                                      DownloadTaskStatus.failed,
+                                      DownloadTaskStatus.complete
+                                    }.contains(element.status));
+
+                            if (status.status != DownloadTaskStatus.complete) {
+                              return;
+                            }
+
+                            final path =
+                                (await downloader.getPlaybackUriFromUri(
+                                        Uri.parse(media.source)))
+                                    .toFilePath();
+
+                            assert(File(path).existsSync());
+
+                            // await OldShare.Share.file('file', 'name here',
+                            //     (await File(path).readAsBytes()), 'audio/mpeg');
+
+                            SharePlus.Share.shareFiles([path],
+                                text: 'Listen to this class!',
+                                subject: 'Class from Inside Chassidus',
+                                mimeTypes: path.toLowerCase().endsWith('.mp3')
+                                    ? ['audio/mpeg']
+                                    : null);
+                          },
+                          icon: Icon(FontAwesomeIcons.solidShareSquare))
                     ],
                   ),
                 ),
@@ -145,7 +192,7 @@ class PlayerRoute extends StatelessWidget {
           onPressed: () =>
               chosenService.set(media: media, isFavorite: !isFavorite),
           icon: Icon(
-            isFavorite ? Icons.favorite : Icons.favorite_border,
+            isFavorite ? FontAwesomeIcons.solidHeart : FontAwesomeIcons.heart,
             color: isFavorite ? Colors.red : null,
           ),
         ),
