@@ -8,6 +8,7 @@ import 'package:inside_data/inside_data.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:rxdart/rxdart.dart';
 
 typedef ValueBuilder<T> = Widget Function(BuildContext context, T value);
 
@@ -26,6 +27,22 @@ class ChosenClassService {
 
   final HiveImpl? hive;
   final Box<ChoosenClass>? classes;
+
+  Stream<Media?> get mostRecentStream => Rx.concat([
+        classes!
+            .watch()
+            .where((event) => event.value != null)
+            .map((event) => event.value)
+            .cast<ChoosenClass>()
+            .where((event) => event.isRecent ?? false)
+            .map((event) => event.media!)
+      ]);
+
+  ChoosenClass? mostRecent() {
+    final current = getSorted(recent: true);
+
+    return current.isNotEmpty ? current.first : null;
+  }
 
   ChosenClassService({this.hive, this.classes});
 

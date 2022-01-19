@@ -79,6 +79,7 @@ class AudioHandlerJustAudio extends BaseAudioHandler
   @override
   Future<void> stop() async {
     await _player.stop();
+    await super.stop();
   }
 
   @override
@@ -126,6 +127,8 @@ class AudioHandlerJustAudio extends BaseAudioHandler
   }
 
   PlaybackState _transformEvent(PlaybackEvent event) {
+    final isCompleted = _player.processingState == ProcessingState.completed;
+
     return PlaybackState(
       controls: [
         MediaControl.rewind,
@@ -144,9 +147,11 @@ class AudioHandlerJustAudio extends BaseAudioHandler
         ProcessingState.loading: AudioProcessingState.loading,
         ProcessingState.buffering: AudioProcessingState.buffering,
         ProcessingState.ready: AudioProcessingState.ready,
-        ProcessingState.completed: AudioProcessingState.completed,
+        // We don't support playlists yet, so when a class is completed, we're done.
+        ProcessingState.completed: AudioProcessingState.idle,
       }[_player.processingState]!,
-      playing: _player.playing,
+      // If completed, player might say playing, but really we aren't.
+      playing: _player.playing && !isCompleted,
       updatePosition: _player.position,
       bufferedPosition: _player.bufferedPosition,
       speed: _player.speed,

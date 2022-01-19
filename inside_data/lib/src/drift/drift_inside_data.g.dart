@@ -525,6 +525,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   final int sort;
   final String? title;
   final String? description;
+  final int created;
+  final String link;
 
   /// How long the class is, in milliseconds.
   final int? duration;
@@ -535,6 +537,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
       required this.sort,
       this.title,
       this.description,
+      required this.created,
+      required this.link,
       this.duration});
   factory MediaTableData.fromData(Map<String, dynamic> data, {String? prefix}) {
     final effectivePrefix = prefix ?? '';
@@ -551,6 +555,10 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}title']),
       description: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}description']),
+      created: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}created'])!,
+      link: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}link'])!,
       duration: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}duration']),
     );
@@ -568,6 +576,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String?>(description);
     }
+    map['created'] = Variable<int>(created);
+    map['link'] = Variable<String>(link);
     if (!nullToAbsent || duration != null) {
       map['duration'] = Variable<int?>(duration);
     }
@@ -585,6 +595,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
+      created: Value(created),
+      link: Value(link),
       duration: duration == null && nullToAbsent
           ? const Value.absent()
           : Value(duration),
@@ -601,6 +613,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
       sort: serializer.fromJson<int>(json['sort']),
       title: serializer.fromJson<String?>(json['title']),
       description: serializer.fromJson<String?>(json['description']),
+      created: serializer.fromJson<int>(json['created']),
+      link: serializer.fromJson<String>(json['link']),
       duration: serializer.fromJson<int?>(json['duration']),
     );
   }
@@ -614,6 +628,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
       'sort': serializer.toJson<int>(sort),
       'title': serializer.toJson<String?>(title),
       'description': serializer.toJson<String?>(description),
+      'created': serializer.toJson<int>(created),
+      'link': serializer.toJson<String>(link),
       'duration': serializer.toJson<int?>(duration),
     };
   }
@@ -625,6 +641,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
           int? sort,
           String? title,
           String? description,
+          int? created,
+          String? link,
           int? duration}) =>
       MediaTableData(
         pk: pk ?? this.pk,
@@ -633,6 +651,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
         sort: sort ?? this.sort,
         title: title ?? this.title,
         description: description ?? this.description,
+        created: created ?? this.created,
+        link: link ?? this.link,
         duration: duration ?? this.duration,
       );
   @override
@@ -644,14 +664,16 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
           ..write('sort: $sort, ')
           ..write('title: $title, ')
           ..write('description: $description, ')
+          ..write('created: $created, ')
+          ..write('link: $link, ')
           ..write('duration: $duration')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(pk, id, source, sort, title, description, duration);
+  int get hashCode => Object.hash(
+      pk, id, source, sort, title, description, created, link, duration);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -662,6 +684,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
           other.sort == this.sort &&
           other.title == this.title &&
           other.description == this.description &&
+          other.created == this.created &&
+          other.link == this.link &&
           other.duration == this.duration);
 }
 
@@ -672,6 +696,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
   final Value<int> sort;
   final Value<String?> title;
   final Value<String?> description;
+  final Value<int> created;
+  final Value<String> link;
   final Value<int?> duration;
   const MediaTableCompanion({
     this.pk = const Value.absent(),
@@ -680,6 +706,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
     this.sort = const Value.absent(),
     this.title = const Value.absent(),
     this.description = const Value.absent(),
+    this.created = const Value.absent(),
+    this.link = const Value.absent(),
     this.duration = const Value.absent(),
   });
   MediaTableCompanion.insert({
@@ -689,6 +717,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
     required int sort,
     this.title = const Value.absent(),
     this.description = const Value.absent(),
+    this.created = const Value.absent(),
+    this.link = const Value.absent(),
     this.duration = const Value.absent(),
   })  : id = Value(id),
         source = Value(source),
@@ -700,6 +730,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
     Expression<int>? sort,
     Expression<String?>? title,
     Expression<String?>? description,
+    Expression<int>? created,
+    Expression<String>? link,
     Expression<int?>? duration,
   }) {
     return RawValuesInsertable({
@@ -709,6 +741,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
       if (sort != null) 'sort': sort,
       if (title != null) 'title': title,
       if (description != null) 'description': description,
+      if (created != null) 'created': created,
+      if (link != null) 'link': link,
       if (duration != null) 'duration': duration,
     });
   }
@@ -720,6 +754,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
       Value<int>? sort,
       Value<String?>? title,
       Value<String?>? description,
+      Value<int>? created,
+      Value<String>? link,
       Value<int?>? duration}) {
     return MediaTableCompanion(
       pk: pk ?? this.pk,
@@ -728,6 +764,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
       sort: sort ?? this.sort,
       title: title ?? this.title,
       description: description ?? this.description,
+      created: created ?? this.created,
+      link: link ?? this.link,
       duration: duration ?? this.duration,
     );
   }
@@ -753,6 +791,12 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
     if (description.present) {
       map['description'] = Variable<String?>(description.value);
     }
+    if (created.present) {
+      map['created'] = Variable<int>(created.value);
+    }
+    if (link.present) {
+      map['link'] = Variable<String>(link.value);
+    }
     if (duration.present) {
       map['duration'] = Variable<int?>(duration.value);
     }
@@ -768,6 +812,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
           ..write('sort: $sort, ')
           ..write('title: $title, ')
           ..write('description: $description, ')
+          ..write('created: $created, ')
+          ..write('link: $link, ')
           ..write('duration: $duration')
           ..write(')'))
         .toString();
@@ -812,6 +858,20 @@ class $MediaTableTable extends MediaTable
   late final GeneratedColumn<String?> description = GeneratedColumn<String?>(
       'description', aliasedName, true,
       type: const StringType(), requiredDuringInsert: false);
+  final VerificationMeta _createdMeta = const VerificationMeta('created');
+  @override
+  late final GeneratedColumn<int?> created = GeneratedColumn<int?>(
+      'created', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  final VerificationMeta _linkMeta = const VerificationMeta('link');
+  @override
+  late final GeneratedColumn<String?> link = GeneratedColumn<String?>(
+      'link', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
   final VerificationMeta _durationMeta = const VerificationMeta('duration');
   @override
   late final GeneratedColumn<int?> duration = GeneratedColumn<int?>(
@@ -819,7 +879,7 @@ class $MediaTableTable extends MediaTable
       type: const IntType(), requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [pk, id, source, sort, title, description, duration];
+      [pk, id, source, sort, title, description, created, link, duration];
   @override
   String get aliasedName => _alias ?? 'media_table';
   @override
@@ -858,6 +918,14 @@ class $MediaTableTable extends MediaTable
           _descriptionMeta,
           description.isAcceptableOrUnknown(
               data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('created')) {
+      context.handle(_createdMeta,
+          created.isAcceptableOrUnknown(data['created']!, _createdMeta));
+    }
+    if (data.containsKey('link')) {
+      context.handle(
+          _linkMeta, link.isAcceptableOrUnknown(data['link']!, _linkMeta));
     }
     if (data.containsKey('duration')) {
       context.handle(_durationMeta,
@@ -1456,6 +1524,23 @@ abstract class _$InsideDatabase extends GeneratedDatabase {
     });
   }
 
+  Selectable<LatestResult> latest(int limit) {
+    return customSelect(
+        'SELECT "parent"."id" AS "nested_0.id", "parent"."media_id" AS "nested_0.media_id", "parent"."parent_section" AS "nested_0.parent_section", "parent"."sort" AS "nested_0.sort", "media"."pk" AS "nested_1.pk", "media"."id" AS "nested_1.id", "media"."source" AS "nested_1.source", "media"."sort" AS "nested_1.sort", "media"."title" AS "nested_1.title", "media"."description" AS "nested_1.description", "media"."created" AS "nested_1.created", "media"."link" AS "nested_1.link", "media"."duration" AS "nested_1.duration" FROM media_table media\nINNER JOIN media_parents_table parent ON parent.media_id = media.id\nORDER BY created DESC\nLIMIT :limit',
+        variables: [
+          Variable<int>(limit)
+        ],
+        readsFrom: {
+          mediaTable,
+          mediaParentsTable,
+        }).map((QueryRow row) {
+      return LatestResult(
+        parent: mediaParentsTable.mapFromRow(row, tablePrefix: 'nested_0'),
+        media: mediaTable.mapFromRow(row, tablePrefix: 'nested_1'),
+      );
+    });
+  }
+
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
@@ -1474,5 +1559,14 @@ class TestResult {
   TestResult({
     required this.id,
     this.title,
+  });
+}
+
+class LatestResult {
+  final MediaParentsTableData parent;
+  final MediaTableData media;
+  LatestResult({
+    required this.parent,
+    required this.media,
   });
 }

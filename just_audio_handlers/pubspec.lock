@@ -32,10 +32,12 @@ packages:
   audio_service:
     dependency: "direct main"
     description:
-      name: audio_service
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.18.0-beta.0"
+      path: audio_service
+      ref: "895-icon-fix"
+      resolved-ref: "36c62eb65bd4bab7ebe89db7307400fc5fb61157"
+      url: "https://github.com/yringler/audio_service/"
+    source: git
+    version: "0.18.4"
   audio_service_platform_interface:
     dependency: transitive
     description:
@@ -49,14 +51,14 @@ packages:
       name: audio_service_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.0"
+    version: "0.1.1"
   audio_session:
     dependency: transitive
     description:
       name: audio_session
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.5"
+    version: "0.1.6+1"
   boolean_selector:
     dependency: transitive
     description:

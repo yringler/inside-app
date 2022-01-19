@@ -17,7 +17,7 @@ class TernarySectionRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SectionContentList(
       isSeperated: true,
-      section: section,
+      content: section.content,
       leadingWidget: Column(
         mainAxisSize: MainAxisSize.min,
         children: [InsideBreadcrumbs()],

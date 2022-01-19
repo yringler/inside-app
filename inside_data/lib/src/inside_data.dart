@@ -19,13 +19,16 @@ class SiteDataBase implements Comparable {
   bool get hasParent => parents.isNotEmpty;
   bool hasParentId(String id) => parents.contains(id);
 
+  final DateTime? created;
+
   SiteDataBase(
       {required this.id,
       required this.title,
       required this.description,
       required this.sort,
       required this.link,
-      required this.parents});
+      required this.parents,
+      this.created});
 
   SiteDataBase.copy(SiteDataBase other)
       : id = other.id,
@@ -33,7 +36,8 @@ class SiteDataBase implements Comparable {
         description = other.description,
         sort = other.sort,
         parents = other.parents,
-        link = other.link;
+        link = other.link,
+        created = other.created;
 
   @override
   int compareTo(other) => this.sort.compareTo(other.sort);
@@ -47,20 +51,38 @@ class Media extends SiteDataBase implements Comparable {
 
   Media(
       {required this.source,
-      this.length,
+      required this.length,
       required String id,
       required int sort,
       required String title,
       required String description,
-      String link = '',
-      required Set<String> parents})
+      required String link,
+      required Set<String> parents,
+      DateTime? created})
       : super(
             id: id,
             title: title,
             description: description,
             sort: sort,
             parents: parents,
+            created: created,
             link: link);
+
+  Future<Section?> getParent(SiteDataLayer siteBoxes) async {
+    if (parents.isEmpty) return null;
+
+    final parentSection = await siteBoxes.section(parents.first);
+
+    // Make sure that the parent exists, and that it really has the data.
+    // This is done in case IDs change etc - we don't want to navigate to library,
+    // to some random place.
+    if (parentSection == null ||
+        !parentSection.content.any((c) => c.media == this)) {
+      return null;
+    }
+
+    return parentSection;
+  }
 
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
   Map<String, dynamic> toJson() => _$MediaToJson(this);
@@ -109,6 +131,9 @@ class ContentReference implements Comparable {
     return ContentReference(
         id: data.id, contentType: type, media: media, section: section);
   }
+
+  static ContentReference? fromDataOrNull({SiteDataBase? data}) =>
+      data == null ? null : ContentReference.fromData(data: data);
 
   factory ContentReference.fromJson(Map<String, dynamic> json) =>
       _$ContentReferenceFromJson(json);
@@ -179,7 +204,21 @@ class Section extends SiteDataBase {
 
   @override
   int get hashCode => _hashcode ??= [id, title].join('').hashCode;
+
+  Media? getRelativeSibling(Media media, SiblingDirection direction) {
+    int indexOfMedia = content
+        .indexWhere((element) => element.isMedia && element.id == media.id);
+
+    final siblingOffset = direction == SiblingDirection.next ? 1 : -1;
+    final siblingIndex = indexOfMedia + siblingOffset;
+
+    return siblingIndex >= 0 && siblingIndex < content.length
+        ? content[siblingIndex].media
+        : null;
+  }
 }
+
+enum SiblingDirection { next, previous }
 
 /// Provides access to site data.
 abstract class SiteDataLayer {
@@ -187,6 +226,13 @@ abstract class SiteDataLayer {
   Future<List<Section>> topLevel();
   Future<Section?> section(String id);
   Future<Media?> media(String id);
+  Future<List<Media>> recent();
+
+  /// If you don't know what the ID references, this will return first not null of media
+  /// or section with given ID.
+  Future<SiteDataBase?> mediaOrSection(String id) async =>
+      (await media(id)) ?? (await section(id));
+
   Future<DateTime?> lastUpdate();
 
   String? getImageFor(String id) => topImagesInside[int.tryParse(id)];

@@ -14,15 +14,21 @@ import 'package:inside_chassidus/tabs/favorites-tab.dart';
 import 'package:inside_chassidus/tabs/lesson-tab/lesson-tab.dart';
 import 'package:inside_chassidus/tabs/now-playing-tab.dart';
 import 'package:inside_chassidus/tabs/recent-tab.dart';
+import 'package:inside_chassidus/tabs/search-tab.dart';
 import 'package:inside_chassidus/tabs/widgets/simple-media-list-widgets.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
+import 'package:inside_chassidus/util/connected.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
+import 'package:inside_chassidus/util/preferences.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:just_audio_handlers/just_audio_handlers.dart';
 import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart';
 import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+
+/// When we want to force users to use latest asset on load, use this.
+const assetVersion = 1;
 
 void main() async {
   runApp(MaterialApp(
@@ -38,7 +44,7 @@ void main() async {
   // This is only to be used for confirming that reports are being
   // submitted as expected. It is not intended to be used for everyday
   // development.
-  FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+  FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(kReleaseMode);
 
   // Pass all uncaught errors from the framework to Crashlytics.
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
@@ -51,7 +57,14 @@ void main() async {
   final chosenService = await ChosenClassService.create(siteBoxes);
   final downloadManager = FlutterDownloaderAudioDownloader();
   final libraryPositionService = LibraryPositionService(siteBoxes: siteBoxes);
+  final suggestedContent = SuggestedContentLoader(
+      isConnected: waitForConnected(),
+      dataLayer: siteBoxes,
+      cachePath: p.join((await getApplicationSupportDirectory()).path, ''));
   final PositionSaver positionSaver = HivePositionSaver();
+  final searchService = WordpressSearch(
+      wordpressDomain: activeSourceDomain, siteBoxes: siteBoxes);
+  final insidePreferences = await InsidePreferences.newAsync();
 
   final session = await AudioSession.instance;
   await session.configure(AudioSessionConfiguration.speech());
@@ -65,8 +78,10 @@ void main() async {
           positionRepository: positionSaver,
           inner: LoggingJustAudioHandler(
               logger: AnalyticsLogger(),
-              inner:
-                  DbAccessAudioTask(layer: siteBoxes, player: AudioPlayer())),
+              inner: DbAccessAudioTask(
+                  layer: siteBoxes,
+                  preferences: insidePreferences,
+                  player: AudioPlayer())),
         )),
     config: AudioServiceConfig(
         androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
@@ -83,7 +98,10 @@ void main() async {
     Dependency((i) => chosenService),
     Dependency((i) => downloadManager),
     Dependency((i) => libraryPositionService),
-    Dependency((i) => audioHandler)
+    Dependency((i) => searchService),
+    Dependency((i) => audioHandler),
+    Dependency((i) => suggestedContent),
+    Dependency((i) => insidePreferences)
   ], blocs: [
     Bloc((i) => IsPlayerButtonsShowingBloc())
   ], child: AppRouterWidget()));
@@ -136,9 +154,12 @@ class MyApp extends StatefulWidget {
       GlobalKey<NavigatorState>(debugLabel: 'favorites');
   final GlobalKey<NavigatorState> recentsKey =
       GlobalKey<NavigatorState>(debugLabel: 'recents');
+  final GlobalKey<NavigatorState> searchKey =
+      GlobalKey<NavigatorState>(debugLabel: 'search');
 
   final recentState = MediaListTabRoute();
   final favoritesState = MediaListTabRoute();
+  final searchState = MediaListTabRoute();
 
   @override
   State<StatefulWidget> createState() => MyAppState();
@@ -148,7 +169,11 @@ const String appTitle = 'Inside Chassidus';
 
 /// The app state.
 class MyAppState extends State<MyApp> {
-  int _currentTabIndex = 0;
+  TabType _currentTab = TabType.libraryHome;
+
+  /// Keep track of previous tab. If user goes to library from other tab, back button
+  /// should return to that tab.
+  TabType? _previousTab;
 
   final positionService = BlocProvider.getDependency<LibraryPositionService>();
 
@@ -160,12 +185,12 @@ class MyAppState extends State<MyApp> {
     positionService.addListener(rebuildForCanPop);
     widget.recentState.addListener(rebuildForCanPop);
     widget.favoritesState.addListener(rebuildForCanPop);
+    widget.searchState.addListener(rebuildForCanPop);
   }
 
   /// Hide the global media controls if on media player route.
   /// If the position is changed and we're not on the player route, return to library
-  /// in order to see the position. (This currently only happens on view parent button
-  /// in player route.)
+  /// in order to see the position.
   void onLibraryPositionChange() {
     final last = positionService.sections.lastOrNull;
     final isOnPlayer = last?.data != null && last!.data is Media;
@@ -173,9 +198,10 @@ class MyAppState extends State<MyApp> {
     BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
         .isOtherButtonsShowing(isShowing: isOnPlayer);
 
-    if (!(_currentTabIndex == 0 || isOnPlayer)) {
+    if (_currentTab != TabType.libraryHome) {
+      _previousTab = _currentTab;
       setState(() {
-        _currentTabIndex = 0;
+        _currentTab = TabType.libraryHome;
       });
     }
   }
@@ -192,22 +218,55 @@ class MyAppState extends State<MyApp> {
             title: Text(appTitle),
             leading: _getCanPop()
                 ? BackButton(
-                    onPressed: () =>
-                        _getCurrentRouterKey().currentState!.maybePop(),
+                    onPressed: () async {
+                      // Try to pop current root.
+                      final currentPopped =
+                          await _getCurrentRouterKey().currentState!.maybePop();
+
+                      if (currentPopped) {
+                        return;
+                      }
+
+                      // If the current route has no where to go, check if we have another tab to
+                      // back up to.
+                      tryChangeTab();
+                    },
                   )
                 : null),
         body: AudioButtonbarAwareBody(
             body: Material(
-          child: _getCurrentTab(),
+          child: WillPopScope(
+            child: _getCurrentTab(),
+            onWillPop: () async => !tryChangeTab(),
+          ),
         )),
         bottomSheet: CurrentMediaButtonBar(),
         bottomNavigationBar: bottomNavigationBar(),
       );
 
+  /// Try to change to a relevant previous tab.
+  /// Returns true if successfully changes tab.
+  bool tryChangeTab() {
+    // Before we close the app, check if current tab was navigated to
+    // from another tab.
+    // If it was, back up back to that tab.
+
+    final hasSomewhereToGo = _previousTab != null;
+
+    if (hasSomewhereToGo) {
+      setState(() {
+        _currentTab = _previousTab!;
+        _previousTab = null;
+      });
+    }
+
+    return hasSomewhereToGo;
+  }
+
   BottomNavigationBar bottomNavigationBar() {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
-      currentIndex: _currentTabIndex,
+      currentIndex: _currentTab.index,
       onTap: _onBottomNavigationTap,
       items: <BottomNavigationBarItem>[
         BottomNavigationBarItem(
@@ -235,6 +294,13 @@ class MyAppState extends State<MyApp> {
             label: 'Bookmarked'),
         BottomNavigationBarItem(
             activeIcon: Icon(
+              Icons.search,
+              color: Colors.blue,
+            ),
+            icon: Icon(Icons.search),
+            label: 'Search'),
+        BottomNavigationBarItem(
+            activeIcon: Icon(
               Icons.play_circle_filled,
               color: Colors.black,
             ),
@@ -248,44 +314,53 @@ class MyAppState extends State<MyApp> {
     setState(() {});
   }
 
-  void _onBottomNavigationTap(value) {
-    // If the home button is pressed when already on home section, we show the
+  void _onBottomNavigationTap(intValue) {
+    // We keep track of where user was, so that back button can go across tabs.
+    // This is only cleared when user resets position by pressing on bottom navigation himself.
+    _previousTab = null;
+
+    final value = TabType.values[intValue];
+
+    // If the home button is pressed when already on home section, we stay on the
     // lesson tab, but go back to root.
-    if (value == 0 &&
-        _currentTabIndex == 0 &&
-        positionService.sections.isNotEmpty) {
+    if (value == TabType.libraryHome &&
+        _currentTab == TabType.libraryHome &&
+        positionService.hasContent) {
       positionService.clear();
     }
 
-    if (value == _currentTabIndex) {
+    if (value == _currentTab) {
       return;
     }
 
     BlocProvider.getBloc<IsPlayerButtonsShowingBloc>()
-        .canGlobalButtonsShow(value == 0);
+        .canGlobalButtonsShow(value == TabType.libraryHome);
 
     setState(() {
-      _currentTabIndex = value;
+      _currentTab = value;
     });
   }
 
   Widget _getCurrentTab() {
-    switch (_currentTabIndex) {
-      case 0:
+    switch (_currentTab) {
+      case TabType.libraryHome:
         return LessonTab(
           navigatorKey: widget.lessonNavigatorKey,
         );
-      case 1:
+      case TabType.recent:
         return RecentsTab(
           navigatorKey: widget.recentsKey,
           routeState: widget.recentState,
         );
-      case 2:
+      case TabType.favorites:
         return FavoritesTab(
           navigatorKey: widget.favoritesKey,
           routeState: widget.favoritesState,
         );
-      case 3:
+      case TabType.search:
+        return SearchResultsTab(
+            navigatorKey: widget.searchKey, routeState: widget.searchState);
+      case TabType.nowPlaying:
         return NowPlayingTab();
       default:
         throw ArgumentError('Invalid tab index');
@@ -293,14 +368,16 @@ class MyAppState extends State<MyApp> {
   }
 
   bool _getCanPop() {
-    switch (_currentTabIndex) {
-      case 0:
-        return positionService.sections.isNotEmpty;
-      case 1:
+    switch (_currentTab) {
+      case TabType.libraryHome:
+        return positionService.hasContent;
+      case TabType.recent:
         return widget.recentState.hasMedia();
-      case 2:
+      case TabType.favorites:
         return widget.favoritesState.hasMedia();
-      case 3:
+      case TabType.search:
+        return widget.searchState.hasMedia();
+      case TabType.nowPlaying:
         return false;
       default:
         throw ArgumentError('Called with invalid index');
@@ -308,13 +385,15 @@ class MyAppState extends State<MyApp> {
   }
 
   GlobalKey<NavigatorState> _getCurrentRouterKey() {
-    switch (_currentTabIndex) {
-      case 0:
+    switch (_currentTab) {
+      case TabType.libraryHome:
         return widget.lessonNavigatorKey;
-      case 1:
+      case TabType.recent:
         return widget.recentsKey;
-      case 2:
+      case TabType.favorites:
         return widget.favoritesKey;
+      case TabType.search:
+        return widget.searchKey;
       default:
         throw ArgumentError('Called with invalid index');
     }
@@ -327,16 +406,21 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   final resourceFileFolder = (await getApplicationSupportDirectory()).path;
   final resourceFile = File(_getResourceFilePath(resourceFileFolder));
 
+  final resourceExists = await resourceFile.exists();
+
   // Create resource file which can be used from background isolate.
-  if (!await resourceFile.exists()) {
-    final blob = await rootBundle.load('assets/site.sqllite.gz');
+  if (!resourceExists) {
+    final blob = await rootBundle.load('assets/site.$assetVersion.sqlite.gz');
     await File(_getResourceFilePath(resourceFileFolder)).writeAsBytes(
         gzip.decode(
             blob.buffer.asUint8List(blob.offsetInBytes, blob.lengthInBytes)),
         flush: true);
   }
 
-  await compute(_ensureDataLoaded, [resourceFileFolder]);
+  // The second argument is if we should force reload DB from resource.
+  // If the requested resource doesn't exist, that means the app version changed, and
+  // we want to use the resource version.
+  await compute(_ensureDataLoaded, [resourceFileFolder, !resourceExists]);
 
   final siteData = DriftInsideData.fromFolder(
       folder: resourceFileFolder,
@@ -351,20 +435,24 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   return siteData;
 }
 
-String _getResourceFilePath(String folder) => p.join(folder, 'resource.sqlite');
+String _getResourceFilePath(String folder) =>
+    p.join(folder, 'resource.$assetVersion.sqlite');
 
 /// NOTE: This is expected to be run in another isolate.
 /// Do not connect to DB on main isolate before this returns.
 /// Make sure that there is data loaded.
 Future<void> _ensureDataLoaded(List<dynamic> args) async {
   final dbFolder = args[0] as String;
+  final forceRefreshFromResource = args[1] as bool;
 
   final siteData = DriftInsideData.fromFolder(
       folder: dbFolder,
       loader: JsonLoader(),
       topIds: topImagesInside.keys.map((e) => e.toString()).toList());
 
-  await siteData.init(preloadedDatabase: File(_getResourceFilePath(dbFolder)));
+  await siteData.init(
+      preloadedDatabase: File(_getResourceFilePath(dbFolder)),
+      forceRefresh: forceRefreshFromResource);
 
   await siteData.close();
 }
@@ -382,9 +470,15 @@ class AnalyticsLogger extends AudioLogger {
 
 class DbAccessAudioTask extends AudioHandlerJustAudio {
   final SiteDataLayer layer;
+  final InsidePreferences preferences;
 
-  DbAccessAudioTask({required this.layer, required AudioPlayer player})
-      : super(player: player);
+  DbAccessAudioTask(
+      {required this.layer,
+      required this.preferences,
+      required AudioPlayer player})
+      : super(player: player) {
+    player.setSpeed(preferences.currentSpeed);
+  }
 
   @override
   Future<MediaItem?> getMediaItem(String mediaId) async {
@@ -412,4 +506,27 @@ class DbAccessAudioTask extends AudioHandlerJustAudio {
                 start: Duration.zero, originalUri: Uri.parse(media.source))
             .toExtra());
   }
+
+  @override
+  Future<void> playFromMediaId(String mediaId,
+      [Map<String, dynamic>? extras]) async {
+    // Add the playing media id to recent classes.
+
+    final media = await layer.media(mediaId);
+
+    if (media != null) {
+      BlocProvider.getDependency<ChosenClassService>()
+          .set(media: media, isRecent: true);
+    }
+
+    return super.playFromMediaId(mediaId, extras);
+  }
+
+  @override
+  Future<void> setSpeed(double speed) async {
+    preferences.setSpeed(speed);
+    await super.setSpeed(speed);
+  }
 }
+
+enum TabType { libraryHome, recent, favorites, search, nowPlaying }

@@ -14,6 +14,8 @@ const topImagesInside = {
       'https://insidechassidus.org/wp-content/uploads/stories-of-rebbeim-1.jpg'
 };
 
+const activeSourceDomain = 'insidechassidus.org';
+
 // var topImages = {
 //   21: 'https://insidechassidus.org/wp-content/uploads/Hayom-Yom-and-Rebbe-Audio-Classes-6.jpg',
 //   4: 'https://insidechassidus.org/wp-content/uploads/Chassidus-of-the-Year-Shiurim.jpg',
