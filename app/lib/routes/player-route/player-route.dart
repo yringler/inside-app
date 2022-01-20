@@ -27,14 +27,15 @@ class PlayerRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Material(
         child: Container(
-          padding: EdgeInsets.all(8),
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
                 _navigateToLibraryButton(),
                 Expanded(
                     child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: _title(context, media),
@@ -59,33 +60,31 @@ class PlayerRoute extends StatelessWidget {
                         buttonBuilder: (icon, onPressed) => IconButton(
                             tooltip: 'Download class',
                             onPressed: onPressed,
-                            icon: Icon(
-                              icon == Icons.delete
-                                  ? FontAwesomeIcons.trash
-                                  : FontAwesomeIcons.download,
-                            )),
+                            icon: Icon(icon)),
                         audioSource: media.source,
                         downloader: downloader,
                       ),
                       if (media.link.isNotEmpty)
                         IconButton(
+                            icon: Icon(Icons.share),
                             tooltip: 'Share link',
                             onPressed: () => SharePlus.Share.share(
                                 '${_shareText()} ${media.link}',
-                                subject: 'Class from Inside Chassidus'),
-                            icon: Icon(FontAwesomeIcons.share)),
+                                subject: 'Class from Inside Chassidus')),
                       IconButton(
+                          icon: Icon(
+                            Icons.send_and_archive_outlined,
+                            size: 30,
+                          ),
                           tooltip: 'Share downloaded file',
                           onPressed: () async {
-                            await downloader
-                                .downloadFromUri(Uri.parse(media.source));
-                            final status = await downloader
-                                .getDownloadStateStream(Uri.parse(media.source))
-                                .firstWhere((element) => {
-                                      DownloadTaskStatus.failed,
-                                      DownloadTaskStatus.complete
-                                    }.contains(element.status));
+                            var status = await _tryDownload();
 
+                            // Sometimes download fails. If that happens, try again, but only once.
+                            // This should probably be looked into, and fixed in a more central locationl...
+                            if (status.status != DownloadTaskStatus.complete) {
+                              status = await _tryDownload();
+                            }
                             if (status.status != DownloadTaskStatus.complete) {
                               return;
                             }
@@ -103,8 +102,7 @@ class PlayerRoute extends StatelessWidget {
                                 mimeTypes: path.toLowerCase().endsWith('.mp3')
                                     ? ['audio/mpeg']
                                     : null);
-                          },
-                          icon: Icon(FontAwesomeIcons.solidShareSquare))
+                          })
                     ],
                   ),
                 ),
@@ -118,6 +116,17 @@ class PlayerRoute extends StatelessWidget {
         ),
       );
 
+  Future<DownloadTask> _tryDownload() async {
+    await downloader.downloadFromUri(Uri.parse(media.source));
+    final status = await downloader
+        .getDownloadStateStream(Uri.parse(media.source))
+        .firstWhere((element) => {
+              DownloadTaskStatus.failed,
+              DownloadTaskStatus.complete
+            }.contains(element.status));
+    return status;
+  }
+
   FutureBuilder<SiteDataBase?> _navigateToLibraryButton() =>
       FutureBuilder<SiteDataBase?>(
         future: media.getParent(_siteBoxes),
@@ -128,7 +137,7 @@ class PlayerRoute extends StatelessWidget {
                 onPressed: () {
                   libraryPositionService.setActiveItem(snapshot.data);
                 },
-                icon: Icon(FontAwesomeIcons.chevronDown))
+                icon: Icon(Icons.list, size: 50))
             : Container(),
       );
 
@@ -189,7 +198,7 @@ class PlayerRoute extends StatelessWidget {
           onPressed: () =>
               chosenService.set(media: media, isFavorite: !isFavorite),
           icon: Icon(
-            isFavorite ? FontAwesomeIcons.solidHeart : FontAwesomeIcons.heart,
+            isFavorite ? Icons.favorite : Icons.favorite_border,
             color: isFavorite ? Colors.red : null,
           ),
         ),
