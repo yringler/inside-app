@@ -71,7 +71,8 @@ class PlayerRoute extends StatelessWidget {
                         IconButton(
                             tooltip: 'Share link',
                             onPressed: () => SharePlus.Share.share(
-                                'Take a look at this class! ${media.link}'),
+                                '${_shareText()} ${media.link}',
+                                subject: 'Class from Inside Chassidus'),
                             icon: Icon(FontAwesomeIcons.share)),
                       IconButton(
                           tooltip: 'Share downloaded file',
@@ -97,7 +98,7 @@ class PlayerRoute extends StatelessWidget {
                             assert(File(path).existsSync());
 
                             SharePlus.Share.shareFiles([path],
-                                text: 'Listen to this class!',
+                                text: _shareText(),
                                 subject: 'Class from Inside Chassidus',
                                 mimeTypes: path.toLowerCase().endsWith('.mp3')
                                     ? ['audio/mpeg']
@@ -195,4 +196,8 @@ class PlayerRoute extends StatelessWidget {
       ),
     );
   }
+
+  String _shareText() => media.title.isEmpty
+      ? 'Listen to this class from Inside Chassidus'
+      : media.title;
 }
