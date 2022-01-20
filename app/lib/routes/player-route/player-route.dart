@@ -46,7 +46,7 @@ class PlayerRoute extends StatelessWidget {
                   iconTheme: IconThemeData(size: 30),
                 ),
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                   margin: EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade400, width: 1),
@@ -235,7 +235,7 @@ class PlayerRoute extends StatelessWidget {
           required Widget child,
           required String label}) =>
       Container(
-        padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        padding: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
