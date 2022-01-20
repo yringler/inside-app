@@ -235,10 +235,7 @@ abstract class SiteDataLayer {
 
   Future<DateTime?> lastUpdate();
 
-  // The ID was added bacause I was seeing an error for some reason in cached
-  // image loader.
-  String? getImageFor(String id) =>
-      topImagesInside[int.tryParse(id)]! + "?id=$dataVersion";
+  String? getImageFor(String id) => topImagesInside[int.tryParse(id)];
   Future<void> close() async {}
   Future<void> prepareUpdate() async {}
 }
