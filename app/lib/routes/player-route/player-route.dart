@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:inside_chassidus/routes/player-route/widgets/index.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class-service.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
@@ -56,53 +55,77 @@ class PlayerRoute extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _favoriteButton(context),
-                      DownloadButton(
-                        buttonBuilder: (icon, onPressed) => IconButton(
-                            tooltip: 'Download class',
-                            onPressed: onPressed,
-                            icon: Icon(icon)),
-                        audioSource: media.source,
-                        downloader: downloader,
-                      ),
+                      StreamBuilder<DownloadTaskStatus>(
+                          stream: downloader
+                              .getDownloadStateStream(Uri.parse(media.source))
+                              .map((event) => event.status),
+                          initialData: DownloadTaskStatus.undefined,
+                          builder: (context, snapshot) {
+                            return _labeledWidget(
+                              context: context,
+                              label:
+                                  snapshot.data! == DownloadTaskStatus.complete
+                                      ? 'Delete'
+                                      : 'Download',
+                              child: DownloadButton(
+                                buttonBuilder: (icon, onPressed) =>
+                                    ShrunkIconButton(
+                                        tooltip: 'Download class',
+                                        onPressed: onPressed,
+                                        icon: Icon(icon)),
+                                audioSource: media.source,
+                                downloader: downloader,
+                              ),
+                            );
+                          }),
                       if (media.link.isNotEmpty)
-                        IconButton(
-                            icon: Icon(Icons.share),
-                            tooltip: 'Share link',
-                            onPressed: () => SharePlus.Share.share(
-                                '${_shareText()} ${media.link}',
-                                subject: 'Class from Inside Chassidus')),
-                      IconButton(
-                          icon: Icon(
-                            Icons.send_and_archive_outlined,
-                            size: 30,
-                          ),
-                          tooltip: 'Share downloaded file',
-                          onPressed: () async {
-                            var status = await _tryDownload();
+                        _labeledWidget(
+                          context: context,
+                          label: 'Share',
+                          child: ShrunkIconButton(
+                              icon: Icon(Icons.share),
+                              tooltip: 'Share link',
+                              onPressed: () => SharePlus.Share.share(
+                                  '${_shareText()} ${media.link}',
+                                  subject: 'Class from Inside Chassidus')),
+                        ),
+                      _labeledWidget(
+                        context: context,
+                        label: 'Send',
+                        child: ShrunkIconButton(
+                            icon: Icon(
+                              Icons.send,
+                            ),
+                            tooltip: 'Share downloaded file',
+                            onPressed: () async {
+                              var status = await _tryDownload();
 
-                            // Sometimes download fails. If that happens, try again, but only once.
-                            // This should probably be looked into, and fixed in a more central locationl...
-                            if (status.status != DownloadTaskStatus.complete) {
-                              status = await _tryDownload();
-                            }
-                            if (status.status != DownloadTaskStatus.complete) {
-                              return;
-                            }
+                              // Sometimes download fails. If that happens, try again, but only once.
+                              // This should probably be looked into, and fixed in a more central locationl...
+                              if (status.status !=
+                                  DownloadTaskStatus.complete) {
+                                status = await _tryDownload();
+                              }
+                              if (status.status !=
+                                  DownloadTaskStatus.complete) {
+                                return;
+                              }
 
-                            final path =
-                                (await downloader.getPlaybackUriFromUri(
-                                        Uri.parse(media.source)))
-                                    .toFilePath();
+                              final path =
+                                  (await downloader.getPlaybackUriFromUri(
+                                          Uri.parse(media.source)))
+                                      .toFilePath();
 
-                            assert(File(path).existsSync());
+                              assert(File(path).existsSync());
 
-                            SharePlus.Share.shareFiles([path],
-                                text: _shareText(),
-                                subject: 'Class from Inside Chassidus',
-                                mimeTypes: path.toLowerCase().endsWith('.mp3')
-                                    ? ['audio/mpeg']
-                                    : null);
-                          })
+                              SharePlus.Share.shareFiles([path],
+                                  text: _shareText(),
+                                  subject: 'Class from Inside Chassidus',
+                                  mimeTypes: path.toLowerCase().endsWith('.mp3')
+                                      ? ['audio/mpeg']
+                                      : null);
+                            }),
+                      )
                     ],
                   ),
                 ),
@@ -191,22 +214,59 @@ class PlayerRoute extends StatelessWidget {
 
     return chosenService.isFavoriteValueListenableBuilder(
       media.id,
-      builder: (context, isFavorite) => Center(
-        child: IconButton(
-          tooltip: 'Favorite',
-          iconSize: Theme.of(context).iconTheme.size!,
-          onPressed: () =>
-              chosenService.set(media: media, isFavorite: !isFavorite),
-          icon: Icon(
-            isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: isFavorite ? Colors.red : null,
+      builder: (context, isFavorite) => _labeledWidget(
+          context: context,
+          child: ShrunkIconButton(
+            tooltip: 'Favorite',
+            onPressed: () =>
+                chosenService.set(media: media, isFavorite: !isFavorite),
+            icon: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: isFavorite ? Colors.red : null,
+            ),
           ),
-        ),
-      ),
+          label: 'Favorite'),
     );
   }
+
+  Widget _labeledWidget(
+          {required BuildContext context,
+          required Widget child,
+          required String label}) =>
+      Container(
+        padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 5),
+                child: child,
+              ),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.caption,
+              )
+            ],
+          ),
+        ),
+      );
 
   String _shareText() => media.title.isEmpty
       ? 'Listen to this class from Inside Chassidus'
       : media.title;
+}
+
+class ShrunkIconButton extends IconButton {
+  ShrunkIconButton(
+      {required String tooltip,
+      required Widget icon,
+      required VoidCallback onPressed})
+      : super(
+            constraints: BoxConstraints(),
+            padding: EdgeInsets.zero,
+            icon: icon,
+            onPressed: onPressed,
+            tooltip: tooltip);
 }
