@@ -46,13 +46,14 @@ class PlayerRoute extends StatelessWidget {
                   iconTheme: IconThemeData(size: 30),
                 ),
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin: EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade400, width: 1),
                       borderRadius: BorderRadius.all(Radius.circular(10))),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _favoriteButton(context),
                       StreamBuilder<DownloadTaskStatus>(
