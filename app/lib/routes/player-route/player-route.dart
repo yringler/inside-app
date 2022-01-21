@@ -31,7 +31,10 @@ class PlayerRoute extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Row(children: [
-                _navigateToLibraryButton(),
+                Padding(
+                  padding: const EdgeInsets.only(right: 15),
+                  child: _navigateToLibraryButton(),
+                ),
                 Expanded(
                     child: Column(
                   mainAxisSize: MainAxisSize.min,
