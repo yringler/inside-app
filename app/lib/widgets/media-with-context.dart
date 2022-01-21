@@ -23,37 +23,37 @@ class MediaWithContext extends StatelessWidget {
 
           return GestureDetector(
             onTap: onTap,
-            child: DefaultTextStyle(
-              style: text.bodyText2!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 6),
-                        child: Text(
-                          grandParentTitle.toUpperCase(),
-                          style: text.subtitle2!.copyWith(
-                              color: Colors.grey.shade600,
-                              fontWeight: FontWeight.bold),
-                        ),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 6),
+                      child: Text(
+                        grandParentTitle.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.subtitle2!.copyWith(
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.bold),
                       ),
-                      Padding(
-                          padding: EdgeInsets.only(bottom: 3),
-                          child: Text(
-                            parentTitle,
-                            style:
-                                text.bodyText1!.copyWith(color: Colors.black),
-                          )),
-                      Text(media.title,
-                          style: text.caption!
-                              .copyWith(color: Colors.grey.shade600))
-                    ],
-                  ),
+                    ),
+                    Padding(
+                        padding: EdgeInsets.only(bottom: 3),
+                        child: Text(
+                          parentTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.bodyText1!.copyWith(color: Colors.black),
+                        )),
+                    Text(media.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            text.caption!.copyWith(color: Colors.grey.shade600))
+                  ],
                 ),
               ),
             ),
