@@ -101,6 +101,7 @@ class LibraryNavigator extends RouterDelegate
     throw new ArgumentError.value(book, 'Could not create widget for value');
   }
 
+  // A bunch of content whose relationship is other than from data. For example, popular classes.
   MaterialPage _virtualSection() {
     return MaterialPage(
         child: Material(
