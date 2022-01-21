@@ -1,0 +1,3 @@
+Share buttons (link and file)
+Show context for classes in recent etc
+Logo in header
