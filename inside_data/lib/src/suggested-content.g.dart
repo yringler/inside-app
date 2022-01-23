@@ -91,8 +91,8 @@ Map<String, dynamic> _$FeaturedSectionVerifiedToJson(
 _TimelyContentResponse _$TimelyContentResponseFromJson(
         Map<String, dynamic> json) =>
     _TimelyContentResponse(
-      json['parsha'] as int,
-      json['monthly'] as int,
+      json['parsha'] as int?,
+      json['monthly'] as int?,
     );
 
 Map<String, dynamic> _$TimelyContentResponseToJson(
@@ -104,8 +104,8 @@ Map<String, dynamic> _$TimelyContentResponseToJson(
 
 _DailyClasses _$DailyClassesFromJson(Map<String, dynamic> json) =>
     _DailyClasses(
-      json['tanya_id'] as int,
-      json['hayom_yom_id'] as int,
+      json['tanya_id'] as int?,
+      json['hayom_yom_id'] as int?,
     );
 
 Map<String, dynamic> _$DailyClassesToJson(_DailyClasses instance) =>
