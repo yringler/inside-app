@@ -56,7 +56,7 @@ class PlayerRoute extends StatelessWidget {
                       borderRadius: BorderRadius.all(Radius.circular(10))),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _favoriteButton(context),
                       StreamBuilder<DownloadTaskStatus>(
@@ -82,54 +82,14 @@ class PlayerRoute extends StatelessWidget {
                               ),
                             );
                           }),
-                      if (media.link.isNotEmpty)
-                        _labeledWidget(
-                          context: context,
-                          label: 'Share',
-                          child: ShrunkIconButton(
-                              icon: Icon(Icons.share),
-                              tooltip: 'Share link',
-                              onPressed: () => SharePlus.Share.share(
-                                  '${_shareText()} ${media.link}',
-                                  subject: 'Class from Inside Chassidus')),
-                        ),
                       _labeledWidget(
                         context: context,
-                        label: 'Send',
+                        label: 'Share',
                         child: ShrunkIconButton(
-                            icon: Icon(
-                              Icons.send,
-                            ),
-                            tooltip: 'Share downloaded file',
-                            onPressed: () async {
-                              var status = await _tryDownload();
-
-                              // Sometimes download fails. If that happens, try again, but only once.
-                              // This should probably be looked into, and fixed in a more central locationl...
-                              if (status.status !=
-                                  DownloadTaskStatus.complete) {
-                                status = await _tryDownload();
-                              }
-                              if (status.status !=
-                                  DownloadTaskStatus.complete) {
-                                return;
-                              }
-
-                              final path =
-                                  (await downloader.getPlaybackUriFromUri(
-                                          Uri.parse(media.source)))
-                                      .toFilePath();
-
-                              assert(File(path).existsSync());
-
-                              SharePlus.Share.shareFiles([path],
-                                  text: _shareText(),
-                                  subject: 'Class from Inside Chassidus',
-                                  mimeTypes: path.toLowerCase().endsWith('.mp3')
-                                      ? ['audio/mpeg']
-                                      : null);
-                            }),
-                      )
+                            icon: Icon(Icons.share),
+                            tooltip: 'Share link',
+                            onPressed: () => _openShareModal(context)),
+                      ),
                     ],
                   ),
                 ),
@@ -260,6 +220,91 @@ class PlayerRoute extends StatelessWidget {
   String _shareText() => media.title.isEmpty
       ? 'Listen to this class from Inside Chassidus'
       : media.title;
+
+  Future<void> _openShareModal(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              if (media.link.isNotEmpty)
+                _shareRow(
+                    context: context,
+                    icon: Icons.link,
+                    onPressed: () => SharePlus.Share.share(
+                        '${_shareText()} ${media.link}',
+                        subject: 'Class from Inside Chassidus'),
+                    description: 'Share a link to listen to this class online'),
+              StreamBuilder<DownloadTask>(
+                  stream: downloader
+                      .getDownloadStateStream(Uri.parse(media.source)),
+                  builder: (context, snapshot) {
+                    return _shareRow(
+                        context: context,
+                        icon: Icons.file_upload,
+                        onPressed: _shareFile,
+                        description: snapshot.hasData &&
+                                snapshot.data!.status ==
+                                    DownloadTaskStatus.complete
+                            ? 'Share the downloaded class'
+                            : 'Download the class and then share it');
+                  })
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Row _shareRow(
+      {required VoidCallback onPressed,
+      required IconData icon,
+      required String description,
+      required BuildContext context}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        IconButton(onPressed: onPressed, icon: Icon(icon)),
+        Expanded(
+          child: GestureDetector(
+              onTap: onPressed,
+              child: Text(
+                description,
+                style: Theme.of(context).textTheme.bodyText2,
+              )),
+        )
+      ],
+    );
+  }
+
+  Future<void> _shareFile() async {
+    var status = await _tryDownload();
+
+    // Sometimes download fails. If that happens, try again, but only once.
+    // This should probably be looked into, and fixed in a more central locationl...
+    if (status.status != DownloadTaskStatus.complete) {
+      status = await _tryDownload();
+    }
+    if (status.status != DownloadTaskStatus.complete) {
+      return;
+    }
+
+    final path =
+        (await downloader.getPlaybackUriFromUri(Uri.parse(media.source)))
+            .toFilePath();
+
+    assert(File(path).existsSync());
+
+    SharePlus.Share.shareFiles([path],
+        text: _shareText(),
+        subject: 'Class from Inside Chassidus',
+        mimeTypes: path.toLowerCase().endsWith('.mp3') ? ['audio/mpeg'] : null);
+  }
 }
 
 class ShrunkIconButton extends IconButton {
