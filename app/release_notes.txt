@@ -1,3 +1,8 @@
+beta2:
+fix some styles, share opens dialog to choose share URL or file
+
+
+beta1:
 Share buttons (link and file)
 Show context for classes in recent etc
 Logo in header
