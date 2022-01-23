@@ -29,7 +29,9 @@ class LibraryNavigator extends RouterDelegate
 
     final bookPages = [
       for (final book in wasNavigatedTo)
-        MaterialPage(key: ValueKey(book.data!.id), child: getChild(book))
+        MaterialPage(
+            key: ValueKey(book.data!.id),
+            child: Material(child: getChild(book)))
     ];
 
     final wasNavigatedToIds = wasNavigatedTo
