@@ -28,6 +28,7 @@ class MediaWithContext extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
                       padding: EdgeInsets.only(bottom: 6),
@@ -37,7 +38,8 @@ class MediaWithContext extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: text.subtitle2!.copyWith(
                             color: Colors.grey.shade600,
-                            fontWeight: FontWeight.bold),
+                            fontWeight: FontWeight.bold,
+                            fontSize: text.subtitle2!.fontSize! * .9),
                       ),
                     ),
                     Padding(
@@ -46,7 +48,10 @@ class MediaWithContext extends StatelessWidget {
                           parentTitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: text.bodyText1!.copyWith(color: Colors.black),
+                          style: text.bodyText1!.copyWith(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600,
+                              fontSize: text.bodyText1!.fontSize! * 1.1),
                         )),
                     Text(media.title,
                         maxLines: 1,
