@@ -62,13 +62,10 @@ class SuggestedContentLoader {
   /// Get suggested content.
   /// Doesn't request new data more than once every few hours.
   Future<SuggestedContent> _httpLoad() async {
-    final content =
-        await Future.wait([_timelyContent(), _popular(), _featured()]);
-
     final suggestedContent = SuggestedContent(
-        timelyContent: content[0] as TimelyContent,
-        popular: content[1] as List<ContentReference>,
-        featured: content[2] as List<FeaturedSectionVerified>);
+        timelyContent: await _timelyContent(),
+        popular: await _popular(),
+        featured: await _featured());
 
     return suggestedContent;
   }
@@ -144,8 +141,9 @@ class SuggestedContentLoader {
     return featuredData;
   }
 
-  Future<ContentReference?> _content(int id) async =>
-      ContentReference.fromDataOrNull(
+  Future<ContentReference?> _content(int? id) async => id == null
+      ? null
+      : ContentReference.fromDataOrNull(
           data: await dataLayer.mediaOrSection(id.toString()));
 }
 
@@ -227,8 +225,8 @@ class FeaturedSectionVerified {
 
 @JsonSerializable()
 class _TimelyContentResponse {
-  final int parsha;
-  final int monthly;
+  final int? parsha;
+  final int? monthly;
 
   _TimelyContentResponse(this.parsha, this.monthly);
 
@@ -238,8 +236,8 @@ class _TimelyContentResponse {
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class _DailyClasses {
-  final int tanyaId;
-  final int hayomYomId;
+  final int? tanyaId;
+  final int? hayomYomId;
 
   _DailyClasses(this.tanyaId, this.hayomYomId);
 
