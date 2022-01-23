@@ -436,7 +436,7 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   // we want to use the resource version.
   await compute(_ensureDataLoaded, [resourceFileFolder, !resourceExists]);
 
-  final siteData = DriftInsideData.fromFolder(
+  final siteData = await DriftInsideData.fromIsolate(
       folder: resourceFileFolder,
       loader: loader,
       topIds: topImagesInside.keys.map((e) => e.toString()).toList());

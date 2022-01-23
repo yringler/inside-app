@@ -1501,6 +1501,7 @@ class $UpdateTimeTableTable extends UpdateTimeTable
 
 abstract class _$InsideDatabase extends GeneratedDatabase {
   _$InsideDatabase(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
+  _$InsideDatabase.connect(DatabaseConnection c) : super.connect(c);
   late final $MediaParentsTableTable mediaParentsTable =
       $MediaParentsTableTable(this);
   late final $SectionParentsTableTable sectionParentsTable =
