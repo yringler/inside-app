@@ -23,6 +23,7 @@ class MediaWithContext extends StatelessWidget {
 
           return GestureDetector(
             onTap: onTap,
+            behavior: HitTestBehavior.opaque,
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(10),
