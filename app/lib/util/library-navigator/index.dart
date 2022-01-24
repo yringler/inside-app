@@ -111,7 +111,9 @@ class LibraryNavigator extends RouterDelegate
             data: section, child: InsideDataCard(insideData: section)),
         lessonBuilder: (context, lesson) => InsideDataCard(insideData: lesson),
         mediaBuilder: (context, media) => MediaWithContext(
-            media: media, onTap: () => appState.setActiveItem(media)),
+            media: media,
+            onTap: () =>
+                appState.setActiveItem(media, calculateAncestors: false)),
       ),
     ));
   }

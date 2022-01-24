@@ -33,14 +33,18 @@ class LibraryPositionService extends ChangeNotifier
   /// Make note that they were never navigated to (and so shouldn't show up
   /// e.g. when user hits back button)
   /// If [backToTop] is true, force enable navigate to home page.
+  /// [calculateAncestors] is a temporary workaround. We shouldn't be doing this here - we should quickly
+  /// navigate to requested position, and only keep track of history.
+  /// Untill then, setting this to false will clear the "history" state.
   Future<List<SitePosition>> setActiveItem(SiteDataBase? item,
-      {bool backToTop = false}) async {
+      {bool backToTop = false, bool calculateAncestors = true}) async {
     if (sections.isNotEmpty && sections.last.data == item) {
       notifyListeners();
       return sections;
     }
 
-    await _clearTo(item!, backToTop: backToTop);
+    await _clearTo(item!,
+        backToTop: backToTop, calculateAncestors: calculateAncestors);
 
     notifyListeners();
     return sections;
@@ -80,7 +84,8 @@ class LibraryPositionService extends ChangeNotifier
   }
 
   /// Clear the saved list, and reset to the given item and all of its parents.
-  Future<void> _clearTo(SiteDataBase item, {bool backToTop = false}) async {
+  Future<void> _clearTo(SiteDataBase item,
+      {bool backToTop = false, required bool calculateAncestors}) async {
     if (item is Section && item.content.isEmpty) {
       // A query of a section does not return child content IDs, so in router get
       // that info.
@@ -100,28 +105,31 @@ class LibraryPositionService extends ChangeNotifier
       SitePosition(data: item, level: 0, wasNavigatedTo: true)
     ];
 
-    // Add all the parents to the list. These aren't used for some navigation (the
-    // back button won't get you there), but they are used for explicit navigation
-    // (e.g. clicking a parent section button), and to provide context to a class.
-    var lastItemAdded = item;
-    while (lastItemAdded.hasParent) {
-      final parentSection =
-          await (this.siteBoxes.section(lastItemAdded.firstParent!));
+    if (calculateAncestors) {
+      // Add all the parents to the list. These aren't used for some navigation (the
+      // back button won't get you there), but they are used for explicit navigation
+      // (e.g. clicking a parent section button), and to provide context to a class.
+      var lastItemAdded = item;
 
-      if (parentSection == null) {
-        print('parent is null');
-        break;
+      while (lastItemAdded.hasParent) {
+        final parentSection =
+            await (this.siteBoxes.section(lastItemAdded.firstParent!));
+
+        if (parentSection == null) {
+          print('parent is null');
+          break;
+        }
+
+        // (Removed code dealing with old Lesson type)
+
+        newSections.insert(
+            0,
+            SitePosition(
+                data: parentSection,
+                level: newSections.length,
+                wasNavigatedTo: wasNavigatedTo.contains(parentSection.id)));
+        lastItemAdded = parentSection;
       }
-
-      // (Removed code dealing with old Lesson type)
-
-      newSections.insert(
-          0,
-          SitePosition(
-              data: parentSection,
-              level: newSections.length,
-              wasNavigatedTo: wasNavigatedTo.contains(parentSection.id)));
-      lastItemAdded = parentSection;
     }
 
     for (int i = 0; i < newSections.length; i++) {
