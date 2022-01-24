@@ -7,7 +7,6 @@ import 'package:inside_chassidus/routes/secondary-section-route/widgets/inside-d
 import 'package:inside_chassidus/routes/ternary-section-route.dart';
 import 'package:inside_chassidus/util/library-navigator/library-position-service.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
-import 'package:inside_chassidus/widgets/media-list/media-item.dart';
 import 'package:inside_chassidus/widgets/media-with-context.dart';
 import 'package:inside_chassidus/widgets/section-content-list.dart';
 import 'package:inside_data/inside_data.dart';

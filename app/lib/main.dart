@@ -176,6 +176,7 @@ class MyAppState extends State<MyApp> {
   TabType? _previousTab;
 
   final positionService = BlocProvider.getDependency<LibraryPositionService>();
+  final StreamController<bool> checkCanPop = StreamController();
 
   @override
   void initState() {
@@ -209,6 +210,7 @@ class MyAppState extends State<MyApp> {
   @override
   void dispose() {
     positionService.removeListener(onLibraryPositionChange);
+    checkCanPop.close();
     super.dispose();
   }
 
@@ -223,23 +225,28 @@ class MyAppState extends State<MyApp> {
                   errorBuilder: (context, error, stackTrace) =>
                       Text('Inside Chassidus'),
                 )),
-            leading: _getCanPop()
-                ? BackButton(
-                    onPressed: () async {
-                      // Try to pop current root.
-                      final currentPopped =
-                          await _getCurrentRouterKey().currentState!.maybePop();
+            leading: StreamBuilder<Object>(
+                stream: checkCanPop.stream,
+                builder: (context, snapshot) {
+                  return _getCanPop()
+                      ? BackButton(
+                          onPressed: () async {
+                            // Try to pop current root.
+                            final currentPopped = await _getCurrentRouterKey()
+                                .currentState!
+                                .maybePop();
 
-                      if (currentPopped) {
-                        return;
-                      }
+                            if (currentPopped) {
+                              return;
+                            }
 
-                      // If the current route has no where to go, check if we have another tab to
-                      // back up to.
-                      tryChangeTab();
-                    },
-                  )
-                : null),
+                            // If the current route has no where to go, check if we have another tab to
+                            // back up to.
+                            tryChangeTab();
+                          },
+                        )
+                      : Container();
+                })),
         body: AudioButtonbarAwareBody(
             body: Material(
           child: WillPopScope(
@@ -318,7 +325,7 @@ class MyAppState extends State<MyApp> {
   }
 
   void rebuildForCanPop() {
-    setState(() {});
+    checkCanPop.add(true);
   }
 
   void _onBottomNavigationTap(intValue) {
@@ -429,7 +436,7 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   // we want to use the resource version.
   await compute(_ensureDataLoaded, [resourceFileFolder, !resourceExists]);
 
-  final siteData = DriftInsideData.fromFolder(
+  final siteData = await DriftInsideData.fromIsolate(
       folder: resourceFileFolder,
       loader: loader,
       topIds: topImagesInside.keys.map((e) => e.toString()).toList());
