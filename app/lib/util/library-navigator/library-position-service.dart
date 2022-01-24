@@ -33,7 +33,7 @@ class LibraryPositionService extends ChangeNotifier
   /// Make note that they were never navigated to (and so shouldn't show up
   /// e.g. when user hits back button)
   /// If [backToTop] is true, force enable navigate to home page.
-  /// [calculateAncestors] is a temporary workaround. We shouldn't be doing this here - we should quickly
+  /// [calculateAncestors] is a temporary workaround. TODO: We shouldn't be doing this here - we should quickly
   /// navigate to requested position, and only keep track of history.
   /// Untill then, setting this to false will clear the "history" state.
   Future<List<SitePosition>> setActiveItem(SiteDataBase? item,
