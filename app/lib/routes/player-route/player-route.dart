@@ -232,7 +232,7 @@ class PlayerRoute extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              if (media.link.isNotEmpty)
+              if (media.link.isNotEmpty) ...[
                 _shareRow(
                     context: context,
                     icon: Icons.link,
@@ -240,6 +240,8 @@ class PlayerRoute extends StatelessWidget {
                         '${_shareText()} ${media.link}',
                         subject: 'Class from Inside Chassidus'),
                     description: 'Share a link to listen to this class online'),
+                Divider()
+              ],
               StreamBuilder<DownloadTask>(
                   stream: downloader
                       .getDownloadStateStream(Uri.parse(media.source)),
