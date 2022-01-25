@@ -517,9 +517,7 @@ class DbAccessAudioTask extends AudioHandlerJustAudio {
         duration: media.length,
         displayDescription: media.description,
         extras: ExtraSettings(
-                start: Duration.zero,
-                originalUri: Uri.parse(
-                    media.source.isNotEmpty ? media.source : media.videoSource))
+                start: Duration.zero, originalUri: Uri.parse(media.mediaSource))
             .toExtra());
   }
 

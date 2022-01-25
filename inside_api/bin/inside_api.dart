@@ -96,8 +96,9 @@ void _setSiteDuration(SiteData site) {
       json.decode(durationJson.readAsStringSync()) as Map<String, dynamic>;
   final duration = Map.castFrom<String, dynamic, String, int>(dynamicDuration);
   for (var media in site.medias.values) {
-    if (duration.containsKey(media.source) && duration[media.source]! > 0) {
-      media.length = Duration(milliseconds: duration[media.source]!);
+    if (duration.containsKey(media.mediaSource) &&
+        duration[media.mediaSource]! > 0) {
+      media.length = Duration(milliseconds: duration[media.mediaSource]!);
     }
   }
 }

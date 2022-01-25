@@ -61,7 +61,8 @@ class PlayerRoute extends StatelessWidget {
                       _favoriteButton(context),
                       StreamBuilder<DownloadTaskStatus>(
                           stream: downloader
-                              .getDownloadStateStream(Uri.parse(media.source))
+                              .getDownloadStateStream(
+                                  Uri.parse(media.mediaSource))
                               .map((event) => event.status),
                           initialData: DownloadTaskStatus.undefined,
                           builder: (context, snapshot) {
@@ -77,7 +78,7 @@ class PlayerRoute extends StatelessWidget {
                                         tooltip: 'Download class',
                                         onPressed: onPressed,
                                         icon: Icon(icon)),
-                                audioSource: media.source,
+                                audioSource: media.mediaSource,
                                 downloader: downloader,
                               ),
                             );
@@ -104,9 +105,9 @@ class PlayerRoute extends StatelessWidget {
       );
 
   Future<DownloadTask> _tryDownload() async {
-    await downloader.downloadFromUri(Uri.parse(media.source));
+    await downloader.downloadFromUri(Uri.parse(media.mediaSource));
     final status = await downloader
-        .getDownloadStateStream(Uri.parse(media.source))
+        .getDownloadStateStream(Uri.parse(media.mediaSource))
         .firstWhere((element) => {
               DownloadTaskStatus.failed,
               DownloadTaskStatus.complete
@@ -244,7 +245,7 @@ class PlayerRoute extends StatelessWidget {
               ],
               StreamBuilder<DownloadTask>(
                   stream: downloader
-                      .getDownloadStateStream(Uri.parse(media.source)),
+                      .getDownloadStateStream(Uri.parse(media.mediaSource)),
                   builder: (context, snapshot) {
                     return _shareRow(
                         context: context,
@@ -297,7 +298,7 @@ class PlayerRoute extends StatelessWidget {
     }
 
     final path =
-        (await downloader.getPlaybackUriFromUri(Uri.parse(media.source)))
+        (await downloader.getPlaybackUriFromUri(Uri.parse(media.mediaSource)))
             .toFilePath();
 
     assert(File(path).existsSync());
