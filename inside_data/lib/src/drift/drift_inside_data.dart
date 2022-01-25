@@ -36,6 +36,7 @@ class MediaTable extends Table {
   TextColumn get id => text()();
 
   TextColumn get source => text()();
+  TextColumn get videoSource => text().withDefault(const Constant(''))();
   IntColumn get sort => integer()();
   TextColumn get title => text().nullable()();
   TextColumn get description => text().nullable()();
@@ -106,7 +107,7 @@ class InsideDatabase extends _$InsideDatabase {
       : super.connect(connection);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(onCreate: (Migrator m) {
@@ -118,6 +119,9 @@ class InsideDatabase extends _$InsideDatabase {
         }
         if (from < 3) {
           await m.addColumn(mediaTable, mediaTable.link);
+        }
+        if (from < 4) {
+          m.addColumn(mediaTable, mediaTable.videoSource);
         }
       });
 
@@ -226,6 +230,7 @@ class InsideDatabase extends _$InsideDatabase {
 
     return Media(
         source: media.source,
+        videoSource: media.videoSource,
         id: id,
         sort: media.sort,
         created: DateTime.fromMillisecondsSinceEpoch(media.created),
@@ -313,6 +318,7 @@ class InsideDatabase extends _$InsideDatabase {
         .map((e) => ContentReference.fromData(
             data: Media(
                 source: e.source,
+                videoSource: e.videoSource,
                 id: e.id,
                 sort: e.sort,
                 link: e.link,
@@ -356,6 +362,7 @@ class InsideDatabase extends _$InsideDatabase {
 
       return Media(
           source: base.source,
+          videoSource: base.videoSource,
           created: DateTime.fromMillisecondsSinceEpoch(base.created),
           length: base.duration == null
               ? null

@@ -28,7 +28,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 /// When we want to force users to use latest asset on load, use this.
-const assetVersion = 1;
+const assetVersion = 2;
 
 void main() async {
   runApp(MaterialApp(

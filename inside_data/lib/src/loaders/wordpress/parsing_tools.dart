@@ -20,14 +20,15 @@ String _parseXml(String xmlString) {
 
 /// Turns a post... possibly into a section, if it contains multiple media items.
 SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
+  post.title = _parseXml(post.title);
   final xml = post.description.isNotEmpty ? html.parse(post.description) : null;
 
   final audios = xml?.querySelectorAll('.wp-block-audio');
+  final videos = xml?.querySelectorAll('.wp-block-video');
+  final mediaEls = [...audios ?? [], ...videos ?? []];
 
-  if (audios != null) {
-    for (final audio in audios) {
-      audio.remove();
-    }
+  for (final media in mediaEls) {
+    media.remove();
   }
 
   var description = xml != null ? _parseXml(xml.outerHtml) : '';
@@ -40,7 +41,7 @@ SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
 
   // For example, if we're parsing the basic data for a category, the category description
   // will not have any audios in it.
-  if (audios == null || audios.isEmpty) {
+  if (mediaEls.isEmpty) {
     return requireAudio
         ? null
         : SiteDataBase(
@@ -53,8 +54,8 @@ SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
             link: post.link);
   }
 
-  if (audios.length == 1) {
-    final media = _toMedia(audios.first,
+  if (mediaEls.length == 1) {
+    final media = _toMedia(mediaEls.first,
         description: description,
         title: post.title,
         order: post.sort,
@@ -67,7 +68,7 @@ SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
   }
 
   int sort = 0;
-  final medias = audios
+  final medias = mediaEls
       .map((e) => _toMedia(e,
           created: post.created,
           description: '',
@@ -117,24 +118,26 @@ Media? _toMedia(Element element,
     required Set<String> parents,
     required DateTime? created,
     String? id}) {
-  final audioSource = element.querySelector('audio')?.attributes['src'];
-  final audioTitle = title.isNotEmpty
-      ? title
-      : element.querySelector('figcaption')?.text.trim();
+  final audioSource = element.querySelector('audio')?.attributes['src'] ?? '';
+  final videoSource = element.querySelector('video')?.attributes['src'] ?? '';
 
-  if (audioSource?.isEmpty ?? true) {
+  if (audioSource.isEmpty && videoSource.isEmpty) {
     return null;
   }
 
+  final caption = element.querySelector('figcaption')?.text.trim() ?? '';
+  final mediaTitle = title.isNotEmpty ? title : _parseXml(caption);
+
   return Media(
-      id: id ?? audioSource!,
+      id: id ?? (audioSource.isNotEmpty ? audioSource : videoSource),
       created: created,
       parents: parents,
       // We don't know the length yet.
       length: null,
       link: link,
-      source: audioSource!,
-      title: audioTitle ?? '',
+      source: audioSource,
+      videoSource: videoSource,
+      title: mediaTitle,
       description: description,
       sort: order);
 }

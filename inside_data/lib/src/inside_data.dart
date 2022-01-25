@@ -47,6 +47,8 @@ class SiteDataBase implements Comparable {
 class Media extends SiteDataBase implements Comparable {
   int? _hashcode;
   final String source;
+  @JsonKey(defaultValue: '')
+  final String videoSource;
   Duration? length;
 
   Media(
@@ -58,6 +60,7 @@ class Media extends SiteDataBase implements Comparable {
       required String description,
       required String link,
       required Set<String> parents,
+      required this.videoSource,
       DateTime? created})
       : super(
             id: id,
