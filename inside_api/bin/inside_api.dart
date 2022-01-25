@@ -10,7 +10,6 @@ final encoder = JsonEncoder.withIndent('\t');
 late final File currentRawSiteFile;
 
 const numInvalidMedia = 0;
-late final String dataVersion;
 const isDebug = false;
 late final String sourceUrl;
 
@@ -25,7 +24,6 @@ void main(List<String> arguments) async {
 
   currentRawSiteFile = File('rawsite.current.json');
   sourceUrl = env['sourceUrl']!;
-  dataVersion = env['dataVersion']!;
 
   final repository = WordpressLoader(
       topCategoryIds: topImagesInside.keys.toList(), wordpressUrl: sourceUrl);
@@ -81,9 +79,10 @@ Future<void> _updateLatestLocalCloud(SiteData site) async {
 
     if (!isDebug) {
       print('uploading...');
-      await uploadToDropbox(site, dataVersion);
+      await uploadToDropbox(site, JsonLoader.dataVersion.toString());
       print('notifying...');
-      await notifyApiOfLatest(site.createdDate, dataVersion);
+      await notifyApiOfLatest(
+          site.createdDate, JsonLoader.dataVersion.toString());
     } else {
       print('in debug mode');
     }

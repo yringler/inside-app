@@ -627,7 +627,7 @@ Iterable<List<T>> groupsOf<T>(List<T> list, int groupSize) sync* {
   // }
 }
 
-const dataVersion = 9;
+const dataVersion = JsonLoader.dataVersion;
 
 /// Downloads newer DB from API if we don't already have the latest.
 Future<List<int>?> _getLatestDb(DateTime lastLoadTime) async {
