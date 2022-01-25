@@ -33,7 +33,7 @@ void main(List<String> arguments) async {
   final classListFile = File(env['classListFile']!);
   final classList = site.medias.values.toList();
   await classListFile.writeAsString(
-      encoder.convert(classList.map((e) => e.source).toSet().toList()));
+      encoder.convert(classList.map((e) => e.mediaSource).toSet().toList()));
 
   print('running check_duration');
   final scriptPath = env['getDurationScriptPath']!;
