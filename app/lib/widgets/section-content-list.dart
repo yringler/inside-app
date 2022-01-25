@@ -85,7 +85,9 @@ class SectionContentList extends StatelessWidget {
   List<ContentReference> _withContent(List<ContentReference> contents) =>
       contents
           .where((element) =>
-              (element.hasMedia && element.media!.source.isNotEmpty) ||
+              (element.hasMedia &&
+                  (element.media!.videoSource.isNotEmpty ||
+                      element.media!.source.isNotEmpty)) ||
               (element.hasSection && element.section!.audioCount > 0))
           .toList();
 

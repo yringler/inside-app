@@ -169,6 +169,7 @@ class InsideDatabase extends _$InsideDatabase {
       Iterable<Media> medias, Map<String, List<String>> contentSort) async {
     final mediaCompanions = medias
         .map((e) => MediaTableCompanion.insert(
+            videoSource: Value(e.videoSource),
             id: e.id,
             source: e.source,
             link: Value(e.link),
