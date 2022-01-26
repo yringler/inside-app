@@ -146,7 +146,7 @@ class AppRouterDelegate extends RouterDelegate
 
 /// The app.
 class MyApp extends StatefulWidget {
-  static final FirebaseAnalytics analytics = FirebaseAnalytics();
+  static final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   final GlobalKey<NavigatorState> lessonNavigatorKey =
       GlobalKey<NavigatorState>(debugLabel: 'library');
@@ -472,7 +472,7 @@ Future<void> _ensureDataLoaded(List<dynamic> args) async {
 }
 
 class AnalyticsLogger extends AudioLogger {
-  final FirebaseAnalytics analytics = FirebaseAnalytics();
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   @override
   Future<void> onComplete(MediaItem item) async {

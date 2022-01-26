@@ -1,2 +1,2 @@
-performance improvement - navigate to class, divider in share
-(show class context in list, share file/link)
+Add more content (qa, glossery)
+(performance, show class context in list, share file/link)
