@@ -16,7 +16,7 @@ class JsonLoader extends SiteDataLoader {
     final request = Request(
         'GET',
         Uri.parse(
-            'https://inside-api-go-2.herokuapp.com/check?date=${lastLoadTime.millisecondsSinceEpoch}&v=$dataVersion'));
+            'https://inside-api-staging.herokuapp.com/check?date=${lastLoadTime.millisecondsSinceEpoch}&v=$dataVersion'));
 
     try {
       final response = await request.send();
