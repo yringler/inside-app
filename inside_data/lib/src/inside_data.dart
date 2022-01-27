@@ -47,7 +47,14 @@ class SiteDataBase implements Comparable {
 class Media extends SiteDataBase implements Comparable {
   int? _hashcode;
   final String source;
+  @JsonKey(defaultValue: '')
+  final String videoSource;
   Duration? length;
+
+  /// Audio URL. Prefers audio (mp3), but falls back to video if it has to.
+  String get mediaSource => source.isNotEmpty ? source : videoSource;
+
+  bool get hasMedia => mediaSource.isNotEmpty;
 
   Media(
       {required this.source,
@@ -58,6 +65,7 @@ class Media extends SiteDataBase implements Comparable {
       required String description,
       required String link,
       required Set<String> parents,
+      required this.videoSource,
       DateTime? created})
       : super(
             id: id,
@@ -93,11 +101,13 @@ class Media extends SiteDataBase implements Comparable {
       return false;
     }
 
-    return source == other.source && id == other.id;
+    return source == other.source &&
+        id == other.id &&
+        videoSource == other.videoSource;
   }
 
   @override
-  int get hashCode => _hashcode ??= [id, source].join('').hashCode;
+  int get hashCode => _hashcode ??= [id, source, videoSource].join('').hashCode;
 }
 
 enum ContentType { media, section }

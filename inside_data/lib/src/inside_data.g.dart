@@ -18,6 +18,7 @@ Media _$MediaFromJson(Map<String, dynamic> json) => Media(
       link: json['link'] as String,
       parents:
           (json['parents'] as List<dynamic>).map((e) => e as String).toSet(),
+      videoSource: json['videoSource'] as String? ?? '',
       created: json['created'] == null
           ? null
           : DateTime.parse(json['created'] as String),
@@ -32,6 +33,7 @@ Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
       'link': instance.link,
       'created': instance.created?.toIso8601String(),
       'source': instance.source,
+      'videoSource': instance.videoSource,
       'length': instance.length?.inMicroseconds,
     };
 

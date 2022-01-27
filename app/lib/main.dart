@@ -28,7 +28,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 /// When we want to force users to use latest asset on load, use this.
-const assetVersion = 1;
+const assetVersion = 2;
 
 void main() async {
   runApp(MaterialApp(
@@ -146,7 +146,7 @@ class AppRouterDelegate extends RouterDelegate
 
 /// The app.
 class MyApp extends StatefulWidget {
-  static final FirebaseAnalytics analytics = FirebaseAnalytics();
+  static final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   final GlobalKey<NavigatorState> lessonNavigatorKey =
       GlobalKey<NavigatorState>(debugLabel: 'library');
@@ -472,7 +472,7 @@ Future<void> _ensureDataLoaded(List<dynamic> args) async {
 }
 
 class AnalyticsLogger extends AudioLogger {
-  final FirebaseAnalytics analytics = FirebaseAnalytics();
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   @override
   Future<void> onComplete(MediaItem item) async {
@@ -517,7 +517,7 @@ class DbAccessAudioTask extends AudioHandlerJustAudio {
         duration: media.length,
         displayDescription: media.description,
         extras: ExtraSettings(
-                start: Duration.zero, originalUri: Uri.parse(media.source))
+                start: Duration.zero, originalUri: Uri.parse(media.mediaSource))
             .toExtra());
   }
 

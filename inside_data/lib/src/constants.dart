@@ -11,7 +11,11 @@ const topImagesInside = {
   1447:
       'https://insidechassidus.org/wp-content/uploads/Parsha-of-the-Week-Audio-Classes.jpg',
   1104:
-      'https://insidechassidus.org/wp-content/uploads/stories-of-rebbeim-1.jpg'
+      'https://insidechassidus.org/wp-content/uploads/stories-of-rebbeim-1.jpg',
+  // Q&A
+  1573: '',
+  // Chassidic Glossary
+  6289: ''
 };
 
 const activeSourceDomain = 'insidechassidus.org';
