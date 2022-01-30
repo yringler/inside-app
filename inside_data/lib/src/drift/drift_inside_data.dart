@@ -6,6 +6,9 @@ import 'package:drift/native.dart';
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 import 'package:collection/collection.dart';
+import 'dart:async';
+import 'dart:isolate';
+import 'package:drift/isolate.dart';
 
 part 'drift_inside_data.g.dart';
 
@@ -33,6 +36,7 @@ class MediaTable extends Table {
   TextColumn get id => text()();
 
   TextColumn get source => text()();
+  TextColumn get videoSource => text().withDefault(const Constant(''))();
   IntColumn get sort => integer()();
   TextColumn get title => text().nullable()();
   TextColumn get description => text().nullable()();
@@ -99,8 +103,11 @@ class InsideDatabase extends _$InsideDatabase {
   InsideDatabase.fromFolder({required String folder, int number = 1})
       : super(_openConnection(folder: folder, number: number));
 
+  InsideDatabase.connect(DatabaseConnection connection)
+      : super.connect(connection);
+
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(onCreate: (Migrator m) {
@@ -112,6 +119,9 @@ class InsideDatabase extends _$InsideDatabase {
         }
         if (from < 3) {
           await m.addColumn(mediaTable, mediaTable.link);
+        }
+        if (from < 4) {
+          m.addColumn(mediaTable, mediaTable.videoSource);
         }
       });
 
@@ -159,6 +169,7 @@ class InsideDatabase extends _$InsideDatabase {
       Iterable<Media> medias, Map<String, List<String>> contentSort) async {
     final mediaCompanions = medias
         .map((e) => MediaTableCompanion.insert(
+            videoSource: Value(e.videoSource),
             id: e.id,
             source: e.source,
             link: Value(e.link),
@@ -220,6 +231,7 @@ class InsideDatabase extends _$InsideDatabase {
 
     return Media(
         source: media.source,
+        videoSource: media.videoSource,
         id: id,
         sort: media.sort,
         created: DateTime.fromMillisecondsSinceEpoch(media.created),
@@ -307,6 +319,7 @@ class InsideDatabase extends _$InsideDatabase {
         .map((e) => ContentReference.fromData(
             data: Media(
                 source: e.source,
+                videoSource: e.videoSource,
                 id: e.id,
                 sort: e.sort,
                 link: e.link,
@@ -350,6 +363,7 @@ class InsideDatabase extends _$InsideDatabase {
 
       return Media(
           source: base.source,
+          videoSource: base.videoSource,
           created: DateTime.fromMillisecondsSinceEpoch(base.created),
           length: base.duration == null
               ? null
@@ -381,7 +395,7 @@ class _DataBasePair {
   /// Database for reading.
   late InsideDatabase _active;
 
-  // Which number can be written to as file operation.
+  // Which number has the latest data and will be read from.
   late int activeNumber;
 
   int get writeNumber => activeNumber == 1 ? 2 : 1;
@@ -416,7 +430,7 @@ class _DataBasePair {
   }
 
   /// Get the file which is not currently being used, to write to for next app load.
-  Future<File> writeFile() async {
+  File writeFile() {
     final path = InsideDatabase.getFilePath(folder, number: writeNumber);
     return File(path);
   }
@@ -427,16 +441,58 @@ class _DataBasePair {
 }
 
 class DriftInsideData extends SiteDataLayer {
-  final String folder;
+  final String? folder;
   final SiteDataLoader loader;
   final List<String> topIds;
-  late _DataBasePair _databases;
+  late _DataBasePair? _databases;
 
-  InsideDatabase get database => _databases.active;
+  /// Optionally, a single database can be set directly.
+  final InsideDatabase? initDatabase;
+
+  /// The number database to write to.
+  final int? writeNumber;
+
+  InsideDatabase get database => (_databases?.active ?? initDatabase)!;
 
   DriftInsideData.fromFolder(
-      {required this.loader, required this.topIds, required this.folder})
-      : _databases = _DataBasePair(folder: folder);
+      {required this.loader, required this.topIds, required String folder})
+      : folder = folder,
+        writeNumber = null,
+        initDatabase = null,
+        _databases = _DataBasePair(folder: folder);
+
+  DriftInsideData.fromDatabase(
+      {required this.loader,
+      required this.topIds,
+      required this.initDatabase,
+      required this.writeNumber,
+      required this.folder})
+      : _databases = null;
+
+  static Future<DriftInsideData> fromIsolate(
+      {required SiteDataLoader loader,
+      required List<String> topIds,
+      required String folder}) async {
+    // We have 2 DBs - one for writing, one for reading.
+    // Figure out which one is for reading.
+    final pair = _DataBasePair(folder: folder);
+    await pair.init();
+    final active = pair.activeNumber;
+    final write = pair.writeNumber;
+    await pair.close();
+
+    // Create the connection.
+    final driftIsolate = await _createDriftIsolate(
+        path: InsideDatabase.getFilePath(folder, number: active));
+    final connection = await driftIsolate.connect();
+
+    return DriftInsideData.fromDatabase(
+        loader: loader,
+        folder: folder,
+        topIds: topIds,
+        writeNumber: write,
+        initDatabase: InsideDatabase.connect(connection));
+  }
 
   /// Init the database. The [preloadedDatabase] will be used if we don't have a database
   /// already. If there's already a DB, it will not be used, unless [forceRefresh] forces it
@@ -444,7 +500,9 @@ class DriftInsideData extends SiteDataLayer {
   @override
   Future<void> init(
       {File? preloadedDatabase, bool forceRefresh = false}) async {
-    await _databases.init();
+    if (_databases != null) {
+      await _databases!.init();
+    }
 
     final lastUpdate = await database.getUpdateTime();
 
@@ -454,17 +512,36 @@ class DriftInsideData extends SiteDataLayer {
      */
 
     if ((lastUpdate == null || forceRefresh) && preloadedDatabase != null) {
-      final writeFile = await _databases.writeFile();
+      final writeFile = _getWriteFile();
+
+      if (writeFile == null) {
+        return;
+      }
+
       await writeFile.writeAsBytes(await preloadedDatabase.readAsBytes());
 
-      // Re-init the database pair to use new file.
-      await _databases.close();
-      await _databases.init();
+      if (_databases != null) {
+        // Re-init the database pair to use new file.
+        await _databases!.close();
+        await _databases!.init();
+      }
     }
   }
 
+  File? _getWriteFile() {
+    final hasDbPair = _databases != null;
+    final hasPathSpec = writeNumber != null && folder != null;
+    if (!(hasDbPair || hasPathSpec)) {
+      return null;
+    }
+
+    return _databases != null
+        ? _databases!.writeFile()
+        : File(InsideDatabase.getFilePath(folder!, number: writeNumber!));
+  }
+
   @override
-  Future<void> close() => _databases.close();
+  Future<void> close() async => await _databases?.close();
 
   /// Prepare the write database, update it with data to be used next app load.
   @override
@@ -473,7 +550,7 @@ class DriftInsideData extends SiteDataLayer {
         await lastUpdate() ?? DateTime.fromMillisecondsSinceEpoch(0));
 
     if (newDb != null) {
-      (await _databases.writeFile()).writeAsBytes(newDb);
+      _getWriteFile()?.writeAsBytes(newDb);
     }
 
     // Untill we have incremental updates, loading whole sites of JSON is too heavy, so we
@@ -483,17 +560,27 @@ class DriftInsideData extends SiteDataLayer {
   /// Use loader to get update. For now, this is only here to prepare the DB on server.
   /// This is horrid. Returns the number of database which is being written to.
   Future<int?> prepareUpdateFromLoader() async {
+    if (_databases == null) {
+      return null;
+    }
+
+    assert(folder != null);
+
+    if (folder == null) {
+      return null;
+    }
+
     var data = await loader
         .load(await lastUpdate() ?? DateTime.fromMillisecondsSinceEpoch(0));
 
     if (data != null) {
-      final writeDb = _databases.getWriteDb(folder);
+      final writeDb = _databases!.getWriteDb(folder!);
       await writeDb.transaction(() async {
         await addToDatabase(data);
       });
       await writeDb.close();
 
-      return _databases.writeNumber;
+      return _databases!.writeNumber;
     }
 
     return null;
@@ -548,14 +635,14 @@ Iterable<List<T>> groupsOf<T>(List<T> list, int groupSize) sync* {
   // }
 }
 
-const dataVersion = 9;
+const dataVersion = JsonLoader.dataVersion;
 
 /// Downloads newer DB from API if we don't already have the latest.
 Future<List<int>?> _getLatestDb(DateTime lastLoadTime) async {
   final request = http.Request(
       'GET',
       Uri.parse(
-          'https://inside-api-go-2.herokuapp.com/check?date=${lastLoadTime.millisecondsSinceEpoch}&v=$dataVersion'));
+          'https://inside-api-staging.herokuapp.com/check?date=${lastLoadTime.millisecondsSinceEpoch}&v=$dataVersion'));
 
   try {
     final response = await request.send();
@@ -568,4 +655,36 @@ Future<List<int>?> _getLatestDb(DateTime lastLoadTime) async {
   }
 
   return null;
+}
+
+/// Returns the core of the isolate based drift connection.
+Future<DriftIsolate> _createDriftIsolate({required String path}) async {
+  final receivePort = ReceivePort();
+
+  await Isolate.spawn(
+    _startBackground,
+    _IsolateStartRequest(receivePort.sendPort, path),
+  );
+
+  // _startBackground will send the DriftIsolate to this ReceivePort
+  return await receivePort.first as DriftIsolate;
+}
+
+void _startBackground(_IsolateStartRequest request) {
+  final executor = NativeDatabase(File(request.targetPath));
+
+  final driftIsolate = DriftIsolate.inCurrent(
+    () => DatabaseConnection.fromExecutor(executor),
+  );
+
+  request.sendDriftIsolate.send(driftIsolate);
+}
+
+// used to bundle the SendPort and the target path, since isolate entry point
+// functions can only take one parameter.
+class _IsolateStartRequest {
+  final SendPort sendDriftIsolate;
+  final String targetPath;
+
+  _IsolateStartRequest(this.sendDriftIsolate, this.targetPath);
 }

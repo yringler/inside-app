@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:inside_chassidus/routes/player-route/index.dart';
 import 'package:inside_chassidus/util/chosen-classes/chosen-class.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
+import 'package:inside_chassidus/widgets/media-with-context.dart';
 import 'package:inside_data/inside_data.dart';
 
 class MediaListTabRoute extends ChangeNotifier implements IRoutDataService {
@@ -125,22 +126,14 @@ class ChosenDataList extends StatelessWidget {
 
     return Material(
       child: ListView.builder(
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
           itemCount: data.length,
           itemBuilder: (context, index) {
             final item = data[index];
 
-            return ListTile(
-              title: Text(item.media!.title),
-              subtitle: item.media!.description.isNotEmpty
-                  ? Text(
-                      item.media!.description,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    )
-                  : null,
-              onTap: () {
-                routeDataService.setActiveItem(item.media);
-              },
+            return MediaWithContext(
+              media: item.media!,
+              onTap: () => routeDataService.setActiveItem(item.media),
             );
           }),
     );

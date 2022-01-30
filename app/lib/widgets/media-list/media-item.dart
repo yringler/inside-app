@@ -45,21 +45,19 @@ class MediaItem extends StatelessWidget {
 
     final onPressed = () => routeDataService.setActiveItem(media);
 
-    return GestureDetector(
+    return ListTile(
       onTap: onPressed,
-      child: ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 4),
-        title: Text(
-          title!,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: style,
-        ),
-        subtitle: subtitle,
-        trailing: PlayButton(
-          media: media!,
-          onPressed: onPressed,
-        ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 4),
+      title: Text(
+        title!,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      ),
+      subtitle: subtitle,
+      trailing: PlayButton(
+        media: media!,
+        onPressed: onPressed,
       ),
     );
   }

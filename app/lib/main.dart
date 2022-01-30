@@ -28,7 +28,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 /// When we want to force users to use latest asset on load, use this.
-const assetVersion = 1;
+const assetVersion = 2;
 
 void main() async {
   runApp(MaterialApp(
@@ -146,7 +146,7 @@ class AppRouterDelegate extends RouterDelegate
 
 /// The app.
 class MyApp extends StatefulWidget {
-  static final FirebaseAnalytics analytics = FirebaseAnalytics();
+  static final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   final GlobalKey<NavigatorState> lessonNavigatorKey =
       GlobalKey<NavigatorState>(debugLabel: 'library');
@@ -176,6 +176,7 @@ class MyAppState extends State<MyApp> {
   TabType? _previousTab;
 
   final positionService = BlocProvider.getDependency<LibraryPositionService>();
+  final StreamController<bool> checkCanPop = StreamController();
 
   @override
   void initState() {
@@ -209,30 +210,43 @@ class MyAppState extends State<MyApp> {
   @override
   void dispose() {
     positionService.removeListener(onLibraryPositionChange);
+    checkCanPop.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-            title: Text(appTitle),
-            leading: _getCanPop()
-                ? BackButton(
-                    onPressed: () async {
-                      // Try to pop current root.
-                      final currentPopped =
-                          await _getCurrentRouterKey().currentState!.maybePop();
+            centerTitle: true,
+            title: SizedBox(
+                height: .6 * kToolbarHeight,
+                child: Image.asset(
+                  'assets/logo.png',
+                  errorBuilder: (context, error, stackTrace) =>
+                      Text('Inside Chassidus'),
+                )),
+            leading: StreamBuilder<Object>(
+                stream: checkCanPop.stream,
+                builder: (context, snapshot) {
+                  return _getCanPop()
+                      ? BackButton(
+                          onPressed: () async {
+                            // Try to pop current root.
+                            final currentPopped = await _getCurrentRouterKey()
+                                .currentState!
+                                .maybePop();
 
-                      if (currentPopped) {
-                        return;
-                      }
+                            if (currentPopped) {
+                              return;
+                            }
 
-                      // If the current route has no where to go, check if we have another tab to
-                      // back up to.
-                      tryChangeTab();
-                    },
-                  )
-                : null),
+                            // If the current route has no where to go, check if we have another tab to
+                            // back up to.
+                            tryChangeTab();
+                          },
+                        )
+                      : Container();
+                })),
         body: AudioButtonbarAwareBody(
             body: Material(
           child: WillPopScope(
@@ -311,7 +325,7 @@ class MyAppState extends State<MyApp> {
   }
 
   void rebuildForCanPop() {
-    setState(() {});
+    checkCanPop.add(true);
   }
 
   void _onBottomNavigationTap(intValue) {
@@ -422,7 +436,7 @@ Future<SiteDataLayer> getBoxes(SiteDataLoader loader) async {
   // we want to use the resource version.
   await compute(_ensureDataLoaded, [resourceFileFolder, !resourceExists]);
 
-  final siteData = DriftInsideData.fromFolder(
+  final siteData = await DriftInsideData.fromIsolate(
       folder: resourceFileFolder,
       loader: loader,
       topIds: topImagesInside.keys.map((e) => e.toString()).toList());
@@ -458,7 +472,7 @@ Future<void> _ensureDataLoaded(List<dynamic> args) async {
 }
 
 class AnalyticsLogger extends AudioLogger {
-  final FirebaseAnalytics analytics = FirebaseAnalytics();
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   @override
   Future<void> onComplete(MediaItem item) async {
@@ -503,7 +517,7 @@ class DbAccessAudioTask extends AudioHandlerJustAudio {
         duration: media.length,
         displayDescription: media.description,
         extras: ExtraSettings(
-                start: Duration.zero, originalUri: Uri.parse(media.source))
+                start: Duration.zero, originalUri: Uri.parse(media.mediaSource))
             .toExtra());
   }
 

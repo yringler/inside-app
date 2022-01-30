@@ -10,7 +10,6 @@ final encoder = JsonEncoder.withIndent('\t');
 late final File currentRawSiteFile;
 
 const numInvalidMedia = 0;
-late final String dataVersion;
 const isDebug = false;
 late final String sourceUrl;
 
@@ -25,7 +24,6 @@ void main(List<String> arguments) async {
 
   currentRawSiteFile = File('rawsite.current.json');
   sourceUrl = env['sourceUrl']!;
-  dataVersion = env['dataVersion']!;
 
   final repository = WordpressLoader(
       topCategoryIds: topImagesInside.keys.toList(), wordpressUrl: sourceUrl);
@@ -35,7 +33,7 @@ void main(List<String> arguments) async {
   final classListFile = File(env['classListFile']!);
   final classList = site.medias.values.toList();
   await classListFile.writeAsString(
-      encoder.convert(classList.map((e) => e.source).toSet().toList()));
+      encoder.convert(classList.map((e) => e.mediaSource).toSet().toList()));
 
   print('running check_duration');
   final scriptPath = env['getDurationScriptPath']!;
@@ -81,9 +79,10 @@ Future<void> _updateLatestLocalCloud(SiteData site) async {
 
     if (!isDebug) {
       print('uploading...');
-      await uploadToDropbox(site, dataVersion);
+      await uploadToDropbox(site, JsonLoader.dataVersion.toString());
       print('notifying...');
-      await notifyApiOfLatest(site.createdDate, dataVersion);
+      await notifyApiOfLatest(
+          site.createdDate, JsonLoader.dataVersion.toString());
     } else {
       print('in debug mode');
     }
@@ -97,8 +96,9 @@ void _setSiteDuration(SiteData site) {
       json.decode(durationJson.readAsStringSync()) as Map<String, dynamic>;
   final duration = Map.castFrom<String, dynamic, String, int>(dynamicDuration);
   for (var media in site.medias.values) {
-    if (duration.containsKey(media.source) && duration[media.source]! > 0) {
-      media.length = Duration(milliseconds: duration[media.source]!);
+    if (duration.containsKey(media.mediaSource) &&
+        duration[media.mediaSource]! > 0) {
+      media.length = Duration(milliseconds: duration[media.mediaSource]!);
     }
   }
 }

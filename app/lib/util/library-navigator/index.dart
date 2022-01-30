@@ -7,7 +7,7 @@ import 'package:inside_chassidus/routes/secondary-section-route/widgets/inside-d
 import 'package:inside_chassidus/routes/ternary-section-route.dart';
 import 'package:inside_chassidus/util/library-navigator/library-position-service.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
-import 'package:inside_chassidus/widgets/media-list/media-item.dart';
+import 'package:inside_chassidus/widgets/media-with-context.dart';
 import 'package:inside_chassidus/widgets/section-content-list.dart';
 import 'package:inside_data/inside_data.dart';
 export 'package:inside_chassidus/util/library-navigator/library-position-service.dart';
@@ -30,7 +30,7 @@ class LibraryNavigator extends RouterDelegate
     final bookPages = [
       for (final book in wasNavigatedTo)
         MaterialPage(
-            key: ValueKey('${book.level}_${book.data!.id}'),
+            key: ValueKey(book.data!.id),
             child: Material(child: getChild(book)))
     ];
 
@@ -101,6 +101,7 @@ class LibraryNavigator extends RouterDelegate
     throw new ArgumentError.value(book, 'Could not create widget for value');
   }
 
+  // A bunch of content whose relationship is other than from data. For example, popular classes.
   MaterialPage _virtualSection() {
     return MaterialPage(
         child: Material(
@@ -109,11 +110,10 @@ class LibraryNavigator extends RouterDelegate
         sectionBuilder: (context, section) => InsideNavigator(
             data: section, child: InsideDataCard(insideData: section)),
         lessonBuilder: (context, lesson) => InsideDataCard(insideData: lesson),
-        mediaBuilder: (context, media) => MediaItem(
-          media: media,
-          sectionId: null,
-          routeDataService: appState,
-        ),
+        mediaBuilder: (context, media) => MediaWithContext(
+            media: media,
+            onTap: () =>
+                appState.setActiveItem(media, calculateAncestors: false)),
       ),
     ));
   }

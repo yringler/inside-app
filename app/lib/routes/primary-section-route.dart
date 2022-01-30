@@ -221,15 +221,21 @@ class PrimarySectionsRoute extends StatelessWidget {
         clipBehavior: Clip.hardEdge,
         alignment: Alignment.bottomLeft,
         children: <Widget>[
-          if (image != null)
+          if (image != null && image.isNotEmpty)
             CachedNetworkImage(
+                errorWidget: (context, url, error) => FutureBuilder<void>(
+                      builder: (context, snapshot) => _greyBox(),
+                      future: CachedNetworkImage.evictFromCache(url),
+                    ),
                 imageUrl: image,
                 repeat: ImageRepeat.noRepeat,
                 fit: BoxFit.cover,
                 height: 500,
                 width: 500,
                 color: Colors.black54,
-                colorBlendMode: BlendMode.darken),
+                colorBlendMode: BlendMode.darken)
+          else
+            _greyBox(),
           Container(
               padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
               child: Text(primaryInside.title.toUpperCase(),
@@ -243,6 +249,14 @@ class PrimarySectionsRoute extends StatelessWidget {
       ),
     );
   }
+
+  SizedBox _greyBox() => SizedBox(
+        height: 500,
+        width: 500,
+        child: Container(
+          decoration: BoxDecoration(color: Colors.grey.shade700),
+        ),
+      );
 }
 
 class _FullWidthButton extends StatelessWidget {

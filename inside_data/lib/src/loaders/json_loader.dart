@@ -7,7 +7,7 @@ import 'package:inside_data/inside_data.dart';
 /// Loads site from local (or custom API/dropbox) JSON file.
 /// Note that [init] MUST be called before usage.
 class JsonLoader extends SiteDataLoader {
-  static const dataVersion = 9;
+  static const dataVersion = 10;
 
   /// If a JSON file was already downloaded and saved, loads it and returns, and deletes the file.
   /// Otherwise, checks for updates and downloads for next time in background.
@@ -16,7 +16,7 @@ class JsonLoader extends SiteDataLoader {
     final request = Request(
         'GET',
         Uri.parse(
-            'https://inside-api-go-2.herokuapp.com/check?date=${lastLoadTime.millisecondsSinceEpoch}&v=$dataVersion'));
+            'https://inside-api-staging.herokuapp.com/check?date=${lastLoadTime.millisecondsSinceEpoch}&v=$dataVersion'));
 
     try {
       final response = await request.send();
