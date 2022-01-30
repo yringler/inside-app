@@ -17,10 +17,8 @@ class SectionHeading extends StatelessWidget {
       children: [
         Row(children: [
           Expanded(
-              child: Text(
-            section.title,
-            style: Theme.of(context).textTheme.headline6,
-          )),
+              child: Text(section.title,
+                  style: Theme.of(context).textTheme.headline6)),
           if (section.link.isNotEmpty)
             IconButton(
               icon: Icon(Icons.share),
@@ -33,7 +31,7 @@ class SectionHeading extends StatelessWidget {
             style: Theme.of(context)
                 .textTheme
                 .bodyText2!
-                .copyWith(color: Theme.of(context).disabledColor),
+                .copyWith(color: Colors.grey.shade600),
           )
       ],
     );
