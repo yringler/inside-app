@@ -7,36 +7,35 @@ import 'package:inside_chassidus/widgets/media-list/play-button.dart';
 import 'package:inside_data/inside_data.dart';
 
 class MediaItem extends StatelessWidget {
-  // TODO: this probably shouldn't be nullable.
-  final Media? media;
+  final Media media;
   final String? sectionId;
   final String? fallbackTitle;
   final IRoutDataService routeDataService;
 
   MediaItem(
-      {this.media,
+      {required this.media,
       this.fallbackTitle,
       required this.sectionId,
       required this.routeDataService}) {
     if (sectionId != null && sectionId!.isNotEmpty) {
-      media!.parents.add(sectionId!);
+      media.parents.add(sectionId!);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    String? title = media!.title;
+    String title = media.title;
     Text? subtitle;
 
-    subtitle = textIfNotEmpty(media!.description, maxLines: 1) as Text?;
+    subtitle = textIfNotEmpty(media.description, maxLines: 1) as Text?;
 
     if (title.isEmpty) {
-      title = fallbackTitle;
+      title = fallbackTitle ?? '';
     }
 
     final handler = BlocProvider.getDependency<AudioHandler>();
 
-    final style = handler.mediaItem.valueOrNull?.id == media?.id
+    final style = handler.mediaItem.valueOrNull?.id == media.id
         ? Theme.of(context)
             .textTheme
             .bodyText2!
@@ -49,14 +48,14 @@ class MediaItem extends StatelessWidget {
       onTap: onPressed,
       contentPadding: EdgeInsets.symmetric(horizontal: 4),
       title: Text(
-        title!,
+        title,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: style,
       ),
       subtitle: subtitle,
       trailing: PlayButton(
-        media: media!,
+        media: media,
         onPressed: onPressed,
       ),
     );

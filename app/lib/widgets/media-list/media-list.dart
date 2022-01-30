@@ -34,7 +34,7 @@ class MediaList extends StatelessWidget {
           i -= indexOffset;
 
           return MediaItem(
-            media: this.media![i],
+            media: this.media![i]!,
             sectionId: this.sectionId,
             fallbackTitle: "Lesson ${i + 1}",
             routeDataService: routeDataService,
