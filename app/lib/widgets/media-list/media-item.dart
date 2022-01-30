@@ -1,10 +1,9 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
-import 'package:inside_chassidus/util/duration-helpers.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
-import 'package:inside_chassidus/widgets/media-list/play-button.dart';
+import 'package:inside_chassidus/widgets/media-length.dart';
 import 'package:inside_data/inside_data.dart';
 
 class MediaItem extends StatelessWidget {
@@ -54,13 +53,7 @@ class MediaItem extends StatelessWidget {
         style: style,
       ),
       subtitle: subtitle,
-      trailing: Text(
-        media.length != null ? toDurationString(media.length) : ' ',
-        style: Theme.of(context)
-            .textTheme
-            .bodyText2!
-            .copyWith(color: Theme.of(context).disabledColor),
-      ),
+      trailing: MediaLength(media: media),
     );
   }
 }
