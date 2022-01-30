@@ -6,6 +6,7 @@ import 'package:inside_chassidus/widgets/inside-breadcrumbs.dart';
 import 'package:inside_chassidus/widgets/inside-navigator.dart';
 import 'package:inside_chassidus/widgets/media-list/media-item.dart';
 import 'package:inside_chassidus/widgets/section-content-list.dart';
+import 'package:inside_chassidus/widgets/section-heading.dart';
 import 'package:inside_data/inside_data.dart';
 
 class TernarySectionRoute extends StatelessWidget {
@@ -20,7 +21,7 @@ class TernarySectionRoute extends StatelessWidget {
       content: section.content,
       leadingWidget: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [InsideBreadcrumbs()],
+        children: [InsideBreadcrumbs(), SectionHeading(section: section)],
       ),
       sectionBuilder: (context, section) =>
           InsideNavigator(data: section, child: _tile(section)),

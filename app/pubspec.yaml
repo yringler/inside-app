@@ -46,7 +46,7 @@ dependencies:
   flutter_breadcrumb_menu:
       git:
         url: https://github.com/yringler/flutter-breadcrumb-menu
-        ref: 524b010b16d72513515668fb0587e7a7be23ad43
+        ref: allow-last-active
   inside_data:
     path: ../inside_data
   just_audio_handlers:
