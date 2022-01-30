@@ -7,7 +7,7 @@ String toDurationString(Duration? duration) {
   final minutes = duration.inMinutes;
   final seconds = duration.inSeconds - minutes * Duration.secondsPerMinute;
 
-  return "${_toPaddedNumber(minutes)}: ${_toPaddedNumber(seconds)}";
+  return "${_toPaddedNumber(minutes)}:${_toPaddedNumber(seconds)}";
 }
 
 String _toPaddedNumber(int number) {

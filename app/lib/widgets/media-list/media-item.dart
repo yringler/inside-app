@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
+import 'package:inside_chassidus/util/duration-helpers.dart';
 import 'package:inside_chassidus/util/library-navigator/index.dart';
 import 'package:inside_chassidus/util/text-null-if-empty.dart';
 import 'package:inside_chassidus/widgets/media-list/play-button.dart';
@@ -25,9 +26,8 @@ class MediaItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String title = media.title;
-    Text? subtitle;
 
-    subtitle = textIfNotEmpty(media.description, maxLines: 1) as Text?;
+    final subtitle = textIfNotEmpty(media.description, maxLines: 1);
 
     if (title.isEmpty) {
       title = fallbackTitle ?? '';
@@ -54,9 +54,12 @@ class MediaItem extends StatelessWidget {
         style: style,
       ),
       subtitle: subtitle,
-      trailing: PlayButton(
-        media: media,
-        onPressed: onPressed,
+      trailing: Text(
+        media.length != null ? toDurationString(media.length) : ' ',
+        style: Theme.of(context)
+            .textTheme
+            .bodyText2!
+            .copyWith(color: Theme.of(context).disabledColor),
       ),
     );
   }
