@@ -7,6 +7,7 @@ import 'package:inside_chassidus/widgets/inside-navigator.dart';
 import 'package:inside_chassidus/widgets/media-list/media-item.dart';
 import 'package:inside_chassidus/widgets/section-content-list.dart';
 import 'package:inside_data/inside_data.dart';
+import 'package:share_plus/share_plus.dart';
 
 class TernarySectionRoute extends StatelessWidget {
   static const routeName = '/library/ternary-section';
@@ -20,7 +21,20 @@ class TernarySectionRoute extends StatelessWidget {
       content: section.content,
       leadingWidget: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [InsideBreadcrumbs(), Text(section.description)],
+        children: [
+          InsideBreadcrumbs(),
+          Row(
+            children: [
+              Expanded(child: Text(section.description)),
+              if (section.link.isNotEmpty)
+                IconButton(
+                  icon: Icon(Icons.share),
+                  onPressed: () =>
+                      Share.share('${section.title} ${section.link}'),
+                )
+            ],
+          )
+        ],
       ),
       sectionBuilder: (context, section) =>
           InsideNavigator(data: section, child: _tile(section)),
