@@ -20,7 +20,7 @@ class TernarySectionRoute extends StatelessWidget {
       content: section.content,
       leadingWidget: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [InsideBreadcrumbs()],
+        children: [InsideBreadcrumbs(), Text(section.description)],
       ),
       sectionBuilder: (context, section) =>
           InsideNavigator(data: section, child: _tile(section)),
