@@ -518,7 +518,7 @@ class DriftInsideData extends SiteDataLayer {
      */
 
     if ((lastUpdate == null || forceRefresh) && preloadedDatabase != null) {
-      final writeFile = _getWriteFile();
+      final writeFile = _databases?.writeFile();
 
       if (writeFile == null) {
         return;
@@ -545,18 +545,6 @@ class DriftInsideData extends SiteDataLayer {
     }
   }
 
-  File? _getWriteFile() {
-    final hasDbPair = _databases != null;
-    final hasPathSpec = writeNumber != null;
-    if (!(hasDbPair || hasPathSpec)) {
-      return null;
-    }
-
-    return _databases != null
-        ? _databases!.writeFile()
-        : File(InsideDatabase.getFilePath(folder, number: writeNumber!));
-  }
-
   @override
   Future<void> close() async => await _databases?.close();
 
@@ -567,7 +555,7 @@ class DriftInsideData extends SiteDataLayer {
         await lastUpdate() ?? DateTime.fromMillisecondsSinceEpoch(0));
 
     if (newDb != null) {
-      _getWriteFile()?.writeAsBytes(newDb);
+      _databases?.writeFile().writeAsBytes(newDb);
     }
 
     // Untill we have incremental updates, loading whole sites of JSON is too heavy, so we
