@@ -431,6 +431,18 @@ class _DataBasePair {
     await write.close();
   }
 
+  Future<void> deleteFromDisk() async {
+    final write = writeFile();
+    if (await write.exists()) {
+      await write.delete();
+    }
+    final read = File(InsideDatabase.getFilePath(folder));
+    if (await read.exists()) {
+      await close();
+      await read.delete();
+    }
+  }
+
   Future<void> close() async {
     await active.close();
   }
@@ -518,27 +530,18 @@ class DriftInsideData extends SiteDataLayer {
      */
 
     if ((lastUpdate == null || forceRefresh) && preloadedDatabase != null) {
+      // Make sure we get this right. Delete all DBs, and then create a new one with
+      // preloaded data.
+      await _databases!.deleteFromDisk();
       final writeFile = _databases?.writeFile();
 
       if (writeFile == null) {
         return;
       }
-
-      await writeFile.writeAsBytes(await preloadedDatabase.readAsBytes());
+      await preloadedDatabase.copy(writeFile.path);
 
       if (_databases != null) {
         await _databases!.close();
-
-        // Delete current active path - now we have a new one which we should use,
-        // the old one isn't relevant anymore.
-        final path = InsideDatabase.getFilePath(this.folder,
-            number: _databases!.activeNumber);
-        try {
-          await File(path).delete();
-        } catch (err) {
-          assert(err != null, 'Failed deleting $path');
-        }
-
         // Re-init the database pair to use new file.
         await _databases!.init();
       }
