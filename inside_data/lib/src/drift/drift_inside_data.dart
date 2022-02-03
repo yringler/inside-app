@@ -593,8 +593,11 @@ class DriftInsideData extends SiteDataLayer {
   Future<Section?> section(String id) => database.section(id);
 
   @override
-  Future<List<Section>> topLevel() =>
-      Future.wait(topIds.map((e) async => (await database.section(e))!));
+  Future<List<Section>> topLevel() async =>
+      (await Future.wait(topIds.map((e) async => (await database.section(e)))))
+          .where((e) => e != null)
+          .map((e) => e!)
+          .toList();
 
   Future<void> addToDatabase(SiteData data) async {
     await database.transaction(() async {
