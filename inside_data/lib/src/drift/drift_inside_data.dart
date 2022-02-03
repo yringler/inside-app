@@ -113,15 +113,21 @@ class InsideDatabase extends _$InsideDatabase {
   MigrationStrategy get migration => MigrationStrategy(onCreate: (Migrator m) {
         return m.createAll();
       }, onUpgrade: (Migrator m, int from, int to) async {
-        if (from < 2) {
-          // we added the dueDate property in the change from version 1
-          await m.addColumn(mediaTable, mediaTable.created);
-        }
-        if (from < 3) {
-          await m.addColumn(mediaTable, mediaTable.link);
-        }
-        if (from < 4) {
-          await m.addColumn(mediaTable, mediaTable.videoSource);
+        try {
+          if (from < 2) {
+            // we added the dueDate property in the change from version 1
+            await m.addColumn(mediaTable, mediaTable.created);
+          }
+          if (from < 3) {
+            await m.addColumn(mediaTable, mediaTable.link);
+          }
+          if (from < 4) {
+            await m.addColumn(mediaTable, mediaTable.videoSource);
+          }
+        } catch (err) {
+          // I have no idea why, for some reason migrating to 4 adds a video source
+          // when it's already there?
+          print(err);
         }
       });
 
