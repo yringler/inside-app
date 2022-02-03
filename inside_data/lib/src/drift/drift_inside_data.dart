@@ -113,15 +113,21 @@ class InsideDatabase extends _$InsideDatabase {
   MigrationStrategy get migration => MigrationStrategy(onCreate: (Migrator m) {
         return m.createAll();
       }, onUpgrade: (Migrator m, int from, int to) async {
-        if (from < 2) {
-          // we added the dueDate property in the change from version 1
-          await m.addColumn(mediaTable, mediaTable.created);
-        }
-        if (from < 3) {
-          await m.addColumn(mediaTable, mediaTable.link);
-        }
-        if (from < 4) {
-          m.addColumn(mediaTable, mediaTable.videoSource);
+        try {
+          if (from < 2) {
+            // we added the dueDate property in the change from version 1
+            await m.addColumn(mediaTable, mediaTable.created);
+          }
+          if (from < 3) {
+            await m.addColumn(mediaTable, mediaTable.link);
+          }
+          if (from < 4) {
+            await m.addColumn(mediaTable, mediaTable.videoSource);
+          }
+        } catch (err) {
+          // I have no idea why, for some reason migrating to 4 adds a video source
+          // when it's already there?
+          print(err);
         }
       });
 
@@ -425,6 +431,18 @@ class _DataBasePair {
     await write.close();
   }
 
+  Future<void> deleteFromDisk() async {
+    final write = writeFile();
+    if (await write.exists()) {
+      await write.delete();
+    }
+    final read = File(InsideDatabase.getFilePath(folder));
+    if (await read.exists()) {
+      await close();
+      await read.delete();
+    }
+  }
+
   Future<void> close() async {
     await active.close();
   }
@@ -441,7 +459,7 @@ class _DataBasePair {
 }
 
 class DriftInsideData extends SiteDataLayer {
-  final String? folder;
+  final String folder;
   final SiteDataLoader loader;
   final List<String> topIds;
   late _DataBasePair? _databases;
@@ -512,32 +530,22 @@ class DriftInsideData extends SiteDataLayer {
      */
 
     if ((lastUpdate == null || forceRefresh) && preloadedDatabase != null) {
-      final writeFile = _getWriteFile();
+      // Make sure we get this right. Delete all DBs, and then create a new one with
+      // preloaded data.
+      await _databases!.deleteFromDisk();
+      final writeFile = _databases?.writeFile();
 
       if (writeFile == null) {
         return;
       }
-
-      await writeFile.writeAsBytes(await preloadedDatabase.readAsBytes());
+      await preloadedDatabase.copy(writeFile.path);
 
       if (_databases != null) {
-        // Re-init the database pair to use new file.
         await _databases!.close();
+        // Re-init the database pair to use new file.
         await _databases!.init();
       }
     }
-  }
-
-  File? _getWriteFile() {
-    final hasDbPair = _databases != null;
-    final hasPathSpec = writeNumber != null && folder != null;
-    if (!(hasDbPair || hasPathSpec)) {
-      return null;
-    }
-
-    return _databases != null
-        ? _databases!.writeFile()
-        : File(InsideDatabase.getFilePath(folder!, number: writeNumber!));
   }
 
   @override
@@ -550,7 +558,7 @@ class DriftInsideData extends SiteDataLayer {
         await lastUpdate() ?? DateTime.fromMillisecondsSinceEpoch(0));
 
     if (newDb != null) {
-      _getWriteFile()?.writeAsBytes(newDb);
+      _databases?.writeFile().writeAsBytes(newDb);
     }
 
     // Untill we have incremental updates, loading whole sites of JSON is too heavy, so we
@@ -574,7 +582,7 @@ class DriftInsideData extends SiteDataLayer {
         .load(await lastUpdate() ?? DateTime.fromMillisecondsSinceEpoch(0));
 
     if (data != null) {
-      final writeDb = _databases!.getWriteDb(folder!);
+      final writeDb = _databases!.getWriteDb(folder);
       await writeDb.transaction(() async {
         await addToDatabase(data);
       });
@@ -593,8 +601,11 @@ class DriftInsideData extends SiteDataLayer {
   Future<Section?> section(String id) => database.section(id);
 
   @override
-  Future<List<Section>> topLevel() =>
-      Future.wait(topIds.map((e) async => (await database.section(e))!));
+  Future<List<Section>> topLevel() async =>
+      (await Future.wait(topIds.map((e) async => (await database.section(e)))))
+          .where((e) => e != null)
+          .map((e) => e!)
+          .toList();
 
   Future<void> addToDatabase(SiteData data) async {
     await database.transaction(() async {
