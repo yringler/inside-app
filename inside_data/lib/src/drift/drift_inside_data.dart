@@ -121,7 +121,7 @@ class InsideDatabase extends _$InsideDatabase {
           await m.addColumn(mediaTable, mediaTable.link);
         }
         if (from < 4) {
-          m.addColumn(mediaTable, mediaTable.videoSource);
+          await m.addColumn(mediaTable, mediaTable.videoSource);
         }
       });
 
