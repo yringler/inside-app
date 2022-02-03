@@ -441,7 +441,7 @@ class _DataBasePair {
 }
 
 class DriftInsideData extends SiteDataLayer {
-  final String? folder;
+  final String folder;
   final SiteDataLoader loader;
   final List<String> topIds;
   late _DataBasePair? _databases;
@@ -521,8 +521,19 @@ class DriftInsideData extends SiteDataLayer {
       await writeFile.writeAsBytes(await preloadedDatabase.readAsBytes());
 
       if (_databases != null) {
-        // Re-init the database pair to use new file.
         await _databases!.close();
+
+        // Delete current active path - now we have a new one which we should use,
+        // the old one isn't relevant anymore.
+        final path = InsideDatabase.getFilePath(this.folder,
+            number: _databases!.activeNumber);
+        try {
+          await File(path).delete();
+        } catch (err) {
+          assert(err != null, 'Failed deleting $path');
+        }
+
+        // Re-init the database pair to use new file.
         await _databases!.init();
       }
     }
@@ -530,14 +541,14 @@ class DriftInsideData extends SiteDataLayer {
 
   File? _getWriteFile() {
     final hasDbPair = _databases != null;
-    final hasPathSpec = writeNumber != null && folder != null;
+    final hasPathSpec = writeNumber != null;
     if (!(hasDbPair || hasPathSpec)) {
       return null;
     }
 
     return _databases != null
         ? _databases!.writeFile()
-        : File(InsideDatabase.getFilePath(folder!, number: writeNumber!));
+        : File(InsideDatabase.getFilePath(folder, number: writeNumber!));
   }
 
   @override
@@ -574,7 +585,7 @@ class DriftInsideData extends SiteDataLayer {
         .load(await lastUpdate() ?? DateTime.fromMillisecondsSinceEpoch(0));
 
     if (data != null) {
-      final writeDb = _databases!.getWriteDb(folder!);
+      final writeDb = _databases!.getWriteDb(folder);
       await writeDb.transaction(() async {
         await addToDatabase(data);
       });
