@@ -8,13 +8,20 @@
             "name": "inside_app (debug)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "debug"
+            "flutterMode": "debug",
+            "toolArgs": [
+                "--multidex",
+                
+            ]
         },
         {
             "name": "inside_app (profile)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "profile",
+            "toolArgs": [
+                "--multidex"
+            ]
         }
     ]
 }
