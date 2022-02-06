@@ -72,7 +72,9 @@ class PrimarySectionsRoute extends StatelessWidget {
                 Positioned.fill(
                   child: CachedNetworkImage(imageUrl: data!.first.imageUrl),
                 ),
-              Padding(
+              Container(
+                decoration: BoxDecoration(
+                    color: Colors.grey, backgroundBlendMode: BlendMode.darken),
                 padding: const EdgeInsets.only(left: 15),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
