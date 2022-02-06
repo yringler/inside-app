@@ -117,7 +117,8 @@ class AppRouterWidget extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
         debugShowCheckedModeBanner: false,
         title: appTitle,
-        theme: ThemeData(primarySwatch: Colors.grey),
+        theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.grey)),
         home: Router(
           routerDelegate: AppRouterDelegate(navigatorKey: routerKey),
           backButtonDispatcher: RootBackButtonDispatcher(),

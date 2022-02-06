@@ -85,7 +85,6 @@ class PrimarySectionsRoute extends StatelessWidget {
                             .copyWith(color: Colors.white)),
                     ElevatedButton(
                         onPressed: onPressed,
-                        style: ElevatedButton.styleFrom(primary: Colors.white),
                         child: Text(
                           data?.first.buttonText ?? 'Learn More',
                         ))
