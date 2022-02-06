@@ -3,6 +3,7 @@ import 'package:html/parser.dart' as html;
 import 'package:html_unescape/html_unescape_small.dart';
 
 import 'package:inside_data/inside_data.dart';
+import 'package:quiver/iterables.dart';
 
 final htmlUnescape = HtmlUnescape();
 
@@ -25,10 +26,13 @@ SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
 
   final audios = xml?.querySelectorAll('.wp-block-audio');
   final videos = xml?.querySelectorAll('.wp-block-video');
-  final mediaEls = [...audios ?? [], ...videos ?? []];
 
-  for (final media in mediaEls) {
-    media.remove();
+  final allMediaElements =
+      _MediaElements.fromElements(audio: audios ?? [], video: videos ?? []);
+
+  for (final media in allMediaElements) {
+    media.audio?.remove();
+    media.video?.remove();
   }
 
   var description = xml != null ? _parseXml(xml.outerHtml) : '';
@@ -41,7 +45,7 @@ SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
 
   // For example, if we're parsing the basic data for a category, the category description
   // will not have any audios in it.
-  if (mediaEls.isEmpty) {
+  if (allMediaElements.isEmpty) {
     return requireAudio
         ? null
         : SiteDataBase(
@@ -54,8 +58,8 @@ SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
             link: post.link);
   }
 
-  if (mediaEls.length == 1) {
-    final media = _toMedia(mediaEls.first,
+  if (allMediaElements.length == 1) {
+    final media = _toMedia(allMediaElements.first,
         description: description,
         title: post.title,
         order: post.sort,
@@ -68,7 +72,7 @@ SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
   }
 
   int sort = 0;
-  final medias = mediaEls
+  final medias = allMediaElements
       .map((e) => _toMedia(e,
           created: post.created,
           description: '',
@@ -110,7 +114,7 @@ SiteDataBase? parsePost(SiteDataBase post, {bool requireAudio = true}) {
       parents: post.parents);
 }
 
-Media? _toMedia(Element element,
+Media? _toMedia(_MediaElements element,
     {required String description,
     required String title,
     required int order,
@@ -118,14 +122,23 @@ Media? _toMedia(Element element,
     required Set<String> parents,
     required DateTime? created,
     String? id}) {
-  final audioSource = element.querySelector('audio')?.attributes['src'] ?? '';
-  final videoSource = element.querySelector('video')?.attributes['src'] ?? '';
+  final audioSource =
+      element.audio?.querySelector('audio')?.attributes['src'] ?? '';
+  final videoSource =
+      element.video?.querySelector('video')?.attributes['src'] ?? '';
 
   if (audioSource.isEmpty && videoSource.isEmpty) {
     return null;
   }
 
-  final caption = element.querySelector('figcaption')?.text.trim() ?? '';
+  final captions = ([element.audio, element.video]
+      .whereType<Element>()
+      .map((e) => e.querySelector('figcaption')?.text.trim() ?? '')
+      .where((element) => element.isNotEmpty)
+      .toList()
+    ..sort(((a, b) => b.length.compareTo(a.length))));
+
+  final caption = captions.isNotEmpty ? captions.first : '';
   final mediaTitle = title.isNotEmpty ? title : _parseXml(caption);
 
   return Media(
@@ -140,4 +153,28 @@ Media? _toMedia(Element element,
       title: mediaTitle,
       description: description,
       sort: order);
+}
+
+/// Video and audio which are (we're pretty sure) the same content.
+class _MediaElements {
+  Element? audio;
+  Element? video;
+
+  _MediaElements({this.audio, this.video});
+
+  static List<_MediaElements> fromElements(
+      {required List<Element> audio, required List<Element> video}) {
+    // This is an edge case. I don't think this ever happens, so I'm not going to spend much time on it.
+    // If it does happen, this code is suboptimal - it loses sort order.
+    if (audio.length != video.length) {
+      return [
+        ...audio.map((e) => _MediaElements(audio: e)),
+        ...video.map((e) => _MediaElements(video: e))
+      ];
+    }
+
+    return zip([audio, video])
+        .map((e) => _MediaElements(audio: e[0], video: e[1]))
+        .toList();
+  }
 }
