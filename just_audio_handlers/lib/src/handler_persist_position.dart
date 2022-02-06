@@ -185,9 +185,18 @@ class HivePositionSaver extends PositionSaver {
   static Future<void> init() async {
     WidgetsFlutterBinding.ensureInitialized();
     final path = (await getApplicationSupportDirectory()).path;
-    _hive.init(p.join(path, 'hive_position'));
+    final fullPath = p.join(path, 'hive_position');
+    _hive.init(fullPath);
     _hive.registerAdapter(PersistedPositionAdapter());
-    _positionBox = await _hive.openBox<PersistedPosition>('positions');
+
+    try {
+      _positionBox = await _hive.openBox<PersistedPosition>('positions');
+    } catch (ex) {
+      // I don't know why, this happened after I made some flutter upgrades? IDK
+      print('persist hive error\n$ex');
+      await _hive.deleteBoxFromDisk('positions');
+      _positionBox = await _hive.openBox<PersistedPosition>('positions');
+    }
 
     if (_positionBox.length > maxPositions * 2) {
       final items = _positionBox.values.toList()
