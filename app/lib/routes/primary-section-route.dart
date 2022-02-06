@@ -61,38 +61,45 @@ class PrimarySectionsRoute extends StatelessWidget {
       required VoidCallback onPressed}) {
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: screenHeight / 3),
-        child: AspectRatio(
-          aspectRatio: 9 / 3,
-          child: Stack(
-            children: [
-              if ((data?.first.imageUrl ?? '').isNotEmpty)
-                Positioned.fill(
-                  child: CachedNetworkImage(imageUrl: data!.first.imageUrl),
-                ),
-              Padding(
-                padding: const EdgeInsets.only(left: 15),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(data?.first.title ?? 'Featured class',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headline6!
-                            .copyWith(color: Colors.white)),
-                    ElevatedButton(
-                        onPressed: onPressed,
-                        style: ElevatedButton.styleFrom(primary: Colors.white),
-                        child: Text(
-                          data?.first.buttonText ?? 'Learn More',
-                        ))
-                  ],
-                ),
-              )
-            ],
+    return GestureDetector(
+      onTap: onPressed,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: screenHeight / 3),
+          child: AspectRatio(
+            aspectRatio: 9 / 3,
+            child: Stack(
+              children: [
+                if ((data?.first.imageUrl ?? '').isNotEmpty)
+                  Positioned.fill(
+                    child: CachedNetworkImage(imageUrl: data!.first.imageUrl),
+                  ),
+                Container(
+                  decoration: BoxDecoration(
+                      color: Colors.grey,
+                      backgroundBlendMode: BlendMode.darken),
+                  padding: const EdgeInsets.only(left: 15),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(data?.first.title ?? 'Featured class',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline6!
+                              .copyWith(color: Colors.white)),
+                      ElevatedButton(
+                          onPressed: onPressed,
+                          style:
+                              ElevatedButton.styleFrom(primary: Colors.white),
+                          child: Text(
+                            data?.first.buttonText ?? 'Learn More',
+                          ))
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ),
