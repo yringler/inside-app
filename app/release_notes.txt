@@ -1,2 +1,2 @@
-Add more content (qa, glossery)
-(performance, show class context in list, share file/link)
+Fix data update bug, contrast for promo text, upgrade flutter
+(content, performance, show class context in list, share file/link)
