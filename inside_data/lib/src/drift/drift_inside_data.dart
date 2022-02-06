@@ -468,7 +468,7 @@ class DriftInsideData extends SiteDataLayer {
   final InsideDatabase? initDatabase;
 
   /// The number database to write to.
-  final int? writeNumber;
+  int? writeNumber;
 
   InsideDatabase get database => (_databases?.active ?? initDatabase)!;
 
@@ -520,6 +520,7 @@ class DriftInsideData extends SiteDataLayer {
       {File? preloadedDatabase, bool forceRefresh = false}) async {
     if (_databases != null) {
       await _databases!.init();
+      writeNumber = _databases!.writeNumber;
     }
 
     final lastUpdate = await database.getUpdateTime();
@@ -557,8 +558,9 @@ class DriftInsideData extends SiteDataLayer {
     final newDb = await _getLatestDb(
         await lastUpdate() ?? DateTime.fromMillisecondsSinceEpoch(0));
 
-    if (newDb != null) {
-      _databases?.writeFile().writeAsBytes(newDb);
+    if (newDb != null && writeNumber != null) {
+      final path = InsideDatabase.getFilePath(folder, number: writeNumber!);
+      File(path).writeAsBytes(newDb);
     }
 
     // Untill we have incremental updates, loading whole sites of JSON is too heavy, so we
