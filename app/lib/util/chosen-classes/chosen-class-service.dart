@@ -98,17 +98,23 @@ class ChosenClassService {
     }
 
     Box<ChoosenClass>? classesBox;
-
     try {
-      classesBox = await hive.openBox<ChoosenClass>('classes');
-    } catch (_) {
       try {
-        await classesBox?.close();
-      } catch (_) {}
+        classesBox = await hive.openBox<ChoosenClass>('classes');
+      } catch (_) {
+        try {
+          await classesBox?.close();
+        } catch (_) {}
 
-      final transferredData = await _getDataFromOldBox(folder);
+        final transferredData = await _getDataFromOldBox(folder);
+        classesBox = await hive.openBox<ChoosenClass>('classes');
+        await classesBox.addAll(transferredData);
+      }
+    } catch (ex) {
+      print('chosen hive error: $ex');
+      // I don't know why, this happened after I made some flutter upgrades? IDK
+      await hive.deleteBoxFromDisk('classes');
       classesBox = await hive.openBox<ChoosenClass>('classes');
-      await classesBox.addAll(transferredData);
     }
 
     // Don't save too much.
