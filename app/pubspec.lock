@@ -404,9 +404,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: allow-last-active
-      resolved-ref: "7f083fff5048e860f8e1619f86c43905aa2ff15a"
-      url: "https://github.com/yringler/flutter-breadcrumb-menu"
+      ref: "6c37416fb1652b4350154a41835d073ae0557e3b"
+      resolved-ref: "6c37416fb1652b4350154a41835d073ae0557e3b"
+      url: "https://github.com/xrr2016/flutter-breadcrumb-menu"
     source: git
     version: "1.0.0"
   flutter_cache_manager:

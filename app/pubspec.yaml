@@ -45,8 +45,8 @@ dependencies:
   hive_flutter: ^1.0.0
   flutter_breadcrumb_menu:
       git:
-        url: https://github.com/yringler/flutter-breadcrumb-menu
-        ref: allow-last-active
+        url: https://github.com/xrr2016/flutter-breadcrumb-menu
+        ref: 6c37416fb1652b4350154a41835d073ae0557e3b
   inside_data:
     path: ../inside_data
   just_audio_handlers:
