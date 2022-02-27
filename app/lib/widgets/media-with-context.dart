@@ -1,5 +1,6 @@
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
+import 'package:inside_chassidus/widgets/media-length.dart';
 import 'package:inside_data/inside_data.dart';
 
 /// A tile which shows a media, with parent and grandparent.
@@ -27,38 +28,16 @@ class MediaWithContext extends StatelessWidget {
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(10),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    Expanded(
+                        child: _textDescription(
+                            grandParentTitle, text, parentTitle)),
                     Padding(
-                      padding: EdgeInsets.only(bottom: 6),
-                      child: Text(
-                        grandParentTitle.toUpperCase(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: text.subtitle2!.copyWith(
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.bold,
-                            fontSize: text.subtitle2!.fontSize! * .9),
-                      ),
-                    ),
-                    Padding(
-                        padding: EdgeInsets.only(bottom: 3),
-                        child: Text(
-                          parentTitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: text.bodyText1!.copyWith(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w600,
-                              fontSize: text.bodyText1!.fontSize! * 1.1),
-                        )),
-                    Text(media.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style:
-                            text.caption!.copyWith(color: Colors.grey.shade600))
+                      padding: const EdgeInsets.only(left: 10),
+                      child: MediaLength(media: media),
+                    )
                   ],
                 ),
               ),
@@ -66,6 +45,43 @@ class MediaWithContext extends StatelessWidget {
           );
         },
       );
+
+  Column _textDescription(
+      String grandParentTitle, TextTheme text, String parentTitle) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(bottom: 6),
+          child: Text(
+            grandParentTitle.toUpperCase(),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: text.subtitle2!.copyWith(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.bold,
+                fontSize: text.subtitle2!.fontSize! * .9),
+          ),
+        ),
+        Padding(
+            padding: EdgeInsets.only(bottom: 3),
+            child: Text(
+              parentTitle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: text.bodyText1!.copyWith(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                  fontSize: text.bodyText1!.fontSize! * 1.1),
+            )),
+        Text(media.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: text.caption!.copyWith(color: Colors.grey.shade600))
+      ],
+    );
+  }
 
   Future<Ancestors> _getAncestors() async {
     if (!media.hasParent) {

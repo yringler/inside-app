@@ -8,15 +8,18 @@ class InsideBreadcrumbs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final service = BlocProvider.getDependency<LibraryPositionService>();
-
-    if (service.sections.isEmpty) {
+    // The last item in the list is the currrent item, and that will be shown more
+    // prominantly somewhere else.
+    if (service.sections.length < 2) {
       return Container();
     }
-
+    final sectionsToShow =
+        service.sections.sublist(0, service.sections.length - 1);
     return Breadcrumb<SiteDataBase>(
+      isLastActive: true,
       breads: [
-        for (var position in service.sections)
-          Bread(label: getLabel(position.data!), route: position.data)
+        for (var section in sectionsToShow)
+          Bread(label: getLabel(section.data!), route: section.data)
       ],
       onValueChanged: (value) => service.setActiveItem(value),
     );

@@ -182,9 +182,10 @@ class MediaParentsTableCompanion
 
 class $MediaParentsTableTable extends MediaParentsTable
     with TableInfo<$MediaParentsTableTable, MediaParentsTableData> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $MediaParentsTableTable(this._db, [this._alias]);
+  $MediaParentsTableTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
@@ -256,7 +257,7 @@ class $MediaParentsTableTable extends MediaParentsTable
 
   @override
   $MediaParentsTableTable createAlias(String alias) {
-    return $MediaParentsTableTable(_db, alias);
+    return $MediaParentsTableTable(attachedDatabase, alias);
   }
 }
 
@@ -435,9 +436,10 @@ class SectionParentsTableCompanion
 
 class $SectionParentsTableTable extends SectionParentsTable
     with TableInfo<$SectionParentsTableTable, SectionParentsTableData> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $SectionParentsTableTable(this._db, [this._alias]);
+  $SectionParentsTableTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
@@ -510,7 +512,7 @@ class $SectionParentsTableTable extends SectionParentsTable
 
   @override
   $SectionParentsTableTable createAlias(String alias) {
-    return $SectionParentsTableTable(_db, alias);
+    return $SectionParentsTableTable(attachedDatabase, alias);
   }
 }
 
@@ -845,9 +847,10 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
 
 class $MediaTableTable extends MediaTable
     with TableInfo<$MediaTableTable, MediaTableData> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $MediaTableTable(this._db, [this._alias]);
+  $MediaTableTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _pkMeta = const VerificationMeta('pk');
   @override
   late final GeneratedColumn<int?> pk = GeneratedColumn<int?>(
@@ -991,7 +994,7 @@ class $MediaTableTable extends MediaTable
 
   @override
   $MediaTableTable createAlias(String alias) {
-    return $MediaTableTable(_db, alias);
+    return $MediaTableTable(attachedDatabase, alias);
   }
 }
 
@@ -1259,9 +1262,10 @@ class SectionTableCompanion extends UpdateCompanion<SectionTableData> {
 
 class $SectionTableTable extends SectionTable
     with TableInfo<$SectionTableTable, SectionTableData> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $SectionTableTable(this._db, [this._alias]);
+  $SectionTableTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
@@ -1362,7 +1366,7 @@ class $SectionTableTable extends SectionTable
 
   @override
   $SectionTableTable createAlias(String alias) {
-    return $SectionTableTable(_db, alias);
+    return $SectionTableTable(attachedDatabase, alias);
   }
 }
 
@@ -1491,9 +1495,10 @@ class UpdateTimeTableCompanion extends UpdateCompanion<UpdateTimeTableData> {
 
 class $UpdateTimeTableTable extends UpdateTimeTable
     with TableInfo<$UpdateTimeTableTable, UpdateTimeTableData> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $UpdateTimeTableTable(this._db, [this._alias]);
+  $UpdateTimeTableTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
@@ -1542,7 +1547,7 @@ class $UpdateTimeTableTable extends UpdateTimeTable
 
   @override
   $UpdateTimeTableTable createAlias(String alias) {
-    return $UpdateTimeTableTable(_db, alias);
+    return $UpdateTimeTableTable(attachedDatabase, alias);
   }
 }
 

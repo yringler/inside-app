@@ -15,7 +15,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 5.1.4+12
+version: 5.2.0+12
 
 environment:
   sdk: '>=2.15.0 <3.0.0'
@@ -45,8 +45,8 @@ dependencies:
   hive_flutter: ^1.0.0
   flutter_breadcrumb_menu:
       git:
-        url: https://github.com/yringler/flutter-breadcrumb-menu
-        ref: 524b010b16d72513515668fb0587e7a7be23ad43
+        url: https://github.com/xrr2016/flutter-breadcrumb-menu
+        ref: 6c37416fb1652b4350154a41835d073ae0557e3b
   inside_data:
     path: ../inside_data
   just_audio_handlers:
