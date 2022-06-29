@@ -31,7 +31,7 @@ dependencies:
   expandable: ^5.0.1
   cached_network_image: ^3.0.0
   rxdart: ^0.27.1
-  bloc_pattern: ^3.0.0
+  bloc_pattern: ^3.0.1
   path_provider: ^2.0.1
   font_awesome_flutter: ^9.0.0
   firebase_core: ^1.0.3
