@@ -24,7 +24,7 @@ dependencies:
   dio: ^4.0.4
   collection: ^1.15.0
   connectivity_plus: ^2.2.0
-  flutter_fgbg: ^0.1.0
+  flutter_fgbg: ^0.2.0
   quiver: ^3.0.1+1
 
 dev_dependencies: 
