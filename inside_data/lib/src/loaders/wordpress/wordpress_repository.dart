@@ -43,9 +43,14 @@ class WordpressRepository extends Wordpress {
       return;
     }
 
-    final category = wp.Category.fromJson(jsonDecode(coreResponse.body));
+    try {
+      final category = wp.Category.fromJson(jsonDecode(coreResponse.body));
 
-    _loadedGroups[id] = await _childCategories(category);
+      _loadedGroups[id] = await _childCategories(category);
+    } catch (err) {
+      print('Error loading: $url \n $err');
+    }
+
     return;
   }
 
@@ -155,7 +160,12 @@ class WordpressRepository extends Wordpress {
         await _withConnectionCount(() => http.get(Uri.parse(url)), url);
 
     if (postsResponse != null && postsResponse.body.trim().isNotEmpty) {
-      await _usePosts(jsonDecode(postsResponse.body), category.id!);
+      try {
+        await _usePosts(jsonDecode(postsResponse.body), category.id!);
+      } catch (err) {
+        print('Error querying: $url');
+        print(err);
+      }
     }
 
     List<wp.Category>? categories;
