@@ -238,6 +238,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
     final currentSubject = _progressMap[_idToUrlMap[id]]!;
 
     currentSubject.add(DownloadTask(
+        allowCellular: true,
         taskId: id,
         status: status,
         progress: progress,
@@ -271,6 +272,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
         savedDir: '',
         taskId: '',
         timeCreated: 0,
+        allowCellular: true,
         url: uri.toString());
 
     if (tasks?.isEmptyOrNull ?? true) {
@@ -293,11 +295,11 @@ const fullProgressPortName = 'downloader_send_port';
 /// Name of port which just reports when a download is completed.
 const completedDownloadPortName = 'completed_send_port';
 
-void downloadCallback(String id, DownloadTaskStatus status, int progress) {
+void downloadCallback(String id, int status, int progress) {
   IsolateNameServer.lookupPortByName(fullProgressPortName)
       ?.send([id, status, progress]);
 
-  if (status == DownloadTaskStatus.complete) {
+  if (DownloadTaskStatus(status) == DownloadTaskStatus.complete) {
     IsolateNameServer.lookupPortByName(completedDownloadPortName)?.send(id);
   }
 }
