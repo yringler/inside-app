@@ -299,7 +299,7 @@ void downloadCallback(String id, int status, int progress) {
   IsolateNameServer.lookupPortByName(fullProgressPortName)
       ?.send([id, status, progress]);
 
-  if (DownloadTaskStatus(status) == DownloadTaskStatus.complete) {
+  if (DownloadTaskStatus.fromInt(status) == DownloadTaskStatus.complete) {
     IsolateNameServer.lookupPortByName(completedDownloadPortName)?.send(id);
   }
 }
