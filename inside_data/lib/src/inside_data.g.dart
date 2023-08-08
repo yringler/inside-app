@@ -52,7 +52,7 @@ ContentReference _$ContentReferenceFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$ContentReferenceToJson(ContentReference instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'contentType': _$ContentTypeEnumMap[instance.contentType],
+      'contentType': _$ContentTypeEnumMap[instance.contentType]!,
       'media': instance.media,
       'section': instance.section,
     };
