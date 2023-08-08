@@ -223,7 +223,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
   /// download isolate.
   void _onDownloadStatus(data) async {
     final String id = data[0];
-    final DownloadTaskStatus status = data[1];
+    final DownloadTaskStatus status = DownloadTaskStatus.fromInt(data[1]);
     final int progress = data[2];
 
     if (!_idToUrlMap.containsKey(id) ||
