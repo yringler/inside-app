@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart';
-import 'package:dotenv/dotenv.dart' show env;
 import 'package:inside_data/inside_data.dart';
+
+final env = DotEnv(includePlatformEnvironment: true)..load();
 
 /// Tell API what the newest version of data is.
 Future<void> notifyApiOfLatest(DateTime date, String version) async {
