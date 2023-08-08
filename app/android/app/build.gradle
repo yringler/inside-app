@@ -93,4 +93,11 @@ flutter {
 dependencies {
     implementation 'com.google.guava:guava:30.0-android'
     implementation 'com.android.support:multidex:1.0.3'
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:$kotlin_version"))
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10'
+    }
 }
