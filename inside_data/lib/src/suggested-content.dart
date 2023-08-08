@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:inside_data/inside_data.dart';
+import 'package:inside_data/src/logger.dart';
 import 'package:inside_data/src/wordpress-base.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:rxdart/rxdart.dart';
@@ -11,9 +12,12 @@ import 'package:path/path.dart' as p;
 
 part 'suggested-content.g.dart';
 
+typedef FutureCallback<T> = Future<T?> Function();
+
 class SuggestedContentLoader {
   final SiteDataLayer dataLayer;
   final String cachePath;
+  final ILogger logger;
 
   /// Future that resolves when there is internet connection.
   final Future<void> isConnected;
@@ -23,7 +27,8 @@ class SuggestedContentLoader {
   SuggestedContentLoader(
       {required this.dataLayer,
       required this.cachePath,
-      required this.isConnected}) {
+      required this.isConnected,
+      required this.logger}) {
     dio = Dio()..interceptors;
     suggestedContent = _contentStream().shareValue();
   }
@@ -63,11 +68,23 @@ class SuggestedContentLoader {
   /// Doesn't request new data more than once every few hours.
   Future<SuggestedContent> _httpLoad() async {
     final suggestedContent = SuggestedContent(
-        timelyContent: await _timelyContent(),
-        popular: await _popular(),
-        featured: await _featured());
+        timelyContent: await _nullIfException(_timelyContent),
+        popular: await _nullIfException(_popular),
+        featured: await _nullIfException(_featured));
 
     return suggestedContent;
+  }
+
+  Future<T?> _nullIfException<T>(FutureCallback<T> dataCall) async {
+    try {
+      return await dataCall();
+    } on Error catch (e, s) {
+      logger.logError(Exception(e.toString()), e.stackTrace ?? s);
+    } on Exception catch (e, s) {
+      logger.logError(e, s);
+    }
+
+    return null;
   }
 
   Future<TimelyContent?> _timelyContent() async {
@@ -248,7 +265,7 @@ class _DailyClasses {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class _Featured {
   final String title;
-  final int category;
+  final int? category;
   final String imageUrl;
   final String buttonText;
 

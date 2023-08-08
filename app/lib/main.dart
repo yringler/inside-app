@@ -26,6 +26,7 @@ import 'package:inside_chassidus/widgets/media/audio-button-bar-aware-body.dart'
 import 'package:inside_chassidus/widgets/media/current-media-button-bar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'firebase_options.dart';
 
 /// When we want to force users to use latest asset on load, use this.
 const assetVersion = 2;
@@ -36,7 +37,12 @@ void main() async {
     body: Center(child: CircularProgressIndicator()),
   )));
 
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  MyApp.analytics = FirebaseAnalytics.instance;
+
   FlutterDownloaderAudioDownloader.init();
   await HivePositionSaver.init();
 
@@ -60,6 +66,7 @@ void main() async {
   final suggestedContent = SuggestedContentLoader(
       isConnected: waitForConnected(),
       dataLayer: siteBoxes,
+      logger: new FireLogger(),
       cachePath: p.join((await getApplicationSupportDirectory()).path, ''));
   final PositionSaver positionSaver = HivePositionSaver();
   final searchService = WordpressSearch(
@@ -146,8 +153,7 @@ class AppRouterDelegate extends RouterDelegate
 
 /// The app.
 class MyApp extends StatefulWidget {
-  static final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-
+  static late FirebaseAnalytics analytics;
   final GlobalKey<NavigatorState> lessonNavigatorKey =
       GlobalKey<NavigatorState>(debugLabel: 'library');
   final GlobalKey<NavigatorState> favoritesKey =
@@ -544,3 +550,12 @@ class DbAccessAudioTask extends AudioHandlerJustAudio {
 }
 
 enum TabType { libraryHome, recent, favorites, search, nowPlaying }
+
+class FireLogger implements ILogger {
+  @override
+  Future<void> logError(Exception exception, StackTrace stackTrace) async {
+    try {
+      await FirebaseCrashlytics.instance.recordError(exception, stackTrace);
+    } finally {}
+  }
+}
