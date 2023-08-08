@@ -34,7 +34,7 @@ class SuggestedContentLoader {
   }
 
   Stream<SuggestedContent> _contentStream() async* {
-    final cacheFile = File(p.join(cachePath, 'suggested.json'));
+    final cacheFile = File(p.join(cachePath, 'suggested.1.json'));
 
     // Try to load from cache.
     // If the cache is old, we'll also load from APIs, after.
@@ -141,6 +141,7 @@ class SuggestedContentLoader {
     final featuredData = (await Future.wait(featuredResponse.data!
             .cast<Map<String, dynamic>>()
             .map(_Featured.fromJson)
+            .where((element) => element.category != null)
             .map((e) async => FeaturedSection(
                 title: e.title,
                 section: await dataLayer.section(e.category.toString()),
