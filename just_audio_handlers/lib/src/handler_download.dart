@@ -99,6 +99,7 @@ abstract class AudioDownloader {
 }
 
 /// Downloader implementation which uses flutter_downloader.
+@pragma('vm:entry-point')
 class FlutterDownloaderAudioDownloader extends AudioDownloader {
   /// Port to recieve all the progress updates from flutter_downloader.
   final ReceivePort _progressPort = ReceivePort();
@@ -295,6 +296,7 @@ const fullProgressPortName = 'downloader_send_port';
 /// Name of port which just reports when a download is completed.
 const completedDownloadPortName = 'completed_send_port';
 
+@pragma('vm:entry-point')
 void downloadCallback(String id, int status, int progress) {
   IsolateNameServer.lookupPortByName(fullProgressPortName)
       ?.send([id, status, progress]);
