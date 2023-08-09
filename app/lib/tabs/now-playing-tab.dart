@@ -17,7 +17,7 @@ class NowPlayingTab extends StatelessWidget {
             return Center(
               child: Text(
                 'Nothing is playing. What do you want to learn?',
-                style: Theme.of(context).textTheme.bodyText1,
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
             );
           }

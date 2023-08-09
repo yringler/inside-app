@@ -119,7 +119,7 @@ class ChosenDataList extends StatelessWidget {
       return Center(
         child: Text(
           emptyMessage,
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
       );
     }

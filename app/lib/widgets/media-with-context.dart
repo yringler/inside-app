@@ -58,10 +58,10 @@ class MediaWithContext extends StatelessWidget {
             grandParentTitle.toUpperCase(),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: text.subtitle2!.copyWith(
+            style: text.titleSmall!.copyWith(
                 color: Colors.grey.shade600,
                 fontWeight: FontWeight.bold,
-                fontSize: text.subtitle2!.fontSize! * .9),
+                fontSize: text.titleSmall!.fontSize! * .9),
           ),
         ),
         Padding(
@@ -70,15 +70,15 @@ class MediaWithContext extends StatelessWidget {
               parentTitle,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: text.bodyText1!.copyWith(
+              style: text.bodyLarge!.copyWith(
                   color: Colors.black,
                   fontWeight: FontWeight.w600,
-                  fontSize: text.bodyText1!.fontSize! * 1.1),
+                  fontSize: text.bodyLarge!.fontSize! * 1.1),
             )),
         Text(media.title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: text.caption!.copyWith(color: Colors.grey.shade600))
+            style: text.bodySmall!.copyWith(color: Colors.grey.shade600))
       ],
     );
   }

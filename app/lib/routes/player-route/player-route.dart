@@ -140,13 +140,13 @@ class PlayerRoute extends StatelessWidget {
           margin: EdgeInsets.only(bottom: 8),
           child: Text(
             lesson.title,
-            style: Theme.of(context).textTheme.subtitle2,
+            style: Theme.of(context).textTheme.titleSmall,
             textAlign: TextAlign.center,
           ),
         ),
         Text(
           media.title,
-          style: Theme.of(context).textTheme.headline1,
+          style: Theme.of(context).textTheme.displayLarge,
         )
       ];
     }
@@ -154,7 +154,7 @@ class PlayerRoute extends StatelessWidget {
     return [
       Text(
         media.title.isNotEmpty ? media.title : lesson.title,
-        style: Theme.of(context).textTheme.headline6,
+        style: Theme.of(context).textTheme.titleLarge,
       )
     ];
   }
@@ -168,7 +168,7 @@ class PlayerRoute extends StatelessWidget {
             margin: EdgeInsets.only(top: 8),
             child: Text(
               media.description,
-              style: Theme.of(context).textTheme.bodyText2,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
         ),
@@ -211,7 +211,7 @@ class PlayerRoute extends StatelessWidget {
               ),
               Text(
                 label,
-                style: Theme.of(context).textTheme.caption,
+                style: Theme.of(context).textTheme.bodySmall,
               )
             ],
           ),
@@ -278,7 +278,7 @@ class PlayerRoute extends StatelessWidget {
               onTap: onPressed,
               child: Text(
                 description,
-                style: Theme.of(context).textTheme.bodyText2,
+                style: Theme.of(context).textTheme.bodyMedium,
               )),
         )
       ],

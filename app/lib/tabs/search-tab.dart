@@ -100,7 +100,7 @@ class SearchFormState extends State<SearchForm> {
                           //TODO: Bring padding in line with other pages
                           child: Text(
                             'No results found. Would you like to search for something else?',
-                            style: Theme.of(context).textTheme.bodyText1,
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         )
                       : SearchFormResults(
