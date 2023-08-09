@@ -37,15 +37,21 @@ Future<void> uploadToDropbox(SiteData site, String dataVersion) async {
       'Dropbox-API-Arg':
           json.encode({'path': dropBoxFile, 'mode': 'overwrite', 'mute': true}),
     })
-    ..bodyBytes = GZipCodec(level: 9).encode(await localFile.readAsBytes());
+    ..bodyBytes =
+        GZipCodec(level: 9).encode(await kludgeGetFile1().readAsBytes());
 
   var response = await request.send();
 
   print(response.reasonPhrase);
 }
 
+// For some reason uploading non-file. Seems that it only has sqlite overhead, not data.
+File kludgeGetFile1() {
+  return File(InsideDatabase.getFilePath('.'));
+}
+
 Future<File> createSqliteFile(SiteData site) async {
-  final dbFile = File(InsideDatabase.getFilePath('.'));
+  final dbFile = kludgeGetFile1();
   final dbFile2 = File(InsideDatabase.getFilePath('.', number: 2));
 
   if (dbFile.existsSync()) {

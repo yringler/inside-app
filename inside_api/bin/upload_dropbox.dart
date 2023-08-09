@@ -4,7 +4,7 @@ import 'package:inside_api/inside_api.dart';
 import 'package:inside_data/inside_data.dart';
 
 void main() async {
-  final existingSiteText = File('dropbox.json').readAsStringSync();
+  final existingSiteText = File('rawsite.current.json').readAsStringSync();
   final existingSiteJson = json.decode(existingSiteText);
   final existingSite = SiteData.fromJson(existingSiteJson);
   existingSite.createdDate = DateTime.now();

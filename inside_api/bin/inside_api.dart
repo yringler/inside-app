@@ -68,7 +68,7 @@ Future<void> _updateLatestLocalCloud(SiteData site) async {
   var newJson = encoder.convert(site);
 
   // If newest is diffirent from current.
-  if (rawContents != newJson || isDebug || true) {
+  if (rawContents != newJson || isDebug) {
     print('update latest');
 
     // Save site as being current.
@@ -86,6 +86,8 @@ Future<void> _updateLatestLocalCloud(SiteData site) async {
       print('in debug mode');
     }
     print('done');
+  } else {
+    print('No change');
   }
 }
 
