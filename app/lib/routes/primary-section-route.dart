@@ -86,12 +86,12 @@ class PrimarySectionsRoute extends StatelessWidget {
                       Text(data?.first.title ?? 'Featured class',
                           style: Theme.of(context)
                               .textTheme
-                              .headline6!
+                              .titleLarge!
                               .copyWith(color: Colors.white)),
                       ElevatedButton(
                           onPressed: onPressed,
                           style:
-                              ElevatedButton.styleFrom(primary: Colors.white),
+                              ElevatedButton.styleFrom(backgroundColor: Colors.white),
                           child: Text(
                             data?.first.buttonText ?? 'Learn More',
                           ))
@@ -113,7 +113,7 @@ class PrimarySectionsRoute extends StatelessWidget {
         child: ElevatedButtonTheme(
           data: ElevatedButtonThemeData(
               style: ElevatedButton.styleFrom(
-                  primary: Colors.black45, onPrimary: Colors.white)),
+                  foregroundColor: Colors.white, backgroundColor: Colors.black45)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -248,7 +248,7 @@ class PrimarySectionsRoute extends StatelessWidget {
               child: Text(primaryInside.title.toUpperCase(),
                   style: TextStyle(
                       color: Colors.white,
-                      fontSize: Theme.of(context).textTheme.headline6!.fontSize,
+                      fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
                       fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 3)),
@@ -279,8 +279,7 @@ class _FullWidthButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-          primary: Colors.grey.shade800,
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5)),
+          foregroundColor: Colors.grey.shade800, padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5)),
       onPressed: onTap,
       child: Row(
         children: [
@@ -326,7 +325,7 @@ class HomepageSection extends StatelessWidget {
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.grey.shade700,
-                  fontSize: Theme.of(context).textTheme.headline6!.fontSize),
+                  fontSize: Theme.of(context).textTheme.titleLarge!.fontSize),
               textScaleFactor: .8,
             ),
           ),

@@ -116,7 +116,7 @@ Map<String, dynamic> _$DailyClassesToJson(_DailyClasses instance) =>
 
 _Featured _$FeaturedFromJson(Map<String, dynamic> json) => _Featured(
       json['title'] as String,
-      json['category'] as int,
+      json['category'] as int?,
       json['image_url'] as String,
       json['button_text'] as String,
     );

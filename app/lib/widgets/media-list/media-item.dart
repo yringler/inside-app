@@ -37,7 +37,7 @@ class MediaItem extends StatelessWidget {
     final style = handler.mediaItem.valueOrNull?.id == media.id
         ? Theme.of(context)
             .textTheme
-            .bodyText2!
+            .bodyMedium!
             .copyWith(fontWeight: FontWeight.bold)
         : null;
 

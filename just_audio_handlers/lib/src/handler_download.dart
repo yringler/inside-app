@@ -99,6 +99,7 @@ abstract class AudioDownloader {
 }
 
 /// Downloader implementation which uses flutter_downloader.
+@pragma('vm:entry-point')
 class FlutterDownloaderAudioDownloader extends AudioDownloader {
   /// Port to recieve all the progress updates from flutter_downloader.
   final ReceivePort _progressPort = ReceivePort();
@@ -223,7 +224,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
   /// download isolate.
   void _onDownloadStatus(data) async {
     final String id = data[0];
-    final DownloadTaskStatus status = data[1];
+    final DownloadTaskStatus status = DownloadTaskStatus.fromInt(data[1]);
     final int progress = data[2];
 
     if (!_idToUrlMap.containsKey(id) ||
@@ -238,6 +239,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
     final currentSubject = _progressMap[_idToUrlMap[id]]!;
 
     currentSubject.add(DownloadTask(
+        allowCellular: true,
         taskId: id,
         status: status,
         progress: progress,
@@ -271,6 +273,7 @@ class FlutterDownloaderAudioDownloader extends AudioDownloader {
         savedDir: '',
         taskId: '',
         timeCreated: 0,
+        allowCellular: true,
         url: uri.toString());
 
     if (tasks?.isEmptyOrNull ?? true) {
@@ -293,11 +296,12 @@ const fullProgressPortName = 'downloader_send_port';
 /// Name of port which just reports when a download is completed.
 const completedDownloadPortName = 'completed_send_port';
 
-void downloadCallback(String id, DownloadTaskStatus status, int progress) {
+@pragma('vm:entry-point')
+void downloadCallback(String id, int status, int progress) {
   IsolateNameServer.lookupPortByName(fullProgressPortName)
       ?.send([id, status, progress]);
 
-  if (status == DownloadTaskStatus.complete) {
+  if (DownloadTaskStatus.fromInt(status) == DownloadTaskStatus.complete) {
     IsolateNameServer.lookupPortByName(completedDownloadPortName)?.send(id);
   }
 }

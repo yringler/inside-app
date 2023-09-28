@@ -3,8 +3,7 @@ import 'dart:io';
 import 'package:inside_api/inside_api.dart';
 import 'package:inside_data/inside_data.dart';
 import 'package:process_run/process_run.dart' as process;
-import 'package:dotenv/dotenv.dart' as dartenv;
-import 'package:dotenv/dotenv.dart' show env;
+import 'package:dotenv/dotenv.dart';
 
 final encoder = JsonEncoder.withIndent('\t');
 late final File currentRawSiteFile;
@@ -13,6 +12,8 @@ const numInvalidMedia = 0;
 const isDebug = false;
 late final String sourceUrl;
 
+final env = DotEnv(includePlatformEnvironment: true)..load();
+
 /// Reads (or queries) all lessons, creates lesson list and uses duration data.
 /// Note that it doesn't compress the site. This allows incremental updates, because
 /// we can be certain that all sections (categories) are present (and haven't been
@@ -20,8 +21,6 @@ late final String sourceUrl;
 /// It than creates a new site JSON, which can be compared with the first and
 /// uploaded to dropbox if it's newer.
 void main(List<String> arguments) async {
-  dartenv.load();
-
   currentRawSiteFile = File('rawsite.current.json');
   sourceUrl = env['sourceUrl']!;
 
@@ -69,7 +68,7 @@ Future<void> _updateLatestLocalCloud(SiteData site) async {
   var newJson = encoder.convert(site);
 
   // If newest is diffirent from current.
-  if (rawContents != newJson || isDebug || true) {
+  if (rawContents != newJson || isDebug) {
     print('update latest');
 
     // Save site as being current.
@@ -87,6 +86,8 @@ Future<void> _updateLatestLocalCloud(SiteData site) async {
       print('in debug mode');
     }
     print('done');
+  } else {
+    print('No change');
   }
 }
 

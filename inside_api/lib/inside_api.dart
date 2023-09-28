@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart';
-import 'package:dotenv/dotenv.dart' show env;
 import 'package:inside_data/inside_data.dart';
+
+final env = DotEnv(includePlatformEnvironment: true)..load();
 
 /// Tell API what the newest version of data is.
 Future<void> notifyApiOfLatest(DateTime date, String version) async {
@@ -35,15 +37,21 @@ Future<void> uploadToDropbox(SiteData site, String dataVersion) async {
       'Dropbox-API-Arg':
           json.encode({'path': dropBoxFile, 'mode': 'overwrite', 'mute': true}),
     })
-    ..bodyBytes = GZipCodec(level: 9).encode(await localFile.readAsBytes());
+    ..bodyBytes =
+        GZipCodec(level: 9).encode(await kludgeGetFile1().readAsBytes());
 
   var response = await request.send();
 
   print(response.reasonPhrase);
 }
 
+// For some reason uploading non-file. Seems that it only has sqlite overhead, not data.
+File kludgeGetFile1() {
+  return File(InsideDatabase.getFilePath('.'));
+}
+
 Future<File> createSqliteFile(SiteData site) async {
-  final dbFile = File(InsideDatabase.getFilePath('.'));
+  final dbFile = kludgeGetFile1();
   final dbFile2 = File(InsideDatabase.getFilePath('.', number: 2));
 
   if (dbFile.existsSync()) {

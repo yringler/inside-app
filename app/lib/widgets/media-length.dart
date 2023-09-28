@@ -16,7 +16,7 @@ class MediaLength extends StatelessWidget {
       media.length != null ? toDurationString(media.length) : ' ',
       style: Theme.of(context)
           .textTheme
-          .bodyText2!
+          .bodyMedium!
           .copyWith(color: Theme.of(context).disabledColor),
     );
   }
