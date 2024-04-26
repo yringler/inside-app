@@ -55,52 +55,21 @@ class PrimarySectionsRoute extends StatelessWidget {
     ];
   }
 
+  static const updateMessage =
+      'This functionality is currently not working.\nStay tuned for an exciting update from Inside Chassidus!\nAn announcment will be made at insidechassidus.org';
+
   Widget _featuredClass(
       {List<FeaturedSectionVerified>? data,
       required BuildContext context,
       required VoidCallback onPressed}) {
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return GestureDetector(
-      onTap: onPressed,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: screenHeight / 3),
-          child: AspectRatio(
-            aspectRatio: 9 / 3,
-            child: Stack(
-              children: [
-                if ((data?.first.imageUrl ?? '').isNotEmpty)
-                  Positioned.fill(
-                    child: CachedNetworkImage(imageUrl: data!.first.imageUrl),
-                  ),
-                Container(
-                  decoration: BoxDecoration(
-                      color: Colors.grey,
-                      backgroundBlendMode: BlendMode.darken),
-                  padding: const EdgeInsets.only(left: 15),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(data?.first.title ?? 'Featured class',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge!
-                              .copyWith(color: Colors.white)),
-                      ElevatedButton(
-                          onPressed: onPressed,
-                          style:
-                              ElevatedButton.styleFrom(backgroundColor: Colors.white),
-                          child: Text(
-                            data?.first.buttonText ?? 'Learn More',
-                          ))
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: screenHeight / 3),
+        child: Text(
+          updateMessage,
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -113,7 +82,8 @@ class PrimarySectionsRoute extends StatelessWidget {
         child: ElevatedButtonTheme(
           data: ElevatedButtonThemeData(
               style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.black45)),
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.black45)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -248,7 +218,8 @@ class PrimarySectionsRoute extends StatelessWidget {
               child: Text(primaryInside.title.toUpperCase(),
                   style: TextStyle(
                       color: Colors.white,
-                      fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
+                      fontSize:
+                          Theme.of(context).textTheme.titleLarge!.fontSize,
                       fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 3)),
@@ -279,7 +250,8 @@ class _FullWidthButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.grey.shade800, padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5)),
+          foregroundColor: Colors.grey.shade800,
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5)),
       onPressed: onTap,
       child: Row(
         children: [
