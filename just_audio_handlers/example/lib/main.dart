@@ -36,9 +36,9 @@ late FlutterDownloaderAudioDownloader _downloader;
 late HivePositionSaver _positionSaver;
 
 const _audioSource1 =
-    'https://insidechassidus.org/wp-content/uploads/48-Which-One-Should-I-Learn-By-Heart.mp4';
+    'https://legacy.insidechassidus.org/wp-content/uploads/48-Which-One-Should-I-Learn-By-Heart.mp4';
 const _audioSource2 =
-    'https://insidechassidus.org/wp-content/uploads/Classes/Life%20Lessons/faith/A_good_world.mp3';
+    'https://legacy.insidechassidus.org/wp-content/uploads/Classes/Life%20Lessons/faith/A_good_world.mp3';
 
 Future<void> main() async {
   await HivePositionSaver.init();

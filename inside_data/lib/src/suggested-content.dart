@@ -89,9 +89,8 @@ class SuggestedContentLoader {
 
   Future<TimelyContent?> _timelyContent() async {
     final responses = await Future.wait([
-      dio.get(
-          'https://insidechassidus.org/wp-json/ics_recurring_api/v1/category'),
-      dio.get('https://insidechassidus.org/wp-json/ics_recurring_api/v1/daily')
+      dio.get('https://$homedomain/wp-json/ics_recurring_api/v1/category'),
+      dio.get('https://$homedomain/wp-json/ics_recurring_api/v1/daily')
     ]);
 
     final timelyResponse = responses[0];
@@ -109,7 +108,7 @@ class SuggestedContentLoader {
 
   Future<List<ContentReference>> _popular() async {
     final popularResponse = await dio.get<List<dynamic>>(
-        'https://insidechassidus.org/wp-json/wordpress-popular-posts/v1/popular-posts');
+        'https://$homedomain/wp-json/wordpress-popular-posts/v1/popular-posts');
 
     if (popularResponse.data == null) {
       return [];
@@ -132,7 +131,7 @@ class SuggestedContentLoader {
 
   Future<List<FeaturedSectionVerified>> _featured() async {
     final featuredResponse = await dio.get<List<dynamic>>(
-        'https://insidechassidus.org/wp-json/ics_slider_api/v1/featured');
+        'https://$homedomain/wp-json/ics_slider_api/v1/featured');
 
     if (featuredResponse.data == null) {
       return [];
